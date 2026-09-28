@@ -21,13 +21,13 @@ non_kebab_case_bins = "allow"
 
 [dependencies]
 libfuzzer-sys = "0.4"
-openid4vci-attestation = { version = "0.1.0", path = "../crates/attestation", default-features = false, features = ["native"] }
-openid4vci-issuer = { version = "0.1.0", path = "../crates/issuer", default-features = false, features = ["native", "identity-jose"] }
-openid4vci-http = { version = "0.1.0", path = "../crates/http", default-features = false, features = ["axum"] }
-openid4vci-proto = { package = "reallyme-openid4vci-proto", version = "0.1.0", path = "../crates/proto", default-features = false, features = ["generated"] }
-openid4vci-proto-codec = { version = "0.1.0", path = "../crates/proto-codec", default-features = false, features = ["native"] }
-openid4vci-types = { package = "reallyme-openid4vci-types", version = "0.1.0", path = "../crates/types", default-features = false }
-reallyme-openid4vci-wallet = { version = "0.1.0", path = "../crates/wallet", default-features = false, features = ["native", "identity-jose"] }
+openid4vci-attestation = { version = "0.1.1", path = "../crates/attestation", default-features = false, features = ["native"] }
+openid4vci-issuer = { version = "0.1.1", path = "../crates/issuer", default-features = false, features = ["native", "identity-jose"] }
+openid4vci-http = { version = "0.1.1", path = "../crates/http", default-features = false, features = ["axum"] }
+openid4vci-proto = { package = "reallyme-openid4vci-proto", version = "0.1.1", path = "../crates/proto", default-features = false, features = ["generated"] }
+openid4vci-proto-codec = { version = "0.1.1", path = "../crates/proto-codec", default-features = false, features = ["native"] }
+openid4vci-types = { package = "reallyme-openid4vci-types", version = "0.1.1", path = "../crates/types", default-features = false }
+reallyme-openid4vci-wallet = { version = "0.1.1", path = "../crates/wallet", default-features = false, features = ["native", "identity-jose"] }
 reallyme-codec = { version = "=0.2.3", features = ["base64url"] }
 reallyme-crypto = { version = "=0.3.9", features = ["native", "p256"] }
 serde_json = "1"

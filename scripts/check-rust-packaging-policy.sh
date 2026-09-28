@@ -26,13 +26,14 @@ require_manifest_text "crates/wallet/Cargo.toml" 'publish = true'
 require_manifest_text "Cargo.toml" 'license = "MIT OR Apache-2.0"'
 require_manifest_text "Cargo.toml" 'package = "reallyme-openid4vci-types"'
 require_manifest_text "Cargo.toml" 'package = "reallyme-openid4vci-proto"'
-require_manifest_text "Cargo.toml" 'reallyme-ssi-proto = { version = "=0.3.3", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-openid-oauth = { version = "=0.3.3", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-openid4vc-profiles = { version = "=0.3.3", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-trust-core = { version = "=0.3.3", default-features = false }'
-require_manifest_text "Cargo.toml" 'envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.3.3", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-mdoc = { version = "=0.3.3", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-revocation = { version = "=0.3.3", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-jose = { version = "=0.4.2", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-ssi-proto = { version = "=0.3.4", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-openid-oauth = { version = "=0.3.4", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-openid4vc-profiles = { version = "=0.3.4", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-trust-core = { version = "=0.3.4", default-features = false }'
+require_manifest_text "Cargo.toml" 'envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.3.4", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-mdoc = { version = "=0.3.4", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-revocation = { version = "=0.3.4", default-features = false }'
 
 if awk '
   index($0, "path = \"../ssi/") { invalid = 1 }
@@ -66,7 +67,7 @@ is_allowed_registry_reallyme_package() {
       [[ "${package_version}" == 0.2.* ]]
       ;;
     reallyme-jose | reallyme-jose-*)
-      [[ "${package_version}" == 0.4.* ]]
+      [[ "${package_version}" == "0.4.2" ]]
       ;;
     reallyme-cose | reallyme-cose-*)
       [[ "${package_version}" == 0.2.* ]]
@@ -74,7 +75,7 @@ is_allowed_registry_reallyme_package() {
     reallyme-credential-status | reallyme-mdoc | reallyme-openid-oauth | \
       reallyme-openid4vc-profiles | reallyme-revocation | reallyme-ssi-proto | \
       reallyme-trust-core | reallyme-trust-x509)
-      [[ "${package_version}" == "0.3.3" ]]
+      [[ "${package_version}" == "0.3.4" ]]
       ;;
     *)
       return 1

@@ -12,9 +12,9 @@
 use openid4vci_types::{CredentialResponse, CredentialResponseEncryption};
 use reallyme_jose::jwe::{
     decrypt_compact_jwe_bytes, encrypt_compact_jwe_bytes, CompactJweEncryptRequest,
-    CompactJwePolicy, CompactJweProtectedHeader, JweContentEncryptionAlgorithm,
-    JweContentEncryptionKeyResolver, JweError, JweKeyManagementAlgorithm,
-    P256EcdhEsJweKeyEncryptor, P256EcdhEsJweKeyResolver,
+    CompactJwePolicy, CompactJweProtectedHeader, JweCompressionAlgorithm,
+    JweContentEncryptionAlgorithm, JweContentEncryptionKeyResolver, JweError,
+    JweKeyManagementAlgorithm, P256EcdhEsJweKeyEncryptor, P256EcdhEsJweKeyResolver,
 };
 #[cfg(feature = "native")]
 use reallyme_jose::jwe::{
@@ -37,7 +37,6 @@ use jwk::{
 #[cfg(feature = "native")]
 use jwk::{CURVE_P384, CURVE_P521, P384_COORDINATE_BYTES, P521_COORDINATE_BYTES};
 
-mod compressed_response;
 mod jwk;
 
 const JWE_ALG_ECDH_ES: &str = "ECDH-ES";
@@ -111,18 +110,10 @@ impl CredentialResponseEncryptor for JoseJweCredentialResponseEncryptor {
         if plaintext.len() > MAX_CREDENTIAL_RESPONSE_JWE_PLAINTEXT_BYTES {
             return Err(IssuerError::new(IssuerStatus::EncodingFailed));
         }
-        if encryption.zip.as_deref() == Some(JWE_COMPRESSION_DEFLATE) {
-            let mut rng = reallyme_crypto::csprng::OsSecureRandom;
-            let compact = compressed_response::encrypt_deflated_response(
-                &plaintext,
-                enc,
-                encryption.jwk.as_value(),
-                kid,
-                &mut rng,
-            )?;
-            return EncryptedCredentialResponse::new(compact);
-        }
         let mut request = CompactJweEncryptRequest::new(&plaintext, enc);
+        if encryption.zip.as_deref() == Some(JWE_COMPRESSION_DEFLATE) {
+            request = request.with_compression(JweCompressionAlgorithm::Deflate);
+        }
         if let Some(kid) = kid {
             request = request.with_kid(kid);
         }

@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-issuer"
-version = "0.1.0"
+version = "0.1.1"
 description = "Transport-agnostic OpenID4VCI issuer endpoint engine."
 edition.workspace = true
 rust-version.workspace = true
@@ -29,7 +29,6 @@ wasm = [
     "reallyme-jose?/wasm",
 ]
 identity-jose = [
-    "dep:flate2",
     "dep:reallyme-jose",
     "reallyme-crypto/ed25519",
 ]
@@ -38,7 +37,6 @@ identity-jose = [
 openid4vci-attestation = { workspace = true }
 reallyme-codec = { workspace = true, features = ["base64url", "jcs"] }
 openid4vci-types = { workspace = true }
-flate2 = { workspace = true, optional = true }
 p256 = { workspace = true }
 p384 = { workspace = true, optional = true }
 p521 = { workspace = true, optional = true }

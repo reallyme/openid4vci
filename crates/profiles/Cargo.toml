@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-profiles"
-version = "0.1.0"
+version = "0.1.1"
 description = "OpenID4VCI profile constants and policy surfaces."
 edition.workspace = true
 rust-version.workspace = true

@@ -16,7 +16,7 @@ on:
         description: Release version without a leading v
         required: true
         type: string
-        default: 0.1.0
+        default: 0.1.1
 
 concurrency:
   group: crates-package-preflight-${{ inputs.version }}-${{ github.sha }}

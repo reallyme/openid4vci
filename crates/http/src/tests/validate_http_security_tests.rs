@@ -15,8 +15,8 @@ use reallyme_openid_oauth::{
 use serde_json::{json, Value};
 
 use super::{
-    absolute_target_uri, is_token68, validate_dpop_proof, validate_http_security,
-    HttpSecurityError, HttpSecurityValidation, IssuerHttpSecurityConfig,
+    absolute_target_uri, is_token68, validate_http_security, HttpSecurityError,
+    HttpSecurityValidation, IssuerHttpSecurityConfig,
 };
 use crate::serve_oauth::OAuthHttpErrorReason;
 use crate::serve_oauth::OAuthHttpResult;
@@ -180,8 +180,7 @@ fn dpop_validation_ignores_query_and_fragment_in_htu() -> Result<(), OauthError>
     let proof = DpopProof::new(jwt.as_str().to_owned())?;
     let confirmed_jkt = jwk_thumbprint(&public_jwk)?;
 
-    validate_dpop_proof(
-        &proof,
+    proof.validate(
         &DpopValidationContext {
             method: "POST".to_owned(),
             target_uri: "https://issuer.example/credential".to_owned(),

@@ -4,7 +4,7 @@
 
 [package]
 name = "reallyme-openid4vci-wallet"
-version = "0.1.0"
+version = "0.1.1"
 description = "Wallet-side OpenID4VCI request builders and validation helpers."
 edition.workspace = true
 rust-version.workspace = true

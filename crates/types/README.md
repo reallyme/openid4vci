@@ -17,7 +17,7 @@ closed. Errors use fixed typed reason codes and do not retain untrusted input.
 Add the crate from crates.io with:
 
 ```sh
-cargo add reallyme-openid4vci-types@0.1.0
+cargo add reallyme-openid4vci-types@0.1.1
 ```
 
 Licensed under either the MIT License or the Apache License, Version 2.0.

@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-conformance"
-version = "0.1.0"
+version = "0.1.1"
 description = "Machine-readable OpenID4VCI conformance vector harness."
 edition.workspace = true
 rust-version.workspace = true

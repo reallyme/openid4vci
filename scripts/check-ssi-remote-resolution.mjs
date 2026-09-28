@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const manifest = readFileSync(resolve(root, "Cargo.toml"), "utf8");
-const requiredVersion = "0.3.3";
+const requiredVersion = "0.3.4";
 const cratesIoSource = "registry+https://github.com/rust-lang/crates.io-index";
 const requiredDependencies = [
   { dependencyName: "reallyme-mdoc", packageName: "reallyme-mdoc" },

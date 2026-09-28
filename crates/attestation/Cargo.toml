@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-attestation"
-version = "0.1.0"
+version = "0.1.1"
 description = "Key attestation and wallet attestation models for OpenID4VCI."
 edition.workspace = true
 rust-version.workspace = true

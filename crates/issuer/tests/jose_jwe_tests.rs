@@ -17,8 +17,8 @@ use openid4vci_types::{
 use reallyme_codec::base64url::{base64url_to_bytes, bytes_to_base64url};
 use reallyme_jose::jwe::{
     decrypt_compact_jwe_json, encrypt_compact_jwe_bytes, CompactJweEncryptRequest,
-    CompactJwePolicy, JweContentEncryptionAlgorithm, P256EcdhEsJweKeyEncryptor,
-    P256EcdhEsJweKeyResolver,
+    CompactJwePolicy, JweCompressionAlgorithm, JweContentEncryptionAlgorithm,
+    JweKeyManagementAlgorithm, P256EcdhEsJweKeyEncryptor, P256EcdhEsJweKeyResolver,
 };
 use serde_json::{json, Value};
 
@@ -113,7 +113,7 @@ fn jose_jwe_request_decryptor_rejects_wrong_kid() -> IssuerResult<()> {
 #[test]
 fn jose_jwe_response_encryptor_applies_deflate_compression() -> IssuerResult<()> {
     let recipient_secret = private_scalar(11);
-    let (recipient_public, _recipient_private) =
+    let (recipient_public, recipient_private) =
         reallyme_crypto::p256::generate_p256_keypair_from_secret_key(&recipient_secret)
             .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
     let response = CredentialResponse::immediate(
@@ -140,6 +140,19 @@ fn jose_jwe_response_encryptor_applies_deflate_compression() -> IssuerResult<()>
         .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
 
     assert_eq!(protected.get("zip").and_then(Value::as_str), Some("DEF"));
+    const COMPRESSION: [JweCompressionAlgorithm; 1] = [JweCompressionAlgorithm::Deflate];
+    let policy = CompactJwePolicy::new(
+        &[JweKeyManagementAlgorithm::EcdhEs],
+        &[JweContentEncryptionAlgorithm::A128Gcm],
+    )
+    .with_allowed_compression_algorithms(&COMPRESSION);
+    let decoded: CredentialResponse = decrypt_compact_jwe_json(
+        encrypted.as_str(),
+        &policy,
+        &P256EcdhEsJweKeyResolver::new(&recipient_private),
+    )
+    .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
+    assert_eq!(decoded, response);
     Ok(())
 }
 

@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-proto-codec"
-version = "0.1.0"
+version = "0.1.1"
 description = "Bounded protobuf codecs and typed OpenID4VCI domain conversions."
 edition.workspace = true
 rust-version.workspace = true
