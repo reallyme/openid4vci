@@ -11,6 +11,17 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
 
 const script = fileURLToPath(new URL("./publish-crates-in-order.mjs", import.meta.url));
+const publicPackages = Object.freeze([
+  "reallyme-openid4vci-proto",
+  "reallyme-openid4vci-types",
+  "openid4vci-attestation",
+  "reallyme-openid4vci-wallet",
+  "openid4vci-profiles",
+  "openid4vci-issuer",
+  "openid4vci-proto-codec",
+  "openid4vci-http",
+  "reallyme-openid4vci",
+]);
 
 function runFixture({ mode = "publish", scenario = "success", requirement = "^0.2.2", version = "0.2.2" } = {}) {
   const directory = mkdtempSync(join(tmpdir(), "openid4vci-publish-test-"));
@@ -22,11 +33,7 @@ function runFixture({ mode = "publish", scenario = "success", requirement = "^0.
     const publicationLedgerPath = join(directory, "publication-ledger.json");
     mkdirSync(packageDirectory);
     mkdirSync(reviewedDirectory);
-    for (const name of [
-      "reallyme-openid4vci-proto",
-      "reallyme-openid4vci-types",
-      "reallyme-openid4vci-wallet",
-    ]) {
+    for (const name of publicPackages) {
       const archive = `${name}-${version}.crate`;
       writeFileSync(join(packageDirectory, archive), `reviewed:${archive}`);
       writeFileSync(join(reviewedDirectory, archive), `reviewed:${archive}`);
@@ -61,13 +68,44 @@ childProcess.spawnSync = (command, args) => {
   if (args[0] === "metadata") return { ...ok, stdout: JSON.stringify({
     target_directory: ${JSON.stringify(directory)},
     packages: [
+      { name: "reallyme-openid4vci-proto", version: ${JSON.stringify(version)}, publish: null,
+        dependencies: [] },
       { name: "reallyme-openid4vci-types", version: ${JSON.stringify(version)}, publish: null,
         dependencies: [] },
-      { name: "reallyme-openid4vci-proto", version: ${JSON.stringify(version)}, publish: null,
+      { name: "openid4vci-attestation", version: ${JSON.stringify(version)}, publish: null,
         dependencies: [] },
       { name: "reallyme-openid4vci-wallet", version: ${JSON.stringify(version)}, publish: null,
         dependencies: [{ name: "reallyme-openid4vci-types", source: null, path: "crates/types",
           kind: null, req: ${JSON.stringify(requirement)} }] },
+      { name: "openid4vci-profiles", version: ${JSON.stringify(version)}, publish: null,
+        dependencies: [{ name: "openid4vci-types", package: "reallyme-openid4vci-types",
+          source: null, path: "crates/types", kind: null, req: ${JSON.stringify(requirement)} }] },
+      { name: "openid4vci-issuer", version: ${JSON.stringify(version)}, publish: null,
+        dependencies: [
+          { name: "openid4vci-attestation", source: null, path: "crates/attestation",
+            kind: null, req: ${JSON.stringify(requirement)} },
+          { name: "openid4vci-types", package: "reallyme-openid4vci-types",
+            source: null, path: "crates/types", kind: null, req: ${JSON.stringify(requirement)} },
+        ] },
+      { name: "openid4vci-proto-codec", version: ${JSON.stringify(version)}, publish: null,
+        dependencies: [
+          { name: "openid4vci-attestation", source: null, path: "crates/attestation", kind: null, req: ${JSON.stringify(requirement)} },
+          { name: "reallyme-openid4vci-wallet", source: null, path: "crates/wallet", kind: null, req: ${JSON.stringify(requirement)} },
+          { name: "openid4vci-issuer", source: null, path: "crates/issuer", kind: null, req: ${JSON.stringify(requirement)} },
+          { name: "openid4vci-profiles", source: null, path: "crates/profiles", kind: null, req: ${JSON.stringify(requirement)} },
+          { name: "openid4vci-proto", package: "reallyme-openid4vci-proto", source: null, path: "crates/proto", kind: null, req: ${JSON.stringify(requirement)} },
+          { name: "openid4vci-types", package: "reallyme-openid4vci-types", source: null, path: "crates/types", kind: null, req: ${JSON.stringify(requirement)} },
+        ] },
+      { name: "openid4vci-http", version: ${JSON.stringify(version)}, publish: null,
+        dependencies: [
+          { name: "openid4vci-proto-codec", source: null, path: "crates/proto-codec", kind: null, req: ${JSON.stringify(requirement)} },
+          { name: "openid4vci-types", package: "reallyme-openid4vci-types", source: null, path: "crates/types", kind: null, req: ${JSON.stringify(requirement)} },
+        ] },
+      { name: "reallyme-openid4vci", version: ${JSON.stringify(version)}, publish: null,
+        dependencies: [
+          { name: "openid4vci-http", source: null, path: "crates/http", kind: null, req: ${JSON.stringify(requirement)} },
+          { name: "openid4vci-proto-codec", source: null, path: "crates/proto-codec", kind: null, req: ${JSON.stringify(requirement)} },
+        ] },
     ],
   }) };
   if (args[0] === "package") return ok;
@@ -122,11 +160,11 @@ test("successful publication respects dependency order", () => {
   const result = runFixture();
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(result.calls.filter((call) => call[1] === "publish").map((call) => call[3]),
-    ["reallyme-openid4vci-types", "reallyme-openid4vci-proto", "reallyme-openid4vci-wallet"]);
+    publicPackages);
   assert.equal(result.ledger.state, "completed");
   assert.deepEqual(
     result.ledger.crates.map((crate) => crate.state),
-    ["published", "published", "published"],
+    publicPackages.map(() => "published"),
   );
   assert.ok(result.ledger.crates.every((crate) => /^[0-9a-f]{64}$/u.test(crate.archive_sha256)));
 });
@@ -136,26 +174,22 @@ test("package inspection isolates targets and skips duplicate verification build
   assert.equal(result.status, 0, result.stderr);
 
   const checks = result.calls.filter((call) => call[0] === "cargo" && call[1] === "check");
-  assert.equal(checks.length, 3);
+  assert.equal(checks.length, publicPackages.length);
   const targetDirectories = checks.map((call) => {
     const targetIndex = call.indexOf("--target-dir");
     assert.notEqual(targetIndex, -1);
     return call[targetIndex + 1];
   });
-  assert.equal(new Set(targetDirectories).size, 3);
+  assert.equal(new Set(targetDirectories).size, publicPackages.length);
   assert.deepEqual(
     targetDirectories.map((directory) => directory.split("/").at(-1)),
-    [
-      "reallyme-openid4vci-types",
-      "reallyme-openid4vci-proto",
-      "reallyme-openid4vci-wallet",
-    ],
+    publicPackages,
   );
 
   const dryRuns = result.calls.filter(
     (call) => call[0] === "cargo" && call[1] === "publish",
   );
-  assert.equal(dryRuns.length, 3);
+  assert.equal(dryRuns.length, publicPackages.length);
   assert.ok(dryRuns.every((call) => call.includes("--dry-run")));
   assert.ok(dryRuns.every((call) => call.includes("--no-verify")));
 
@@ -163,30 +197,23 @@ test("package inspection isolates targets and skips duplicate verification build
     (call) =>
       call[0] === "cargo" && (call[1] === "fetch" || call[1] === "update"),
   );
-  assert.deepEqual(
-    resolutionCalls.map((call) => call[1]),
-    ["fetch", "fetch", "update", "fetch"],
-  );
-  const patchConfigs = resolutionCalls.map((call) =>
-    call
-      .filter((argument) => argument.startsWith("patch.crates-io."))
-      .map((argument) => argument.match(/^patch\.crates-io\.'([^']+)'\.path=/u)?.[1]),
-  );
-  assert.deepEqual(patchConfigs, [
-    [],
-    [],
-    ["reallyme-openid4vci-types"],
-    ["reallyme-openid4vci-types"],
-  ]);
-  assert.ok(!resolutionCalls[2].includes("--offline"));
-  assert.deepEqual(
-    resolutionCalls[2].slice(
-      resolutionCalls[2].indexOf("-p"),
-      resolutionCalls[2].indexOf("-p") + 2,
+  const fetches = resolutionCalls.filter((call) => call[1] === "fetch");
+  const updates = resolutionCalls.filter((call) => call[1] === "update");
+  assert.equal(fetches.length, publicPackages.length);
+  assert.ok(fetches.every((call) => call.includes("--locked")));
+  assert.ok(updates.length > 0);
+  assert.ok(updates.every((call) => !call.includes("--offline")));
+  assert.ok(
+    resolutionCalls.every((call) =>
+      call
+        .filter((argument) => argument.startsWith("patch.crates-io."))
+        .every((argument) =>
+          publicPackages.includes(
+            argument.match(/^patch\.crates-io\.'([^']+)'\.path=/u)?.[1],
+          ),
+        ),
     ),
-    ["-p", "reallyme-openid4vci-types"],
   );
-  assert.ok(resolutionCalls[3].includes("--locked"));
 });
 
 test("rate-limit exhaustion fails without publishing dependent crates", () => {
@@ -194,12 +221,12 @@ test("rate-limit exhaustion fails without publishing dependent crates", () => {
   assert.equal(result.status, 101);
   const publishes = result.calls.filter((call) => call[1] === "publish");
   assert.equal(publishes.length, 12);
-  assert.ok(publishes.every((call) => call[3] === "reallyme-openid4vci-types"));
+  assert.ok(publishes.every((call) => call[3] === "reallyme-openid4vci-proto"));
   assert.equal(result.calls.filter((call) => call[0] === "wait").length, 11);
   assert.equal(result.ledger.state, "in_progress");
   assert.deepEqual(
     result.ledger.crates.map((crate) => crate.state),
-    ["attempting", "pending", "pending"],
+    ["attempting", ...publicPackages.slice(1).map(() => "pending")],
   );
 });
 
@@ -241,7 +268,7 @@ test("non-retryable publication errors fail immediately", () => {
   assert.equal(result.ledger.state, "in_progress");
   assert.deepEqual(
     result.ledger.crates.map((crate) => crate.state),
-    ["attempting", "pending", "pending"],
+    ["attempting", ...publicPackages.slice(1).map(() => "pending")],
   );
 });
 

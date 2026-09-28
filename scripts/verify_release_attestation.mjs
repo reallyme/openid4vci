@@ -17,7 +17,7 @@ const VERSION_PATTERN = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*
 const PREFLIGHT_WORKFLOW = "crates-package-preflight.yml";
 const PREFLIGHT_PATH = `.github/workflows/${PREFLIGHT_WORKFLOW}`;
 const PREFLIGHT_TITLE = "Crates package preflight";
-const ATTESTATION_SCHEMA = "reallyme.openid4vci.crates_preflight.v4";
+const ATTESTATION_SCHEMA = "reallyme.openid4vci.crates_preflight.v5";
 const DEFAULT_ATTESTATION_PATH = "release-attestation/crates-preflight.json";
 const DEFAULT_CRATE_DIRECTORY = "release-attestation/crates";
 const MAX_COMMAND_OUTPUT_BYTES = 1_048_576;
@@ -43,9 +43,15 @@ const PREREQUISITE_KEYS = Object.freeze([
 ]);
 const CRATE_DIGEST_PATTERN = /^[0-9a-f]{64}$/u;
 const PUBLIC_CRATE_FILES = Object.freeze([
-  "reallyme-openid4vci-wallet-{version}.crate",
   "reallyme-openid4vci-proto-{version}.crate",
   "reallyme-openid4vci-types-{version}.crate",
+  "openid4vci-attestation-{version}.crate",
+  "reallyme-openid4vci-wallet-{version}.crate",
+  "openid4vci-profiles-{version}.crate",
+  "openid4vci-issuer-{version}.crate",
+  "openid4vci-proto-codec-{version}.crate",
+  "openid4vci-http-{version}.crate",
+  "reallyme-openid4vci-{version}.crate",
 ]);
 
 export class ReleaseAttestationError extends Error {

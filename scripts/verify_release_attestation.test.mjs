@@ -27,11 +27,17 @@ const expected = Object.freeze({
   releaseVersion: "0.2.1",
 });
 const attestation = (overrides = {}) => ({
-  schema: "reallyme.openid4vci.crates_preflight.v4",
+  schema: "reallyme.openid4vci.crates_preflight.v5",
   crates: [
-    { file: "reallyme-openid4vci-wallet-0.2.1.crate", sha256: "1".repeat(64), size: 101 },
-    { file: "reallyme-openid4vci-proto-0.2.1.crate", sha256: "2".repeat(64), size: 102 },
-    { file: "reallyme-openid4vci-types-0.2.1.crate", sha256: "3".repeat(64), size: 103 },
+    { file: "reallyme-openid4vci-proto-0.2.1.crate", sha256: "1".repeat(64), size: 101 },
+    { file: "reallyme-openid4vci-types-0.2.1.crate", sha256: "2".repeat(64), size: 102 },
+    { file: "openid4vci-attestation-0.2.1.crate", sha256: "3".repeat(64), size: 103 },
+    { file: "reallyme-openid4vci-wallet-0.2.1.crate", sha256: "4".repeat(64), size: 104 },
+    { file: "openid4vci-profiles-0.2.1.crate", sha256: "5".repeat(64), size: 105 },
+    { file: "openid4vci-issuer-0.2.1.crate", sha256: "6".repeat(64), size: 106 },
+    { file: "openid4vci-proto-codec-0.2.1.crate", sha256: "7".repeat(64), size: 107 },
+    { file: "openid4vci-http-0.2.1.crate", sha256: "8".repeat(64), size: 108 },
+    { file: "reallyme-openid4vci-0.2.1.crate", sha256: "9".repeat(64), size: 109 },
   ],
   prerequisites: {
     fuzz: 201,

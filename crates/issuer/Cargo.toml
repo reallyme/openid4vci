@@ -10,7 +10,18 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-publish = false
+documentation = "https://docs.rs/openid4vci-issuer"
+categories = ["authentication", "web-programming"]
+keywords = ["openid4vci", "issuer", "credentials", "identity"]
+publish = true
+include = [
+    "/src/**/*.rs",
+    "/tests/**/*",
+    "/Cargo.toml",
+    "/README.md",
+    "/LICENSE-MIT",
+    "/LICENSE-APACHE",
+]
 
 [features]
 default = ["native"]

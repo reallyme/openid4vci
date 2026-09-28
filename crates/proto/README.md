@@ -9,10 +9,9 @@ hardened for Debug redaction, strict unknown-field rejection, and clear/drop
 zeroization. The crate packages the source schemas and language-neutral
 ProtoJSON/protobuf fixtures consumed by `reallyme/identity` platform tests.
 
-The source workspace's `openid4vci-proto-codec` crate owns bounded decoding of
-untrusted protobuf and ProtoJSON input. It is intentionally not a crates.io
-package. Registry consumers must provide an equivalent bounded validation
-boundary rather than decoding untrusted input directly with this message crate.
+The separately published `openid4vci-proto-codec` crate owns bounded decoding
+of untrusted protobuf and ProtoJSON input. Consumers should pair that codec
+with this message crate rather than decoding untrusted input directly.
 
 The codec exposes ProtoJSON only for a sealed allowlist of generated
 `reallyme.openid4vci.v1` messages. Successful binary and ProtoJSON encodes return

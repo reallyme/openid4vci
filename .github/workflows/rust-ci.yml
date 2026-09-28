@@ -222,7 +222,13 @@ jobs:
         working-directory: openid4vci
         run: >-
           cargo +1.96.0 check --locked
-          -p reallyme-openid4vci-types
           -p reallyme-openid4vci-proto
+          -p reallyme-openid4vci-types
+          -p openid4vci-attestation
           -p reallyme-openid4vci-wallet
+          -p openid4vci-profiles
+          -p openid4vci-issuer
+          -p openid4vci-proto-codec
+          -p openid4vci-http
+          -p reallyme-openid4vci
           --all-features

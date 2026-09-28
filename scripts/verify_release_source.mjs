@@ -12,9 +12,15 @@ const VERSION_PATTERN = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*
 const MAX_COMMAND_OUTPUT_BYTES = 1_048_576;
 const MAX_MANIFEST_BYTES = 65_536;
 const PUBLISHABLE_MANIFESTS = Object.freeze([
-  "crates/types/Cargo.toml",
   "crates/proto/Cargo.toml",
+  "crates/types/Cargo.toml",
+  "crates/attestation/Cargo.toml",
   "crates/wallet/Cargo.toml",
+  "crates/profiles/Cargo.toml",
+  "crates/issuer/Cargo.toml",
+  "crates/proto-codec/Cargo.toml",
+  "crates/http/Cargo.toml",
+  "crates/openid4vci/Cargo.toml",
 ]);
 
 export class ReleaseSourceError extends Error {

@@ -38,11 +38,11 @@ WebAssembly environments.
 
 Application developers should normally use
 [ReallyMe Identity](https://github.com/reallyme/identity). For direct access to
-the validated OpenID4VCI wire model, add the public types crate:
+the Rust protocol stack, add the public facade:
 
 ```toml
 [dependencies]
-reallyme-openid4vci-types = "0.1"
+reallyme-openid4vci = "0.1"
 ```
 
 The parser treats a Credential Offer as untrusted input, enforces the final
@@ -50,7 +50,7 @@ specification's structural and URL requirements, and returns a typed error on
 failure:
 
 ```rust
-use reallyme_openid4vci_types::{CredentialOffer, OpenId4VciResult};
+use reallyme_openid4vci::types::{CredentialOffer, OpenId4VciResult};
 
 fn main() -> OpenId4VciResult<()> {
     let offer = CredentialOffer::parse_json(
@@ -65,7 +65,8 @@ fn main() -> OpenId4VciResult<()> {
 ```
 
 Use `reallyme-openid4vci-wallet` when the application needs the wallet-side
-offer, metadata, proof, request, encryption, and deferred-flow boundaries.
+offer, metadata, proof, request, encryption, and deferred-flow boundaries
+without the complete facade.
 
 ## Capabilities
 
@@ -142,7 +143,10 @@ Wasm instances.
 | Validate or generate OpenID4VCI wire documents | Use `reallyme-openid4vci-types`. |
 | Integrate the wallet-side protocol boundary directly | Use `reallyme-openid4vci-wallet`; application developers should normally start with ReallyMe Identity. |
 | Integrate the canonical protobuf contract | Use `reallyme-openid4vci-proto`. |
-| Develop issuer behavior, profiles, or adapters | Check out this repository; these components are source-available workspace crates rather than crates.io packages. |
+| Integrate issuer behavior directly | Use `openid4vci-issuer`. |
+| Select HAIP or EUDI PID policy | Use `openid4vci-profiles`. |
+| Add bounded protobuf conversions | Use `openid4vci-proto-codec`. |
+| Add the HTTP framing boundary | Use `openid4vci-http`. |
 
 Released dependencies resolve from crates.io; a sibling checkout is not
 required.
@@ -172,13 +176,18 @@ The crates.io publication surface contains exactly these packages:
 
 | Package | Purpose |
 | --- | --- |
-| [`reallyme-openid4vci-types`](https://crates.io/crates/reallyme-openid4vci-types) | Validated OpenID4VCI 1.0 wire types and protocol errors. |
 | [`reallyme-openid4vci-proto`](https://crates.io/crates/reallyme-openid4vci-proto) | Canonical generated protobuf and ProtoJSON contract. |
+| [`reallyme-openid4vci-types`](https://crates.io/crates/reallyme-openid4vci-types) | Validated OpenID4VCI 1.0 wire types and protocol errors. |
+| [`openid4vci-attestation`](https://crates.io/crates/openid4vci-attestation) | Wallet-attestation and key-attestation models and validation. |
 | [`reallyme-openid4vci-wallet`](https://crates.io/crates/reallyme-openid4vci-wallet) | Wallet-side request construction, validation, metadata resolution, proofs, and encrypted credential handling. |
+| [`openid4vci-profiles`](https://crates.io/crates/openid4vci-profiles) | HAIP and EUDI PID profile policy. |
+| [`openid4vci-issuer`](https://crates.io/crates/openid4vci-issuer) | Transport-independent issuer endpoint behavior. |
+| [`openid4vci-proto-codec`](https://crates.io/crates/openid4vci-proto-codec) | Bounded conversions between domain and protobuf models. |
+| [`openid4vci-http`](https://crates.io/crates/openid4vci-http) | Feature-gated HTTP framing adapters. |
+| [`reallyme-openid4vci`](https://crates.io/crates/reallyme-openid4vci) | Feature-gated facade over the supported protocol stack. |
 
 The release tooling rejects any additional publishable workspace crate. The
-facade, issuer engine, attestation, profile policy, codecs, HTTP adapters, and
-conformance harness remain available as source but are not crates.io packages.
+conformance harness remains repository-only and is never published.
 
 ## Conformance
 

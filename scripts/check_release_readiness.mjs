@@ -619,7 +619,13 @@ assertAbsent("conformance/fixtures/oidf/reallyme-identity-v1-mdoc-iaca.pem");
 for (const readme of [
   "crates/proto/README.md",
   "crates/types/README.md",
+  "crates/attestation/README.md",
   "crates/wallet/README.md",
+  "crates/profiles/README.md",
+  "crates/issuer/README.md",
+  "crates/proto-codec/README.md",
+  "crates/http/README.md",
+  "crates/openid4vci/README.md",
 ]) {
   assertNotContains(readme, "not yet available from crates.io");
 }
@@ -765,6 +771,16 @@ assertWorkflowJobContains(
   "msrv",
   "-p reallyme-openid4vci-wallet",
 );
+for (const packageName of [
+  "openid4vci-attestation",
+  "openid4vci-profiles",
+  "openid4vci-issuer",
+  "openid4vci-proto-codec",
+  "openid4vci-http",
+  "reallyme-openid4vci",
+]) {
+  assertWorkflowJobContains(rustCiWorkflow, "msrv", `-p ${packageName}`);
+}
 const releaseVersionMatch = readText("crates/proto/Cargo.toml").match(
   /^version = "([^"]+)"$/m,
 );
@@ -963,9 +979,30 @@ assertWorkflowJobContains(
 );
 assertWorkflowJobContains(
   cratesReleaseWorkflow,
+  "verify-preflight",
+  'test "$archive_count" -eq 9',
+);
+assertWorkflowJobContains(
+  cratesReleaseWorkflow,
   "finalize",
   '"reallyme-openid4vci-wallet-${RELEASE_VERSION}.crate"',
 );
+for (const packageName of [
+  "reallyme-openid4vci-proto",
+  "reallyme-openid4vci-types",
+  "openid4vci-attestation",
+  "openid4vci-profiles",
+  "openid4vci-issuer",
+  "openid4vci-proto-codec",
+  "openid4vci-http",
+  "reallyme-openid4vci",
+]) {
+  assertWorkflowJobContains(
+    cratesReleaseWorkflow,
+    "finalize",
+    `"${packageName}-\${RELEASE_VERSION}.crate"`,
+  );
+}
 assertWorkflowJobContains(
   cratesReleaseWorkflow,
   "finalize",
@@ -1012,7 +1049,19 @@ assertContains(
   'combined.includes("failed to select a version for the requirement")',
 );
 assertContains("scripts/verify_release_source.mjs", "main:refs/remotes/origin/main");
-assertContains("scripts/verify_release_source.mjs", '"crates/wallet/Cargo.toml"');
+for (const manifest of [
+  "crates/proto/Cargo.toml",
+  "crates/types/Cargo.toml",
+  "crates/attestation/Cargo.toml",
+  "crates/wallet/Cargo.toml",
+  "crates/profiles/Cargo.toml",
+  "crates/issuer/Cargo.toml",
+  "crates/proto-codec/Cargo.toml",
+  "crates/http/Cargo.toml",
+  "crates/openid4vci/Cargo.toml",
+]) {
+  assertContains("scripts/verify_release_source.mjs", `"${manifest}"`);
+}
 assertContains("scripts/verify_release_attestation.mjs", "value.run_attempt !== 1");
 assertContains("scripts/verify_release_attestation.mjs", "preflight-run-id-changed");
 assertContains(
@@ -1021,7 +1070,7 @@ assertContains(
 );
 assertContains(
   "scripts/write_release_attestation.mjs",
-  "reallyme.openid4vci.crates_preflight.v4",
+  "reallyme.openid4vci.crates_preflight.v5",
 );
 assertContains(
   "scripts/publish-crates-in-order.mjs",

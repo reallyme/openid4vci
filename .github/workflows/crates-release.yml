@@ -115,7 +115,7 @@ jobs:
               --deny-self-hosted-runners
             archive_count=$((archive_count + 1))
           done
-          test "$archive_count" -eq 3
+          test "$archive_count" -eq 9
           node scripts/verify_release_attestation.mjs
 
   publish:
@@ -213,7 +213,13 @@ jobs:
             echo
             echo "- [reallyme-openid4vci-proto ${RELEASE_VERSION}](https://crates.io/crates/reallyme-openid4vci-proto/${RELEASE_VERSION})"
             echo "- [reallyme-openid4vci-types ${RELEASE_VERSION}](https://crates.io/crates/reallyme-openid4vci-types/${RELEASE_VERSION})"
+            echo "- [openid4vci-attestation ${RELEASE_VERSION}](https://crates.io/crates/openid4vci-attestation/${RELEASE_VERSION})"
             echo "- [reallyme-openid4vci-wallet ${RELEASE_VERSION}](https://crates.io/crates/reallyme-openid4vci-wallet/${RELEASE_VERSION})"
+            echo "- [openid4vci-profiles ${RELEASE_VERSION}](https://crates.io/crates/openid4vci-profiles/${RELEASE_VERSION})"
+            echo "- [openid4vci-issuer ${RELEASE_VERSION}](https://crates.io/crates/openid4vci-issuer/${RELEASE_VERSION})"
+            echo "- [openid4vci-proto-codec ${RELEASE_VERSION}](https://crates.io/crates/openid4vci-proto-codec/${RELEASE_VERSION})"
+            echo "- [openid4vci-http ${RELEASE_VERSION}](https://crates.io/crates/openid4vci-http/${RELEASE_VERSION})"
+            echo "- [reallyme-openid4vci ${RELEASE_VERSION}](https://crates.io/crates/reallyme-openid4vci/${RELEASE_VERSION})"
           } >> "$GITHUB_STEP_SUMMARY"
 
   prepare-source-release:
@@ -269,7 +275,7 @@ jobs:
             --draft \
             --target "$RELEASE_SHA" \
             --title "$RELEASE_TAG" \
-            --notes $'- initial crates.io release of the OpenID4VCI protocol types, protobuf contract, and wallet-side protocol engine'
+            --notes $'- OpenID4VCI protocol crate release'
 
   finalize:
     name: Finalize GitHub release
@@ -332,7 +338,13 @@ jobs:
             crates-publication-ledger.json
             "reallyme-openid4vci-proto-${RELEASE_VERSION}.crate"
             "reallyme-openid4vci-types-${RELEASE_VERSION}.crate"
+            "openid4vci-attestation-${RELEASE_VERSION}.crate"
             "reallyme-openid4vci-wallet-${RELEASE_VERSION}.crate"
+            "openid4vci-profiles-${RELEASE_VERSION}.crate"
+            "openid4vci-issuer-${RELEASE_VERSION}.crate"
+            "openid4vci-proto-codec-${RELEASE_VERSION}.crate"
+            "openid4vci-http-${RELEASE_VERSION}.crate"
+            "reallyme-openid4vci-${RELEASE_VERSION}.crate"
           )
           is_draft="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')"
           if [[ "$is_draft" == 'false' ]]; then

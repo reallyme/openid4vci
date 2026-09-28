@@ -8,16 +8,21 @@ codecs, optional HTTP framing, and protocol conformance fixtures.
 
 - `reallyme-openid4vci-types` owns validated OpenID4VCI wire and domain types.
 - `reallyme-openid4vci-proto` owns generated, versioned protobuf messages.
+- `openid4vci-attestation` owns wallet- and key-attestation models and validation.
 - `reallyme-openid4vci-wallet` owns wallet-side protocol construction and validation.
+- `openid4vci-profiles` owns HAIP and EUDI PID profile policy.
+- `openid4vci-issuer` owns transport-independent issuer endpoint behavior.
+- `openid4vci-proto-codec` owns bounded domain/protobuf conversion.
+- `openid4vci-http` owns optional HTTP framing adapters.
+- `reallyme-openid4vci` owns the thin, feature-gated Rust composition surface.
 
 Released versions are distributed through crates.io and documented on docs.rs.
 
 ## Private composition boundaries
 
-The facade, issuer engine, profile policy, protobuf codec, conformance harness,
-and HTTP adapter are workspace components rather than independently supported
-registry packages. Applications should compose them through the ReallyMe
-Identity SDK or through an explicitly reviewed host integration.
+The conformance harness and repository policy tooling are not registry
+packages. Platform SDKs, FFI, JNI, and the composed Wasm package remain in
+ReallyMe Identity rather than this protocol repository.
 
 HTTP adapters must authenticate access tokens and authorize credential,
 deferred-transaction, and notification identifiers before invoking the issuer

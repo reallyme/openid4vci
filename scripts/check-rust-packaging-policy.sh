@@ -17,12 +17,24 @@ require_manifest_text() {
   fi
 }
 
-require_manifest_text "crates/types/Cargo.toml" 'name = "reallyme-openid4vci-types"'
-require_manifest_text "crates/types/Cargo.toml" 'publish = true'
 require_manifest_text "crates/proto/Cargo.toml" 'name = "reallyme-openid4vci-proto"'
 require_manifest_text "crates/proto/Cargo.toml" 'publish = true'
+require_manifest_text "crates/types/Cargo.toml" 'name = "reallyme-openid4vci-types"'
+require_manifest_text "crates/types/Cargo.toml" 'publish = true'
+require_manifest_text "crates/attestation/Cargo.toml" 'name = "openid4vci-attestation"'
+require_manifest_text "crates/attestation/Cargo.toml" 'publish = true'
 require_manifest_text "crates/wallet/Cargo.toml" 'name = "reallyme-openid4vci-wallet"'
 require_manifest_text "crates/wallet/Cargo.toml" 'publish = true'
+require_manifest_text "crates/profiles/Cargo.toml" 'name = "openid4vci-profiles"'
+require_manifest_text "crates/profiles/Cargo.toml" 'publish = true'
+require_manifest_text "crates/issuer/Cargo.toml" 'name = "openid4vci-issuer"'
+require_manifest_text "crates/issuer/Cargo.toml" 'publish = true'
+require_manifest_text "crates/proto-codec/Cargo.toml" 'name = "openid4vci-proto-codec"'
+require_manifest_text "crates/proto-codec/Cargo.toml" 'publish = true'
+require_manifest_text "crates/http/Cargo.toml" 'name = "openid4vci-http"'
+require_manifest_text "crates/http/Cargo.toml" 'publish = true'
+require_manifest_text "crates/openid4vci/Cargo.toml" 'name = "reallyme-openid4vci"'
+require_manifest_text "crates/openid4vci/Cargo.toml" 'publish = true'
 require_manifest_text "Cargo.toml" 'license = "MIT OR Apache-2.0"'
 require_manifest_text "Cargo.toml" 'package = "reallyme-openid4vci-types"'
 require_manifest_text "Cargo.toml" 'package = "reallyme-openid4vci-proto"'
@@ -44,14 +56,7 @@ if awk '
   status=1
 fi
 
-for private_manifest in \
-  conformance/Cargo.toml \
-  crates/attestation/Cargo.toml \
-  crates/http/Cargo.toml \
-  crates/issuer/Cargo.toml \
-  crates/openid4vci/Cargo.toml \
-  crates/profiles/Cargo.toml \
-  crates/proto-codec/Cargo.toml; do
+for private_manifest in conformance/Cargo.toml; do
   require_manifest_text "${private_manifest}" 'publish = false'
 done
 
@@ -217,7 +222,16 @@ for required_path in \
   require_packaged_file "${types_package_listing}" "reallyme-openid4vci-types" "${required_path}"
 done
 
-for package_directory in crates/proto crates/types; do
+for package_directory in \
+  crates/proto \
+  crates/types \
+  crates/attestation \
+  crates/wallet \
+  crates/profiles \
+  crates/issuer \
+  crates/proto-codec \
+  crates/http \
+  crates/openid4vci; do
   for legal_file in LICENSE-MIT LICENSE-APACHE; do
     if ! cmp -s "${legal_file}" "${package_directory}/${legal_file}"; then
       printf '%s\n' "error: ${package_directory}/${legal_file} differs from repository ${legal_file}" >&2

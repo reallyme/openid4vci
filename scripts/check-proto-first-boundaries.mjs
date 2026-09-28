@@ -106,7 +106,7 @@ rejectText("Cargo.toml", "connectrpc");
 rejectText("crates/proto/Cargo.toml", "connectrpc");
 requireText("Cargo.toml", '"crates/proto-codec"');
 requireText("crates/proto-codec/Cargo.toml", 'name = "openid4vci-proto-codec"');
-requireText("crates/proto-codec/Cargo.toml", "publish = false");
+requireText("crates/proto-codec/Cargo.toml", "publish = true");
 requireText("crates/types/Cargo.toml", 'name = "reallyme-openid4vci-types"');
 requireText("crates/types/Cargo.toml", "publish = true");
 requireText("crates/proto/Cargo.toml", 'name = "reallyme-openid4vci-proto"');
@@ -234,7 +234,7 @@ for (const domainManifest of [
 rejectText("crates/proto-codec/Cargo.toml", "openid4vci-http");
 rejectText("crates/proto-codec/Cargo.toml", "axum");
 requireText("crates/http/Cargo.toml", 'name = "openid4vci-http"');
-requireText("crates/http/Cargo.toml", "publish = false");
+requireText("crates/http/Cargo.toml", "publish = true");
 requireText("crates/http/Cargo.toml", "openid4vci-proto-codec");
 rejectText("crates/http/Cargo.toml", "openid4vci-runtime");
 rejectText("crates/openid4vci/Cargo.toml", "openid4vci-runtime");

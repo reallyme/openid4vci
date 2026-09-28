@@ -14,9 +14,15 @@ const OUTPUT_DIRECTORY = "release-attestation";
 const OUTPUT_PATH = `${OUTPUT_DIRECTORY}/crates-preflight.json`;
 const PACKAGE_DIRECTORY = "target/package";
 const PUBLIC_PACKAGES = Object.freeze([
-  "reallyme-openid4vci-wallet",
   "reallyme-openid4vci-proto",
   "reallyme-openid4vci-types",
+  "openid4vci-attestation",
+  "reallyme-openid4vci-wallet",
+  "openid4vci-profiles",
+  "openid4vci-issuer",
+  "openid4vci-proto-codec",
+  "openid4vci-http",
+  "reallyme-openid4vci",
 ]);
 const PREREQUISITE_RUNS = Object.freeze({
   fuzz: "FUZZ_RUN_ID",
@@ -77,7 +83,7 @@ const crates = PUBLIC_PACKAGES.map((name) => {
 });
 
 const attestation = {
-  schema: "reallyme.openid4vci.crates_preflight.v4",
+  schema: "reallyme.openid4vci.crates_preflight.v5",
   crates,
   prerequisites: Object.fromEntries(
     Object.entries(PREREQUISITE_RUNS).map(([name, environmentName]) => [

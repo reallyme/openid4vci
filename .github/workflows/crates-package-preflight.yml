@@ -203,6 +203,6 @@ jobs:
             echo
             echo "- Version: \`${RELEASE_VERSION}\`"
             echo "- Commit: \`${RELEASE_SHA}\`"
-            echo "- Publish set: \`reallyme-openid4vci-proto\`, \`reallyme-openid4vci-types\`, and \`reallyme-openid4vci-wallet\`"
+            echo "- Publish set: all nine approved OpenID4VCI crates"
             echo "- Attestation run ID: \`${GITHUB_RUN_ID}\`"
           } >> "$GITHUB_STEP_SUMMARY"

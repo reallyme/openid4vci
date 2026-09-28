@@ -10,7 +10,13 @@ import { fileURLToPath } from "node:url";
 export const PUBLIC_CRATES = Object.freeze([
   "reallyme-openid4vci-proto",
   "reallyme-openid4vci-types",
+  "openid4vci-attestation",
   "reallyme-openid4vci-wallet",
+  "openid4vci-profiles",
+  "openid4vci-issuer",
+  "openid4vci-proto-codec",
+  "openid4vci-http",
+  "reallyme-openid4vci",
 ]);
 
 const REGISTRY_LOOKUP_FAILURE =

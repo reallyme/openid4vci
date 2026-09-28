@@ -10,8 +10,18 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-publish = false
-include = ["/src/**/*.rs", "/tests/**/*.rs", "/Cargo.toml", "/README.md"]
+documentation = "https://docs.rs/reallyme-openid4vci"
+categories = ["authentication", "web-programming"]
+keywords = ["openid4vci", "credentials", "issuer", "wallet", "identity"]
+publish = true
+include = [
+    "/src/**/*.rs",
+    "/tests/**/*.rs",
+    "/Cargo.toml",
+    "/README.md",
+    "/LICENSE-MIT",
+    "/LICENSE-APACHE",
+]
 
 [features]
 default = [

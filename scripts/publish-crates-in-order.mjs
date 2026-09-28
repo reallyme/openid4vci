@@ -19,10 +19,27 @@ const CRATES_IO_ARCHIVE_VERIFY_MAX_SECONDS = "180";
 const APPROVED_PUBLIC_PACKAGES = new Set([
   "reallyme-openid4vci-proto",
   "reallyme-openid4vci-types",
+  "openid4vci-attestation",
   "reallyme-openid4vci-wallet",
+  "openid4vci-profiles",
+  "openid4vci-issuer",
+  "openid4vci-proto-codec",
+  "openid4vci-http",
+  "reallyme-openid4vci",
 ]);
 const REQUIRED_PUBLISH_ORDER_EDGES = [
   ["reallyme-openid4vci-types", "reallyme-openid4vci-wallet"],
+  ["reallyme-openid4vci-types", "openid4vci-profiles"],
+  ["openid4vci-attestation", "openid4vci-issuer"],
+  ["reallyme-openid4vci-types", "openid4vci-issuer"],
+  ["reallyme-openid4vci-proto", "openid4vci-proto-codec"],
+  ["openid4vci-attestation", "openid4vci-proto-codec"],
+  ["reallyme-openid4vci-wallet", "openid4vci-proto-codec"],
+  ["openid4vci-profiles", "openid4vci-proto-codec"],
+  ["openid4vci-issuer", "openid4vci-proto-codec"],
+  ["openid4vci-proto-codec", "openid4vci-http"],
+  ["openid4vci-http", "reallyme-openid4vci"],
+  ["openid4vci-proto-codec", "reallyme-openid4vci"],
 ];
 const args = process.argv.slice(2);
 const mode = args[0] ?? MODE_INSPECT;
@@ -282,8 +299,11 @@ function visit(pkg) {
   ordered.push(pkg);
 }
 
-for (const pkg of publishable.values()) {
-  visit(pkg);
+for (const packageName of APPROVED_PUBLIC_PACKAGES) {
+  const pkg = publishable.get(packageName);
+  if (pkg !== undefined) {
+    visit(pkg);
+  }
 }
 
 console.log(`Publish order (${ordered.length} crates):`);
