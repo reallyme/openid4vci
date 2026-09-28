@@ -72,6 +72,13 @@ fn metadata_and_endpoint_policy_share_key_attestation_requirements(
 
     assert!(proof.key_attestations_required.is_some());
     let policy = super::configure::key_attestation_policy()?;
-    assert_eq!(policy.accepted_algorithms.len(), 1);
+    assert_eq!(
+        policy,
+        openid4vci_issuer::KeyAttestationLocalPolicy::new(
+            super::run::KEY_ATTESTATION_MAX_AGE_SECONDS,
+            super::run::KEY_ATTESTATION_ALLOWED_CLOCK_SKEW_SECONDS,
+        )
+        .map_err(|_| ExampleIssuerError::InvalidMetadata)?
+    );
     Ok(())
 }

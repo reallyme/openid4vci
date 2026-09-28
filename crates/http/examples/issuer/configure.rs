@@ -122,7 +122,7 @@ pub(super) fn response_encryption_metadata() -> CredentialResponseEncryptionMeta
     CredentialResponseEncryptionMetadata {
         alg_values_supported: Some(vec!["ECDH-ES".to_owned()]),
         enc_values_supported: Some(supported_jwe_content_encryption_algorithms()),
-        zip_values_supported: None,
+        zip_values_supported: Some(vec!["DEF".to_owned()]),
         encryption_required: false,
     }
 }

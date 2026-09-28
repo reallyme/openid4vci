@@ -133,7 +133,9 @@ const reviewedCalls = new Map([
   ],
   ["crates/http/src/respond_holder_harness.rs", ["to_vec"]],
   ["crates/http/src/serve_oauth.rs", ["to_string"]],
+  ["crates/http/src/validate_http_security.rs", ["to_value"]],
   ["crates/issuer/src/encrypt_jwe.rs", ["to_vec"]],
+  ["crates/issuer/src/encrypt_jwe/compressed_response.rs", ["to_vec"]],
   [
     "crates/issuer/src/jose.rs",
     ["from_value", "from_value", "to_value"],

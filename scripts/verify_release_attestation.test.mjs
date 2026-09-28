@@ -27,7 +27,7 @@ const expected = Object.freeze({
   releaseVersion: "0.2.1",
 });
 const attestation = (overrides = {}) => ({
-  schema: "reallyme.openid4vci.crates_preflight.v3",
+  schema: "reallyme.openid4vci.crates_preflight.v4",
   crates: [
     { file: "reallyme-openid4vci-wallet-0.2.1.crate", sha256: "1".repeat(64), size: 101 },
     { file: "reallyme-openid4vci-proto-0.2.1.crate", sha256: "2".repeat(64), size: 102 },
@@ -35,7 +35,6 @@ const attestation = (overrides = {}) => ({
   ],
   prerequisites: {
     fuzz: 201,
-    oidf_conformance: 202,
     protobuf_ci: 203,
     rust_ci: 204,
   },
@@ -94,7 +93,6 @@ test("attestation rejects mismatched inputs and unreviewed fields", () => {
     attestation({ prerequisites: { fuzz: 201 } }),
     attestation({ prerequisites: {
       fuzz: 201,
-      oidf_conformance: 202,
       protobuf_ci: 203,
       rust_ci: 0,
     } }),

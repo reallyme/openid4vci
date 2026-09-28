@@ -260,13 +260,13 @@ if ! kill -0 "$issuer_pid" >/dev/null 2>&1; then
   exit 70
 fi
 
-metadata_url="${issuer_healthcheck_base_url%/}/.well-known/openid-credential-issuer"
-if ! check_issuer_endpoint "$metadata_url" >/dev/null; then
-  echo "example issuer metadata endpoint is not reachable" >&2
+authorization_server_metadata_url="${issuer_healthcheck_base_url%/}/.well-known/oauth-authorization-server"
+if ! check_issuer_endpoint "$authorization_server_metadata_url" >/dev/null; then
+  echo "example authorization server metadata endpoint is not reachable" >&2
   exit 70
 fi
 
-scoped_metadata_url="${issuer_healthcheck_base_url%/}/.well-known/openid-credential-issuer/openid4vci/example-issuer"
+scoped_metadata_url="${issuer_healthcheck_base_url%/}/.well-known/openid-credential-issuer/openid4vci/example-issuer/"
 if ! check_issuer_endpoint "$scoped_metadata_url" >/dev/null; then
   echo "example issuer path-scoped metadata endpoint is not reachable" >&2
   exit 70

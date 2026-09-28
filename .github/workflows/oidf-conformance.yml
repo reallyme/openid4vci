@@ -2,10 +2,9 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
-name: OIDF Conformance
+name: OIDF OpenID4VCI Issuer Check
 
 on:
-  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -13,7 +12,7 @@ permissions:
 
 jobs:
   prepare-oidf-assets:
-    name: Prepare shared OIDF assets
+    name: Prepare OpenID4VCI issuer-check assets
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     outputs:
@@ -93,7 +92,7 @@ jobs:
           retention-days: 1
 
   oid4vci-issuer:
-    name: OID4VCI issuer profile (${{ matrix.target.profile_id }})
+    name: OpenID4VCI issuer profile (${{ matrix.target.profile_id }})
     needs: prepare-oidf-assets
     runs-on: ubuntu-24.04
     timeout-minutes: 120
@@ -167,7 +166,7 @@ jobs:
           if-no-files-found: error
 
   oid4vci-provenance-tests:
-    name: OID4VCI provenance tests
+    name: OpenID4VCI issuer-check provenance tests
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:

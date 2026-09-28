@@ -5,8 +5,8 @@
 //! Batch credential binding tests for the deployable issuer example.
 
 use openid4vci_issuer::{
-    CredentialIssuer, IssuanceAuthorization, IssuanceOutcome, IssuerError, IssuerResult,
-    IssuerStatus, ProofKind, VerifiedProof, VerifiedProofSet,
+    ConfirmationJwk, CredentialIssuer, IssuanceAuthorization, IssuanceOutcome, IssuerError,
+    IssuerResult, IssuerStatus, ProofAlgorithm, ProofKind, VerifiedProof, VerifiedProofSet,
 };
 use openid4vci_types::{CredentialPayload, CredentialRequest, Proofs};
 use reallyme_codec::base64url::base64url_to_bytes;
@@ -28,15 +28,13 @@ fn batch_credentials_bind_to_the_corresponding_distinct_proof_keys() -> IssuerRe
         }),
         credential_response_encryption: None,
     };
-    let verified = VerifiedProofSet {
-        binding_key_count: 2,
-        includes_key_attestation: false,
-        key_attestations: Vec::new(),
-        proofs: vec![
-            verified_proof(first_jwk.clone()),
-            verified_proof(second_jwk.clone()),
+    let verified = VerifiedProofSet::new(
+        vec![
+            verified_proof(first_jwk.clone())?,
+            verified_proof(second_jwk.clone())?,
         ],
-    };
+        Vec::new(),
+    )?;
 
     let authorization =
         IssuanceAuthorization::new("pid".to_owned(), "subject-1".to_owned(), [7_u8; 32])?;
@@ -68,16 +66,20 @@ fn batch_credentials_bind_to_the_corresponding_distinct_proof_keys() -> IssuerRe
     Ok(())
 }
 
-fn verified_proof(public_jwk: Value) -> VerifiedProof {
-    VerifiedProof {
-        kind: ProofKind::Jwt,
-        nonce: Some("nonce".to_owned()),
-        audience: Some("https://issuer.example/".to_owned()),
-        key_binding_id: None,
-        key_id: None,
-        public_jwk: Some(public_jwk),
-        confirmation_key: None,
-    }
+fn verified_proof(public_jwk: Value) -> IssuerResult<VerifiedProof> {
+    VerifiedProof::new(
+        ProofKind::Jwt,
+        Some("nonce".to_owned()),
+        Some("https://issuer.example/".to_owned()),
+        None,
+        None,
+        Some(public_jwk),
+        Some(ConfirmationJwk {
+            algorithm: ProofAlgorithm::Es256,
+            public_key: vec![0x04; 65],
+            key_id: None,
+        }),
+    )
 }
 
 fn credential_binding_key(credential: &CredentialPayload) -> IssuerResult<Value> {

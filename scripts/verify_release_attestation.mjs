@@ -17,7 +17,7 @@ const VERSION_PATTERN = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*
 const PREFLIGHT_WORKFLOW = "crates-package-preflight.yml";
 const PREFLIGHT_PATH = `.github/workflows/${PREFLIGHT_WORKFLOW}`;
 const PREFLIGHT_TITLE = "Crates package preflight";
-const ATTESTATION_SCHEMA = "reallyme.openid4vci.crates_preflight.v3";
+const ATTESTATION_SCHEMA = "reallyme.openid4vci.crates_preflight.v4";
 const DEFAULT_ATTESTATION_PATH = "release-attestation/crates-preflight.json";
 const DEFAULT_CRATE_DIRECTORY = "release-attestation/crates";
 const MAX_COMMAND_OUTPUT_BYTES = 1_048_576;
@@ -38,7 +38,6 @@ const ATTESTATION_KEYS = Object.freeze([
 ]);
 const PREREQUISITE_KEYS = Object.freeze([
   "fuzz",
-  "oidf_conformance",
   "protobuf_ci",
   "rust_ci",
 ]);

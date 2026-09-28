@@ -165,7 +165,7 @@ test("package inspection isolates targets and skips duplicate verification build
   );
   assert.deepEqual(
     resolutionCalls.map((call) => call[1]),
-    ["fetch", "fetch", "update"],
+    ["fetch", "fetch", "update", "fetch"],
   );
   const patchConfigs = resolutionCalls.map((call) =>
     call
@@ -176,8 +176,9 @@ test("package inspection isolates targets and skips duplicate verification build
     [],
     [],
     ["reallyme-openid4vci-types"],
+    ["reallyme-openid4vci-types"],
   ]);
-  assert.ok(resolutionCalls[2].includes("--offline"));
+  assert.ok(!resolutionCalls[2].includes("--offline"));
   assert.deepEqual(
     resolutionCalls[2].slice(
       resolutionCalls[2].indexOf("-p"),
@@ -185,6 +186,7 @@ test("package inspection isolates targets and skips duplicate verification build
     ),
     ["-p", "reallyme-openid4vci-types"],
   );
+  assert.ok(resolutionCalls[3].includes("--locked"));
 });
 
 test("rate-limit exhaustion fails without publishing dependent crates", () => {

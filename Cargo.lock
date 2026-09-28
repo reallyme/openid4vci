@@ -1788,6 +1788,7 @@ dependencies = [
 name = "openid4vci-issuer"
 version = "0.1.0"
 dependencies = [
+ "flate2",
  "openid4vci-attestation",
  "p256",
  "p384",

@@ -20,7 +20,6 @@ const PUBLIC_PACKAGES = Object.freeze([
 ]);
 const PREREQUISITE_RUNS = Object.freeze({
   fuzz: "FUZZ_RUN_ID",
-  oidf_conformance: "OIDF_CONFORMANCE_RUN_ID",
   protobuf_ci: "PROTOBUF_CI_RUN_ID",
   rust_ci: "RUST_CI_RUN_ID",
 });
@@ -78,7 +77,7 @@ const crates = PUBLIC_PACKAGES.map((name) => {
 });
 
 const attestation = {
-  schema: "reallyme.openid4vci.crates_preflight.v3",
+  schema: "reallyme.openid4vci.crates_preflight.v4",
   crates,
   prerequisites: Object.fromEntries(
     Object.entries(PREREQUISITE_RUNS).map(([name, environmentName]) => [

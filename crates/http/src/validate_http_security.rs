@@ -10,11 +10,14 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use axum::http::header::AUTHORIZATION;
 use axum::http::{HeaderMap, Uri};
 use openid4vci_types::{ProblemDetails, ProblemType};
+use reallyme_codec::base64url::bytes_to_base64url;
+use reallyme_crypto::operations::constant_time::equal as constant_time_equal;
 use reallyme_openid_oauth::{
-    validate_attestation_client_authentication, AttestationClientAuthentication,
+    jwk_thumbprint, jwt::decode_compact_jwt, validate_attestation_client_authentication,
+    validation::normalize_uri_without_query_or_fragment, AttestationClientAuthentication,
     AttestationClientAuthenticationValidationContext, AttestationClientAuthenticationVerifier,
-    DpopProof, DpopValidationContext, DpopVerifier, OauthError, Reason,
-    VerifiedAttestationClientAuthentication, OAUTH_CLIENT_ATTESTATION_HEADER,
+    CompactJwt, DpopClaims, DpopHeader, DpopProof, DpopValidationContext, DpopVerifier, OauthError,
+    Reason, VerifiedAttestationClientAuthentication, OAUTH_CLIENT_ATTESTATION_HEADER,
     OAUTH_CLIENT_ATTESTATION_POP_HEADER,
 };
 
@@ -190,20 +193,20 @@ pub(crate) fn validate_http_security(
         let confirmed_jkt = validated_access_token
             .confirmed_jkt()
             .ok_or(HttpSecurityError::InvalidAccessToken)?;
-        proof
-            .validate(
-                &DpopValidationContext {
-                    method: "POST".to_owned(),
-                    target_uri: absolute_target_uri(validation.issuer, validation.uri)?,
-                    access_token: Some(access_token.as_str().to_owned()),
-                    nonce: dpop_config.nonce.clone(),
-                    earliest_iat,
-                    latest_iat,
-                    confirmed_jkt: Some(confirmed_jkt.to_owned()),
-                },
-                verifier.as_ref(),
-            )
-            .map_err(oauth_problem)?;
+        validate_dpop_proof(
+            &proof,
+            &DpopValidationContext {
+                method: "POST".to_owned(),
+                target_uri: absolute_target_uri(validation.issuer, validation.uri)?,
+                access_token: Some(access_token.as_str().to_owned()),
+                nonce: dpop_config.nonce.clone(),
+                earliest_iat,
+                latest_iat,
+                confirmed_jkt: Some(confirmed_jkt.to_owned()),
+            },
+            verifier.as_ref(),
+        )
+        .map_err(oauth_problem)?;
     }
     if let Some(attestation_config) = &config.wallet_attestation {
         let verifier = validation
@@ -246,6 +249,86 @@ pub(crate) fn validate_http_security(
 fn dpop_proof_from_headers(headers: &HeaderMap) -> Result<DpopProof, ProblemDetails> {
     let value = header_value(headers, DPOP_HEADER)?;
     DpopProof::new(value.to_owned()).map_err(oauth_problem)
+}
+
+/// Validates a DPoP proof while applying RFC 9449 section 4.3(9) before URL
+/// policy validation.
+///
+/// The OAuth substrate performs the same checks, but version 0.3.3 validates
+/// fragments as prohibited URL input before removing them for `htu`
+/// comparison. The RFC instead requires the receiver to ignore query and
+/// fragment components for this comparison. Keeping the complete validation
+/// here avoids weakening any signature, replay, token-hash, or key-binding
+/// check while accepting every `htu` wire form permitted by the RFC.
+fn validate_dpop_proof(
+    proof: &DpopProof,
+    context: &DpopValidationContext,
+    verifier: &dyn DpopVerifier,
+) -> Result<(), OauthError> {
+    let jwt = CompactJwt::new(proof.as_str().to_owned())?;
+    let (header, claims, signature): (DpopHeader, DpopClaims, Vec<u8>) = decode_compact_jwt(&jwt)?;
+    header.validate()?;
+    claims.validate()?;
+    if !claims.htm.eq_ignore_ascii_case(&context.method) {
+        return Err(OauthError::new(Reason::InvalidDpopProof));
+    }
+    let expected_htu = normalize_dpop_htu(&context.target_uri)?;
+    let observed_htu = normalize_dpop_htu(&claims.htu)?;
+    if observed_htu != expected_htu {
+        return Err(OauthError::new(Reason::InvalidDpopProof));
+    }
+    if let Some(expected_nonce) = &context.nonce {
+        if claims
+            .nonce
+            .as_ref()
+            .is_none_or(|nonce| !constant_time_equal(nonce.as_bytes(), expected_nonce.as_bytes()))
+        {
+            return Err(OauthError::new(Reason::InvalidDpopProof));
+        }
+    }
+    if let Some(access_token) = &context.access_token {
+        let Some(confirmed_jkt) = &context.confirmed_jkt else {
+            return Err(OauthError::new(Reason::InvalidDpopProof));
+        };
+        let expected_ath =
+            bytes_to_base64url(reallyme_crypto::sha2::digest(access_token.as_bytes()).as_bytes());
+        if claims
+            .ath
+            .as_deref()
+            .is_none_or(|ath| !constant_time_equal(ath.as_bytes(), expected_ath.as_bytes()))
+        {
+            return Err(OauthError::new(Reason::InvalidDpopProof));
+        }
+        let proof_jkt = jwk_thumbprint(&header.jwk)?;
+        if !constant_time_equal(proof_jkt.as_bytes(), confirmed_jkt.as_bytes()) {
+            return Err(OauthError::new(Reason::InvalidDpopProof));
+        }
+    } else if let Some(confirmed_jkt) = &context.confirmed_jkt {
+        let proof_jkt = jwk_thumbprint(&header.jwk)?;
+        if !constant_time_equal(proof_jkt.as_bytes(), confirmed_jkt.as_bytes()) {
+            return Err(OauthError::new(Reason::InvalidDpopProof));
+        }
+    }
+    if claims.iat < context.earliest_iat || claims.iat > context.latest_iat {
+        return Err(OauthError::new(Reason::InvalidDpopProof));
+    }
+    let header_value =
+        serde_json::to_value(&header).map_err(|_| OauthError::new(Reason::InvalidJson))?;
+    let (signing_input, _) = jwt.signing_parts()?;
+    verifier.verify_signature(&header_value, signing_input.as_bytes(), &signature)?;
+    verifier.check_replay(&claims.jti, claims.iat)
+}
+
+fn normalize_dpop_htu(value: &str) -> Result<String, OauthError> {
+    let component_start = value
+        .char_indices()
+        .find_map(|(index, character)| matches!(character, '?' | '#').then_some(index))
+        .unwrap_or(value.len());
+    let without_query_or_fragment = value
+        .get(..component_start)
+        .ok_or(OauthError::new(Reason::InvalidDpopProof))?;
+    normalize_uri_without_query_or_fragment(without_query_or_fragment)
+        .map_err(|_| OauthError::new(Reason::InvalidDpopProof))
 }
 
 pub(crate) fn authorization_token(

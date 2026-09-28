@@ -76,6 +76,11 @@ fn oidf_runner_requires_exported_result_artifacts() {
     assert!(runner.contains("OPENID4VCI_OAUTH_PRIMARY_REDIRECT_URI"));
     assert!(runner.contains("OPENID4VCI_OAUTH_SECONDARY_REDIRECT_URI"));
     assert!(runner.contains("OPENID4VCI_OAUTH_SECONDARY_ALTERNATE_REDIRECT_URI"));
+    assert!(runner.contains("/.well-known/oauth-authorization-server"));
+    assert!(runner.contains("/.well-known/openid-credential-issuer/openid4vci/example-issuer/"));
+    assert!(
+        !runner.contains("issuer_healthcheck_base_url%/}/.well-known/openid-credential-issuer\"")
+    );
     assert!(browser_driver.contains("redirect_to"));
     assert!(browser_driver.contains("implicit_submit"));
     assert!(browser_driver.contains("credential_offer_endpoint"));

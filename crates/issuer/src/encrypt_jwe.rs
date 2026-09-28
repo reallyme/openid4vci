@@ -37,9 +37,11 @@ use jwk::{
 #[cfg(feature = "native")]
 use jwk::{CURVE_P384, CURVE_P521, P384_COORDINATE_BYTES, P521_COORDINATE_BYTES};
 
+mod compressed_response;
 mod jwk;
 
 const JWE_ALG_ECDH_ES: &str = "ECDH-ES";
+const JWE_COMPRESSION_DEFLATE: &str = "DEF";
 /// Maximum cleartext Credential Response passed to a JWE provider.
 ///
 /// This is intentionally below the compact response cap because base64url and
@@ -69,7 +71,11 @@ impl JoseJweCredentialResponseEncryptor {
 
 impl CredentialResponseEncryptor for JoseJweCredentialResponseEncryptor {
     fn validate_parameters(&self, encryption: &CredentialResponseEncryption) -> IssuerResult<()> {
-        if encryption.zip.is_some() {
+        if encryption
+            .zip
+            .as_deref()
+            .is_some_and(|zip| zip != JWE_COMPRESSION_DEFLATE)
+        {
             return Err(IssuerError::new(IssuerStatus::InvalidEncryptionParameters));
         }
         let _ = content_encryption_algorithm(&encryption.enc)?;
@@ -104,6 +110,17 @@ impl CredentialResponseEncryptor for JoseJweCredentialResponseEncryptor {
         );
         if plaintext.len() > MAX_CREDENTIAL_RESPONSE_JWE_PLAINTEXT_BYTES {
             return Err(IssuerError::new(IssuerStatus::EncodingFailed));
+        }
+        if encryption.zip.as_deref() == Some(JWE_COMPRESSION_DEFLATE) {
+            let mut rng = reallyme_crypto::csprng::OsSecureRandom;
+            let compact = compressed_response::encrypt_deflated_response(
+                &plaintext,
+                enc,
+                encryption.jwk.as_value(),
+                kid,
+                &mut rng,
+            )?;
+            return EncryptedCredentialResponse::new(compact);
         }
         let mut request = CompactJweEncryptRequest::new(&plaintext, enc);
         if let Some(kid) = kid {

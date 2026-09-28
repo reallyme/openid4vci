@@ -7,10 +7,16 @@
 use std::sync::Arc;
 
 use axum::http::{header::AUTHORIZATION, HeaderMap, Uri};
+use reallyme_codec::base64url::bytes_to_base64url;
+use reallyme_openid_oauth::{
+    jwk_thumbprint, jwt::sign_compact_jwt, DpopProof, DpopValidationContext, DpopVerifier,
+    JwtSigner, OauthError,
+};
+use serde_json::{json, Value};
 
 use super::{
-    absolute_target_uri, is_token68, validate_http_security, HttpSecurityError,
-    HttpSecurityValidation, IssuerHttpSecurityConfig,
+    absolute_target_uri, is_token68, validate_dpop_proof, validate_http_security,
+    HttpSecurityError, HttpSecurityValidation, IssuerHttpSecurityConfig,
 };
 use crate::serve_oauth::OAuthHttpErrorReason;
 use crate::serve_oauth::OAuthHttpResult;
@@ -19,6 +25,33 @@ use crate::validate_access_token::{
 };
 
 struct DpopBoundTokenValidator;
+
+struct AcceptingDpopVerifier;
+
+impl JwtSigner for AcceptingDpopVerifier {
+    fn algorithm(&self) -> &str {
+        "ES256"
+    }
+
+    fn sign(&self, signing_input: &[u8]) -> Result<Vec<u8>, OauthError> {
+        Ok(signing_input.to_vec())
+    }
+}
+
+impl DpopVerifier for AcceptingDpopVerifier {
+    fn verify_signature(
+        &self,
+        _protected_header: &Value,
+        _signing_input: &[u8],
+        _signature: &[u8],
+    ) -> Result<(), OauthError> {
+        Ok(())
+    }
+
+    fn check_replay(&self, _jti: &str, _iat: i64) -> Result<(), OauthError> {
+        Ok(())
+    }
+}
 
 #[test]
 fn validated_access_token_retains_client_and_confirmation_binding() {
@@ -125,4 +158,39 @@ fn dpop_target_preserves_encoded_path_octets_and_excludes_query() {
             Ok("https://issuer.example/tenant/%63redential")
         ));
     }
+}
+
+#[test]
+fn dpop_validation_ignores_query_and_fragment_in_htu() -> Result<(), OauthError> {
+    let verifier = AcceptingDpopVerifier;
+    let access_token = "access-token";
+    let public_jwk = json!({"kty":"EC","crv":"P-256","x":"x","y":"y"});
+    let ath = bytes_to_base64url(reallyme_crypto::sha2::digest(access_token.as_bytes()).as_bytes());
+    let jwt = sign_compact_jwt(
+        &json!({"typ":"dpop+jwt","alg":"ES256","jwk":public_jwk}),
+        &json!({
+            "jti":"proof-with-components",
+            "htm":"POST",
+            "htu":"https://issuer.example/credential?ignored=true#ignored",
+            "iat":1_700_000_000_i64,
+            "ath":ath
+        }),
+        &verifier,
+    )?;
+    let proof = DpopProof::new(jwt.as_str().to_owned())?;
+    let confirmed_jkt = jwk_thumbprint(&public_jwk)?;
+
+    validate_dpop_proof(
+        &proof,
+        &DpopValidationContext {
+            method: "POST".to_owned(),
+            target_uri: "https://issuer.example/credential".to_owned(),
+            access_token: Some(access_token.to_owned()),
+            nonce: None,
+            earliest_iat: 1_699_999_990,
+            latest_iat: 1_700_000_010,
+            confirmed_jkt: Some(confirmed_jkt),
+        },
+        &verifier,
+    )
 }

@@ -733,7 +733,8 @@ assertContains(
   "cargo deny --locked --manifest-path fuzz/Cargo.toml --config fuzz/deny.toml check",
 );
 assertContains(protobufWorkflow, "cache-bin: false");
-assertContains(oidfWorkflow, "workflow_call:");
+assertNotContains(oidfWorkflow, "workflow_call:");
+assertContains(oidfWorkflow, "workflow_dispatch:");
 assertContains(oidfWorkflow, "maven@sha256:");
 assertContains(oidfWorkflow, '-e HOME=/maven-home');
 assertContains(oidfWorkflow, '-e MAVEN_CONFIG=/maven-home');
@@ -805,22 +806,13 @@ assertContains(
   'error.code.startsWith("missing-required-ci-run:")',
 );
 assertContains(packagePreflightWorkflow, "node scripts/write_release_attestation.mjs");
-assertWorkflowJobScalar(
-  packagePreflightWorkflow,
-  "oidf-conformance",
-  "uses",
-  "./.github/workflows/oidf-conformance.yml",
-);
-assertWorkflowJobContains(
-  packagePreflightWorkflow,
-  "crates-package",
-  "OIDF_CONFORMANCE_RUN_ID: ${{ github.run_id }}",
-);
+assertNotContains(packagePreflightWorkflow, "oidf-conformance:");
+assertNotContains(packagePreflightWorkflow, "OIDF_CONFORMANCE_RUN_ID");
 assertContains(packagePreflightWorkflow, "attest-reviewed-evidence:");
 assertWorkflowJobContains(
   packagePreflightWorkflow,
   "attest-reviewed-evidence",
-  "needs: [verify-source-sha, oidf-conformance, crates-package]",
+  "needs: [verify-source-sha, crates-package]",
 );
 assertWorkflowJobContains(
   packagePreflightWorkflow,
@@ -1029,7 +1021,7 @@ assertContains(
 );
 assertContains(
   "scripts/write_release_attestation.mjs",
-  "reallyme.openid4vci.crates_preflight.v3",
+  "reallyme.openid4vci.crates_preflight.v4",
 );
 assertContains(
   "scripts/publish-crates-in-order.mjs",

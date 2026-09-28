@@ -440,27 +440,18 @@ function inspectPackage(pkg) {
     );
   }
 
-  if (patchArgs.length === 0) {
-    // Fetch the normalized archive's locked dependency graph explicitly before
-    // enforcing an offline build. This proves the package builds from its
-    // published shape, not only from the workspace dependency graph.
-    const fetchArgs = ["fetch", "--locked", "--manifest-path", manifestPath];
-    const fetchResult = run("cargo", fetchArgs);
-    if (fetchResult.status !== 0) {
-      process.exit(fetchResult.status ?? 1);
-    }
-  } else {
+  if (patchArgs.length !== 0) {
     // A normalized archive records not-yet-published workspace dependencies as
     // registry packages. Applying the reviewed local archives necessarily
-    // changes those source entries, so refresh only this disposable extracted
-    // lockfile offline before enforcing --locked on the verification build.
+    // changes those source entries. Refresh only those entries in this
+    // disposable lockfile while network access is available; a fresh hosted
+    // runner cannot be assumed to have every locked third-party crate cached.
     const directWorkspaceDependencies = pkg.dependencies
       .filter(isPublishOrderingDependency)
       .map(dependencyPackageName);
     for (const dependencyName of directWorkspaceDependencies) {
       const updateArgs = [
         "update",
-        "--offline",
         "--manifest-path",
         manifestPath,
         "-p",
@@ -472,6 +463,22 @@ function inspectPackage(pkg) {
         process.exit(updateResult.status ?? 1);
       }
     }
+  }
+
+  // Materialize the complete, locked dependency graph before enforcing an
+  // offline build. Supplying the same patch configuration ensures unpublished
+  // workspace dependencies resolve only to the normalized archives reviewed
+  // earlier in this run.
+  const fetchArgs = [
+    "fetch",
+    "--locked",
+    "--manifest-path",
+    manifestPath,
+    ...patchArgs,
+  ];
+  const fetchResult = run("cargo", fetchArgs);
+  if (fetchResult.status !== 0) {
+    process.exit(fetchResult.status ?? 1);
   }
 
   const checkArgs = [

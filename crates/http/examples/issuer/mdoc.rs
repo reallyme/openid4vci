@@ -35,8 +35,8 @@ const P256_UNCOMPRESSED_SEC1_PREFIX: u8 = 0x04;
 // These software-backed keys are public, synthetic conformance fixtures. They
 // must never be reused outside this example. Production composition roots must
 // inject a managed signer and certificate path without exporting signing keys.
-const DOCUMENT_SIGNER_PRIVATE_KEY_D: &str = "4_wKKAtQYJzAnsIw3n9laEA5DZp058iumytMbf179nA";
-const DOCUMENT_SIGNER_CERTIFICATE_DER: &str = "MIICfjCCAiSgAwIBAgIBAjAKBggqhkjOPQQDAjBMMR8wHQYDVQQKDBZPcGVuSUQ0VkNJIENvbmZvcm1hbmNlMSkwJwYDVQQDDCBPcGVuSUQ0VkNJIENvbmZvcm1hbmNlIG1kb2MgSUFDQTAeFw0yNjA5MjUxNjI0MzVaFw0zNjA5MjIxNjI0MzVaMFcxHzAdBgNVBAoMFk9wZW5JRDRWQ0kgQ29uZm9ybWFuY2UxNDAyBgNVBAMMK09wZW5JRDRWQ0kgQ29uZm9ybWFuY2UgbWRvYyBEb2N1bWVudCBTaWduZXIwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQMgJgI7diOL0sj38K_vwViahjdHg4WYITVvivsVkZKfoR3i2KgUXN-_JvfclaqmcQr9KUQQW2sC2wkIloaxUVPo4HrMIHoMAwGA1UdEwEB_wQCMAAwDgYDVR0PAQH_BAQDAgeAMBIGA1UdJQQLMAkGByiBjF0FAQIwHQYDVR0OBBYEFFNHAQ-LV8HeHAu6uvQ45CUAfkSqMB8GA1UdIwQYMBaAFNbP4KC-bu7Ko01w66qmJW4gnj0yMDQGA1UdEgQtMCuGKWh0dHBzOi8vaXNzdWVyLmV4YW1wbGUvc2VjdXJpdHkvbWRvYy1pYWNhMD4GA1UdHwQ3MDUwM6AxoC-GLWh0dHBzOi8vaXNzdWVyLmV4YW1wbGUvc2VjdXJpdHkvbWRvYy1pYWNhLmNybDAKBggqhkjOPQQDAgNIADBFAiEA1uSKochXZAYu-fxGXT455-WXkSOEFXEOKckL69ZRkgMCICx-azdUFSGj3yIRU9AuaDQ31PAIp9pSrbF6uvEwZczS";
+const DOCUMENT_SIGNER_PRIVATE_KEY_D: &str = "1cZHB1z9DEHlTFdl0gRq3Y-9t3t-S5779A2qrQud93Y";
+const DOCUMENT_SIGNER_CERTIFICATE_DER: &str = "MIICmTCCAj6gAwIBAgIBAjAKBggqhkjOPQQDAjBZMQswCQYDVQQGEwJERTEfMB0GA1UECgwWT3BlbklENFZDSSBDb25mb3JtYW5jZTEpMCcGA1UEAwwgT3BlbklENFZDSSBDb25mb3JtYW5jZSBtZG9jIElBQ0EwHhcNMjYwOTI4MTQyNTU3WhcNMjcwOTI4MTQyNTU3WjBkMQswCQYDVQQGEwJERTEfMB0GA1UECgwWT3BlbklENFZDSSBDb25mb3JtYW5jZTE0MDIGA1UEAwwrT3BlbklENFZDSSBDb25mb3JtYW5jZSBtZG9jIERvY3VtZW50IFNpZ25lcjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABGqvMs5Ok3sUJD15KPn44bzQPcqfBlfhQiTQCW8fEMzxhGPY-EQWdTyxYxN0FmhN2Xagg_ftgB6cMp7QJ_lIDgejgeswgegwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lAQH_BAswCQYHKIGMXQUBAjAdBgNVHQ4EFgQUkWD24fc77i8Sgdv4juEg9wCQtVowHwYDVR0jBBgwFoAUFKeTXSRE29Ky3WLwyDclVbNmRZcwNAYDVR0SBC0wK4YpaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9zZWN1cml0eS9tZG9jLWlhY2EwPgYDVR0fBDcwNTAzoDGgL4YtaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9zZWN1cml0eS9tZG9jLWlhY2EuY3JsMAoGCCqGSM49BAMCA0kAMEYCIQDLYrji2ciExvmYQTfE04vgR8e8wWVcehCSjOrPzhNMZwIhAO_LtJzQHKy_Yho3gFg7ku2ny9o5CG8bVdFMrfXM_pQy";
 
 pub(super) fn issue_pid_mdoc(binding_key: &ConfirmationJwk) -> IssuerResult<CredentialEnvelope> {
     if binding_key.algorithm != ProofAlgorithm::Es256
@@ -52,8 +52,7 @@ pub(super) fn issue_pid_mdoc(binding_key: &ConfirmationJwk) -> IssuerResult<Cred
     )
     .and_then(|key| cose_key_to_vec(&key))
     .map_err(|_| IssuerError::new(IssuerStatus::InvalidProof))?;
-    let certificate = base64url_to_bytes(DOCUMENT_SIGNER_CERTIFICATE_DER)
-        .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
+    let certificate = document_signer_certificate_der()?;
     let certificate_validity =
         parse_cert_der(&certificate).map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
     let certificate_not_before = u64::try_from(certificate_validity.not_before.unix_timestamp())
@@ -83,6 +82,11 @@ pub(super) fn issue_pid_mdoc(binding_key: &ConfirmationJwk) -> IssuerResult<Cred
         .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
     private_key.fill(0);
     Ok(CredentialEnvelope::binary(credential))
+}
+
+pub(super) fn document_signer_certificate_der() -> IssuerResult<Vec<u8>> {
+    base64url_to_bytes(DOCUMENT_SIGNER_CERTIFICATE_DER)
+        .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))
 }
 
 pub(super) fn mdoc_validity_info(

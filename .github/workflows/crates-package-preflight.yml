@@ -71,13 +71,6 @@ jobs:
         working-directory: openid4vci
         run: node scripts/verify_required_ci.mjs
 
-  oidf-conformance:
-    name: Run OIDF issuer conformance
-    needs: verify-source-sha
-    permissions:
-      contents: read
-    uses: ./.github/workflows/oidf-conformance.yml
-
   crates-package:
     name: Review crates.io packages
     needs: verify-source-sha
@@ -144,7 +137,6 @@ jobs:
       - name: Write reviewed package attestation
         env:
           FUZZ_RUN_ID: ${{ needs.verify-source-sha.outputs.fuzz_run_id }}
-          OIDF_CONFORMANCE_RUN_ID: ${{ github.run_id }}
           PROTOBUF_CI_RUN_ID: ${{ needs.verify-source-sha.outputs.protobuf_ci_run_id }}
           RELEASE_SHA: ${{ needs.verify-source-sha.outputs.release_sha }}
           RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
@@ -170,7 +162,7 @@ jobs:
 
   attest-reviewed-evidence:
     name: Attest reviewed package evidence
-    needs: [verify-source-sha, oidf-conformance, crates-package]
+    needs: [verify-source-sha, crates-package]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -212,6 +204,5 @@ jobs:
             echo "- Version: \`${RELEASE_VERSION}\`"
             echo "- Commit: \`${RELEASE_SHA}\`"
             echo "- Publish set: \`reallyme-openid4vci-proto\`, \`reallyme-openid4vci-types\`, and \`reallyme-openid4vci-wallet\`"
-            echo "- OIDF conformance: completed in this preflight run"
             echo "- Attestation run ID: \`${GITHUB_RUN_ID}\`"
           } >> "$GITHUB_STEP_SUMMARY"

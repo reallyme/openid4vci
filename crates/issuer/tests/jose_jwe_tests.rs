@@ -14,7 +14,7 @@ use openid4vci_types::{
     CredentialEnvelope, CredentialRequest, CredentialResponse, CredentialResponseEncryption,
     Proofs, PublicJwk,
 };
-use reallyme_codec::base64url::bytes_to_base64url;
+use reallyme_codec::base64url::{base64url_to_bytes, bytes_to_base64url};
 use reallyme_jose::jwe::{
     decrypt_compact_jwe_json, encrypt_compact_jwe_bytes, CompactJweEncryptRequest,
     CompactJwePolicy, JweContentEncryptionAlgorithm, P256EcdhEsJweKeyEncryptor,
@@ -111,7 +111,7 @@ fn jose_jwe_request_decryptor_rejects_wrong_kid() -> IssuerResult<()> {
 }
 
 #[test]
-fn jose_jwe_response_encryptor_rejects_compression_without_provider_support() -> IssuerResult<()> {
+fn jose_jwe_response_encryptor_applies_deflate_compression() -> IssuerResult<()> {
     let recipient_secret = private_scalar(11);
     let (recipient_public, _recipient_private) =
         reallyme_crypto::p256::generate_p256_keypair_from_secret_key(&recipient_secret)
@@ -127,12 +127,19 @@ fn jose_jwe_response_encryptor_rejects_compression_without_provider_support() ->
         zip: Some("DEF".to_owned()),
     };
 
-    let result = JoseJweCredentialResponseEncryptor::new().encrypt_response(&response, &encryption);
+    let encrypted =
+        JoseJweCredentialResponseEncryptor::new().encrypt_response(&response, &encryption)?;
+    let protected = encrypted
+        .as_str()
+        .split('.')
+        .next()
+        .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
+    let protected = base64url_to_bytes(protected)
+        .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
+    let protected: Value = serde_json::from_slice(&protected)
+        .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
 
-    assert_eq!(
-        result.err().map(|error| error.status()),
-        Some(IssuerStatus::InvalidEncryptionParameters)
-    );
+    assert_eq!(protected.get("zip").and_then(Value::as_str), Some("DEF"));
     Ok(())
 }
 

@@ -5,6 +5,10 @@
 //! mdoc proof binding tests for the deployable issuer example.
 
 use ciborium::value::Value as CborValue;
+use envelopes_x509::{
+    parse_cert_der, parse_cert_pem, CertificateExtensionKind, NameAttributeKind,
+    NameAttributeValue, X509Certificate,
+};
 use openid4vci_issuer::{
     ConfirmationJwk, CredentialIssuer, IssuanceOutcome, IssuerError, IssuerResult, IssuerStatus,
     ProofAlgorithm, ProofKind, VerifiedProof, VerifiedProofSet,
@@ -20,7 +24,7 @@ use reallyme_crypto::p256::decompress_public_key;
 use serde_json::json;
 
 use super::issue::ExampleCredentialIssuer;
-use super::mdoc::{mdoc_validity_info, PID_MDOC_CONFIGURATION_ID};
+use super::mdoc::{document_signer_certificate_der, mdoc_validity_info, PID_MDOC_CONFIGURATION_ID};
 
 const P256_COMPRESSED_SEC1_BYTES: usize = 33;
 const P256_UNCOMPRESSED_SEC1_BYTES: usize = 65;
@@ -29,6 +33,100 @@ const P256_EVEN_SEC1_PREFIX: u8 = 0x02;
 const P256_ODD_SEC1_PREFIX: u8 = 0x03;
 const P256_COORDINATE_BYTES: usize = 32;
 const ONE_HOUR_SECONDS: u64 = 3_600;
+const MAX_DOCUMENT_SIGNER_VALIDITY_DAYS: i64 = 457;
+const MAX_IACA_VALIDITY_DAYS: i64 = 7_305;
+const OID_ISSUER_ALTERNATIVE_NAME: &str = "2.5.29.18";
+
+#[test]
+fn mdoc_conformance_certificates_match_iso_profile_invariants() -> IssuerResult<()> {
+    let document_signer = parse_cert_der(&document_signer_certificate_der()?)
+        .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
+    let iaca = parse_cert_pem(include_bytes!(
+        "../../../../conformance/fixtures/oidf/openid4vci-conformance-mdoc-iaca.pem"
+    ))
+    .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
+
+    assert!(has_country(&document_signer, "DE"));
+    assert!(has_country(&iaca, "DE"));
+    assert_eq!(document_signer.issuer_der, iaca.subject_der);
+    assert_eq!(
+        document_signer.authority_key_identifier,
+        iaca.subject_key_identifier
+    );
+    assert_eq!(iaca.issuer_der, iaca.subject_der);
+    assert!(
+        document_signer.not_after - document_signer.not_before
+            <= time::Duration::days(MAX_DOCUMENT_SIGNER_VALIDITY_DAYS)
+    );
+    assert!(iaca.not_after - iaca.not_before <= time::Duration::days(MAX_IACA_VALIDITY_DAYS));
+
+    let document_signer_usage = document_signer
+        .key_usage
+        .as_ref()
+        .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
+    assert!(document_signer_usage.digital_signature);
+    assert!(!document_signer_usage.key_cert_sign);
+    assert!(!document_signer_usage.crl_sign);
+    let iaca_usage = iaca
+        .key_usage
+        .as_ref()
+        .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
+    assert!(iaca_usage.key_cert_sign);
+    assert!(iaca_usage.crl_sign);
+    assert!(!iaca_usage.digital_signature);
+
+    assert!(document_signer
+        .profile
+        .extensions
+        .iter()
+        .any(|extension| extension.critical
+            && matches!(extension.kind, CertificateExtensionKind::KeyUsage)));
+    assert!(document_signer
+        .profile
+        .extensions
+        .iter()
+        .any(|extension| extension.critical
+            && matches!(extension.kind, CertificateExtensionKind::ExtendedKeyUsage)));
+    assert!(has_noncritical_extension(
+        &document_signer,
+        OID_ISSUER_ALTERNATIVE_NAME
+    ));
+    assert!(has_noncritical_extension(
+        &iaca,
+        OID_ISSUER_ALTERNATIVE_NAME
+    ));
+    assert!(!document_signer
+        .profile
+        .crl_distribution_point_uris
+        .is_empty());
+    Ok(())
+}
+
+fn has_country(certificate: &X509Certificate, expected: &str) -> bool {
+    certificate
+        .profile
+        .subject
+        .rdns
+        .iter()
+        .flat_map(|rdn| rdn.attributes.iter())
+        .any(|attribute| {
+            matches!(
+                (&attribute.kind, &attribute.value),
+                (NameAttributeKind::CountryName, NameAttributeValue::Text(value))
+                    if value == expected
+            )
+        })
+}
+
+fn has_noncritical_extension(certificate: &X509Certificate, expected_oid: &str) -> bool {
+    certificate.profile.extensions.iter().any(|extension| {
+        !extension.critical
+            && matches!(
+                &extension.kind,
+                CertificateExtensionKind::Other(oid) if oid.as_str() == expected_oid
+            )
+    })
+}
 
 #[test]
 fn mdoc_validity_rounds_issuance_time_without_crossing_certificate_bounds() -> IssuerResult<()> {
@@ -67,15 +165,13 @@ fn batch_mdoc_credentials_bind_to_corresponding_verified_keys() -> IssuerResult<
         .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
     let (second_public, _) = generate_keypair(Algorithm::P256)
         .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
-    let verified = VerifiedProofSet {
-        binding_key_count: 2,
-        includes_key_attestation: false,
-        key_attestations: Vec::new(),
-        proofs: vec![
-            verified_proof(expand_p256_key(&first_public)?),
-            verified_proof(expand_p256_key(&second_public)?),
+    let verified = VerifiedProofSet::new(
+        vec![
+            verified_proof(expand_p256_key(&first_public)?)?,
+            verified_proof(expand_p256_key(&second_public)?)?,
         ],
-    };
+        Vec::new(),
+    )?;
     let request = CredentialRequest {
         credential_configuration_id: Some(PID_MDOC_CONFIGURATION_ID.to_owned()),
         credential_identifier: None,
@@ -117,20 +213,20 @@ fn batch_mdoc_credentials_bind_to_corresponding_verified_keys() -> IssuerResult<
     Ok(())
 }
 
-fn verified_proof(public_key: Vec<u8>) -> VerifiedProof {
-    VerifiedProof {
-        kind: ProofKind::Jwt,
-        nonce: Some("nonce".to_owned()),
-        audience: Some("https://issuer.example/".to_owned()),
-        key_binding_id: None,
-        key_id: None,
-        public_jwk: Some(json!({"kty":"EC","crv":"P-256"})),
-        confirmation_key: Some(ConfirmationJwk {
+fn verified_proof(public_key: Vec<u8>) -> IssuerResult<VerifiedProof> {
+    VerifiedProof::new(
+        ProofKind::Jwt,
+        Some("nonce".to_owned()),
+        Some("https://issuer.example/".to_owned()),
+        None,
+        None,
+        Some(json!({"kty":"EC","crv":"P-256"})),
+        Some(ConfirmationJwk {
             algorithm: ProofAlgorithm::Es256,
             public_key,
             key_id: None,
         }),
-    }
+    )
 }
 
 fn expected_device_key(public_key: &[u8]) -> IssuerResult<Vec<u8>> {
