@@ -21,6 +21,10 @@ on:
     branches:
       - main
       - trunk
+    # Release preflight still requires successful exact-commit evidence. Manually
+    # dispatch this workflow when a Markdown-only HEAD is a release candidate.
+    paths-ignore:
+      - "**/*.md"
 
 permissions:
   contents: read

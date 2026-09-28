@@ -558,7 +558,7 @@ assertContains(".github/workflows/fuzz.yml", "protojson_messages");
 assertContains(".github/workflows/fuzz.yml", '      - "!**/*.md"');
 assertContains(
   ".github/workflows/fuzz.yml",
-  "push:\n    branches:\n      - main\n    # Release preflight requires successful fuzz evidence for every exact",
+  'push:\n    branches:\n      - main\n    # Release preflight still requires successful exact-commit evidence. Manually\n    # dispatch this workflow when a Markdown-only HEAD is a release candidate.\n    paths-ignore:\n      - "**/*.md"',
 );
 assertContains(
   ".github/workflows/fuzz.yml",
@@ -572,11 +572,11 @@ assertNotContains(".github/workflows/protobuf-ci.yml", '      - "!**/*.md"');
 assertContains(".github/workflows/rust-ci.yml", '      - "**/*.md"');
 assertContains(
   ".github/workflows/rust-ci.yml",
-  "push:\n    branches:\n      - main\n\npermissions:",
+  'push:\n    branches:\n      - main\n    # Release preflight still requires successful exact-commit evidence. Manually\n    # dispatch this workflow when a Markdown-only HEAD is a release candidate.\n    paths-ignore:\n      - "**/*.md"',
 );
 assertContains(
   ".github/workflows/protobuf-ci.yml",
-  "push:\n    branches:\n      - main\n      - trunk\n\npermissions:",
+  'push:\n    branches:\n      - main\n      - trunk\n    # Release preflight still requires successful exact-commit evidence. Manually\n    # dispatch this workflow when a Markdown-only HEAD is a release candidate.\n    paths-ignore:\n      - "**/*.md"',
 );
 assertContains(".github/workflows/rust-ci.yml", "workflow_dispatch:");
 assertContains(".github/workflows/rust-ci.yml", "CARGO_AUDIT_VERSION: 0.22.2");
