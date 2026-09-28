@@ -6,6 +6,7 @@
 
 [![OpenID4VCI 1.0 Final](https://img.shields.io/badge/OpenID4VCI-1.0%20Final-0f766e)](https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-final.html)
 [![HAIP 1.0 Final](https://img.shields.io/badge/HAIP-1.0%20Final-0f766e)](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0-final.html)
+[![crates.io](https://img.shields.io/crates/v/reallyme-openid4vci.svg)](https://crates.io/crates/reallyme-openid4vci)
 [![MSRV](https://img.shields.io/badge/MSRV-1.96-475569)](Cargo.toml)
 [![Security Policy](https://img.shields.io/badge/security-policy-0f766e)](docs/SECURITY.md)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](#license)
