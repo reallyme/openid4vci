@@ -15,7 +15,6 @@ const MAX_WAIT_SECONDS = 7_200;
 const MAX_POLL_SECONDS = 300;
 const DEFAULT_POLL_SECONDS = 20;
 const PUSH_OR_DISPATCH = Object.freeze(["push", "workflow_dispatch"]);
-const DISPATCH_ONLY = Object.freeze(["workflow_dispatch"]);
 
 export const REQUIRED_WORKFLOWS = Object.freeze([
   Object.freeze({
@@ -32,11 +31,6 @@ export const REQUIRED_WORKFLOWS = Object.freeze([
     allowedEvents: PUSH_OR_DISPATCH,
     outputName: "fuzz_run_id",
     workflowFile: "fuzz.yml",
-  }),
-  Object.freeze({
-    allowedEvents: DISPATCH_ONLY,
-    outputName: "oidf_conformance_run_id",
-    workflowFile: "oidf-conformance.yml",
   }),
 ]);
 
@@ -223,6 +217,7 @@ export const resolveRequiredCiWithWait = ({
   repository,
   waitSeconds,
   now = Date.now,
+  onWait = () => {},
   resolve = resolveRequiredCi,
   sleep = sleepSeconds,
 }) => {
@@ -238,12 +233,18 @@ export const resolveRequiredCiWithWait = ({
         1,
         Math.ceil((deadline - now()) / 1_000),
       );
-      sleep(Math.min(pollSeconds, remainingSeconds));
+      const retrySeconds = Math.min(pollSeconds, remainingSeconds);
+      onWait({
+        code: error.code,
+        remainingSeconds,
+        retrySeconds,
+      });
+      sleep(retrySeconds);
     }
   }
 };
 
-export const verifyRequiredCi = ({ env = process.env } = {}) => {
+export const verifyRequiredCi = ({ env = process.env, onWait } = {}) => {
   const repository = env.GITHUB_REPOSITORY;
   const releaseSha = env.RELEASE_SHA;
   if (typeof repository !== "string" || !REPOSITORY_PATTERN.test(repository)) {
@@ -275,6 +276,7 @@ export const verifyRequiredCi = ({ env = process.env } = {}) => {
   }
 
   return resolveRequiredCiWithWait({
+    onWait,
     pollSeconds,
     releaseSha,
     repository,
@@ -300,7 +302,13 @@ const isMain =
   process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1];
 if (isMain) {
   try {
-    const runs = verifyRequiredCi();
+    const runs = verifyRequiredCi({
+      onWait: ({ code, remainingSeconds, retrySeconds }) => {
+        console.log(
+          `required CI evidence pending: ${code}; retrying in ${retrySeconds}s (${remainingSeconds}s remain)`,
+        );
+      },
+    });
     if (process.env.REQUIRED_CI_WRITE_GITHUB_OUTPUT === "1") {
       const outputPath = process.env.GITHUB_OUTPUT;
       if (typeof outputPath !== "string" || outputPath.length === 0) {

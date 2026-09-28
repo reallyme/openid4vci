@@ -570,6 +570,14 @@ assertNotContains(
 );
 assertNotContains(".github/workflows/protobuf-ci.yml", '      - "!**/*.md"');
 assertContains(".github/workflows/rust-ci.yml", '      - "**/*.md"');
+assertContains(
+  ".github/workflows/rust-ci.yml",
+  "push:\n    branches:\n      - main\n\npermissions:",
+);
+assertContains(
+  ".github/workflows/protobuf-ci.yml",
+  "push:\n    branches:\n      - main\n      - trunk\n\npermissions:",
+);
 assertContains(".github/workflows/rust-ci.yml", "workflow_dispatch:");
 assertContains(".github/workflows/rust-ci.yml", "CARGO_AUDIT_VERSION: 0.22.2");
 assertContains(".github/workflows/rust-ci.yml", "CARGO_DENY_VERSION: 0.20.2");
@@ -725,8 +733,21 @@ assertContains(
   "cargo deny --locked --manifest-path fuzz/Cargo.toml --config fuzz/deny.toml check",
 );
 assertContains(protobufWorkflow, "cache-bin: false");
+assertContains(oidfWorkflow, "workflow_call:");
 assertContains(oidfWorkflow, "maven@sha256:");
+assertContains(oidfWorkflow, '-e HOME=/maven-home');
+assertContains(oidfWorkflow, '-e MAVEN_CONFIG=/maven-home');
+assertContains(oidfWorkflow, '-v "${maven_home}:/maven-home"');
+assertContains(
+  oidfWorkflow,
+  "-Dmaven.repo.local=/maven-home/repository",
+);
+assertContains(oidfWorkflow, "-Dmaven.test.skip -Dpmd.skip clean package");
 assertContains(oidfWorkflow, "FROM eclipse-temurin@sha256:");
+assertContains(
+  oidfWorkflow,
+  "apt-get install --yes --no-install-recommends redir \\&\\& rm -rf /var/lib/apt/lists/\\*",
+);
 assertContains(oidfWorkflow, "FROM nginx@sha256:");
 assertWorkflowJobContains(
   rustCiWorkflow,
@@ -774,7 +795,7 @@ assertNotContains(packagePreflightWorkflow, "gh run list");
 assertContains("scripts/verify_required_ci.mjs", 'workflowFile: "rust-ci.yml"');
 assertContains("scripts/verify_required_ci.mjs", 'workflowFile: "protobuf-ci.yml"');
 assertContains("scripts/verify_required_ci.mjs", 'workflowFile: "fuzz.yml"');
-assertContains("scripts/verify_required_ci.mjs", 'workflowFile: "oidf-conformance.yml"');
+assertNotContains("scripts/verify_required_ci.mjs", 'workflowFile: "oidf-conformance.yml"');
 assertContains(
   "scripts/verify_required_ci.mjs",
   'error.code.startsWith("required-ci-run-pending:")',
@@ -784,7 +805,23 @@ assertContains(
   'error.code.startsWith("missing-required-ci-run:")',
 );
 assertContains(packagePreflightWorkflow, "node scripts/write_release_attestation.mjs");
+assertWorkflowJobScalar(
+  packagePreflightWorkflow,
+  "oidf-conformance",
+  "uses",
+  "./.github/workflows/oidf-conformance.yml",
+);
+assertWorkflowJobContains(
+  packagePreflightWorkflow,
+  "crates-package",
+  "OIDF_CONFORMANCE_RUN_ID: ${{ github.run_id }}",
+);
 assertContains(packagePreflightWorkflow, "attest-reviewed-evidence:");
+assertWorkflowJobContains(
+  packagePreflightWorkflow,
+  "attest-reviewed-evidence",
+  "needs: [verify-source-sha, oidf-conformance, crates-package]",
+);
 assertWorkflowJobContains(
   packagePreflightWorkflow,
   "attest-reviewed-evidence",

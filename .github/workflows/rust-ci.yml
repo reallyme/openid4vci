@@ -19,9 +19,6 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - ".github/renovate.json"
-      - "**/*.md"
 
 permissions:
   contents: read

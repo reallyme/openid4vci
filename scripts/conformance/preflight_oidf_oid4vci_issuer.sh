@@ -16,9 +16,7 @@ require_command() {
 require_command curl
 require_command docker
 require_command git
-require_command java
 require_command jq
-require_command mvn
 require_command openssl
 require_command python3
 require_command shasum

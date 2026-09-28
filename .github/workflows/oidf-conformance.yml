@@ -5,6 +5,7 @@
 name: OIDF Conformance
 
 on:
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -44,21 +45,28 @@ jobs:
 
       - name: Build OIDF conformance suite once
         working-directory: conformance-suite
-        run: >-
-          docker run --rm
-          -u "$(id -u):$(id -g)"
-          -e MAVEN_CONFIG=/tmp/.m2
-          -v "${PWD}:/workspace"
-          -w /workspace
-          maven@sha256:c2a2c58516d160f43b50f12baa427ca86989e0bc942609e04aff61da5d9a7d74
-          mvn -q -DskipTests package
+        run: |
+          maven_home="${RUNNER_TEMP}/openid4vci-oidf-maven"
+          mkdir -p "${maven_home}/repository"
+          docker run --rm \
+            -u "$(id -u):$(id -g)" \
+            -e HOME=/maven-home \
+            -e MAVEN_CONFIG=/maven-home \
+            -v "${maven_home}:/maven-home" \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            maven@sha256:c2a2c58516d160f43b50f12baa427ca86989e0bc942609e04aff61da5d9a7d74 \
+            mvn -B -Dmaven.repo.local=/maven-home/repository \
+              -Dmaven.test.skip -Dpmd.skip clean package
 
       - name: Pin OIDF runtime base images
         working-directory: conformance-suite
         run: |
           grep -Fqx 'FROM eclipse-temurin:21' server-dev/Dockerfile
+          grep -Fqx 'RUN apt-get update && apt-get install redir' server-dev/Dockerfile
           grep -Fqx 'FROM nginx:1.27.3' nginx/Dockerfile
           sed -i 's|^FROM eclipse-temurin:21$|FROM eclipse-temurin@sha256:4d06038800655fe1211760cd561de70ef2ed7a47f5d69255e9834414602b7026|' server-dev/Dockerfile
+          sed -i 's|^RUN apt-get update && apt-get install redir$|RUN apt-get update \&\& apt-get install --yes --no-install-recommends redir \&\& rm -rf /var/lib/apt/lists/\*|' server-dev/Dockerfile
           sed -i 's|^FROM nginx:1.27.3$|FROM nginx@sha256:bc2f6a7c8ddbccf55bdb19659ce3b0a92ca6559e86d42677a5a02ef6bda2fcef|' nginx/Dockerfile
 
       - name: Install Rust toolchain

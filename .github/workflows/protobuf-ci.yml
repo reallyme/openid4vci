@@ -21,16 +21,6 @@ on:
     branches:
       - main
       - trunk
-    paths:
-      - ".github/workflows/protobuf-ci.yml"
-      - "buf.yaml"
-      - "buf.gen.yaml"
-      - "crates/proto/**"
-      - "crates/proto-codec/**"
-      - "scripts/check_release_readiness.mjs"
-      - "scripts/harden-generated-openid4vci-proto.mjs"
-      - "scripts/proto-hardening/**"
-      - "scripts/regenerate-openid4vci-proto.sh"
 
 permissions:
   contents: read

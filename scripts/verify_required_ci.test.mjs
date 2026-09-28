@@ -113,17 +113,16 @@ test("rejects missing, malformed, or incorrectly bound evidence", () => {
 
 test("serializes the fixed prerequisite evidence mapping", () => {
   assert.equal(
-    formatRequiredCiOutputs([{ id: 11 }, { id: 12 }, { id: 13 }, { id: 14 }]),
+    formatRequiredCiOutputs([{ id: 11 }, { id: 12 }, { id: 13 }]),
     [
       "rust_ci_run_id=11",
       "protobuf_ci_run_id=12",
       "fuzz_run_id=13",
-      "oidf_conformance_run_id=14",
     ].join("\n"),
   );
   assert.deepEqual(
     REQUIRED_WORKFLOWS.map(({ workflowFile }) => workflowFile),
-    ["rust-ci.yml", "protobuf-ci.yml", "fuzz.yml", "oidf-conformance.yml"],
+    ["rust-ci.yml", "protobuf-ci.yml", "fuzz.yml"],
   );
   assert.throws(
     () => formatRequiredCiOutputs([{ id: 11 }]),
@@ -135,7 +134,8 @@ test("bounded polling waits for missing and pending exact-commit evidence", () =
   let currentTime = 1_000;
   let attempts = 0;
   const sleeps = [];
-  const expectedRuns = [{ id: 11 }, { id: 12 }, { id: 13 }, { id: 14 }];
+  const waits = [];
+  const expectedRuns = [{ id: 11 }, { id: 12 }, { id: 13 }];
   const resolved = resolveRequiredCiWithWait({
     pollSeconds: 20,
     releaseSha: RELEASE_SHA,
@@ -148,9 +148,12 @@ test("bounded polling waits for missing and pending exact-commit evidence", () =
         throw new RequiredCiError("required-ci-run-pending:fuzz.yml");
       }
       if (attempts === 2) {
-        throw new RequiredCiError("missing-required-ci-run:oidf-conformance.yml");
+        throw new RequiredCiError("missing-required-ci-run:protobuf-ci.yml");
       }
       return expectedRuns;
+    },
+    onWait: (wait) => {
+      waits.push(wait);
     },
     sleep: (seconds) => {
       sleeps.push(seconds);
@@ -160,6 +163,18 @@ test("bounded polling waits for missing and pending exact-commit evidence", () =
 
   assert.equal(attempts, 3);
   assert.deepEqual(sleeps, [20, 20]);
+  assert.deepEqual(waits, [
+    {
+      code: "required-ci-run-pending:fuzz.yml",
+      remainingSeconds: 60,
+      retrySeconds: 20,
+    },
+    {
+      code: "missing-required-ci-run:protobuf-ci.yml",
+      remainingSeconds: 40,
+      retrySeconds: 20,
+    },
+  ]);
   assert.equal(resolved, expectedRuns);
 });
 
