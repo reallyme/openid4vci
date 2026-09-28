@@ -420,6 +420,8 @@ for (const path of [
   "scripts/publish-crates-in-order.test.mjs",
   "scripts/verify_release_source.mjs",
   "scripts/verify_release_source.test.mjs",
+  "scripts/verify_required_ci.mjs",
+  "scripts/verify_required_ci.test.mjs",
   "scripts/verify_release_attestation.mjs",
   "scripts/verify_release_attestation.test.mjs",
   "scripts/write_release_attestation.mjs",
@@ -763,25 +765,23 @@ assertContains(packagePreflightWorkflow, "ref: ${{ github.sha }}");
 assertContains(packagePreflightWorkflow, "fetch-depth: 0");
 assertContains(packagePreflightWorkflow, "persist-credentials: false");
 assertContains(packagePreflightWorkflow, "node scripts/verify_release_source.mjs");
-assertContains(packagePreflightWorkflow, "--workflow rust-ci.yml");
-assertContains(packagePreflightWorkflow, "--workflow protobuf-ci.yml");
-assertContains(packagePreflightWorkflow, "--workflow fuzz.yml");
-assertContains(packagePreflightWorkflow, "--workflow oidf-conformance.yml");
+assertWorkflowJobScalar(packagePreflightWorkflow, "verify-source-sha", "timeout-minutes", "90");
+assertContains(packagePreflightWorkflow, "node scripts/verify_required_ci.mjs");
+assertContains(packagePreflightWorkflow, "REQUIRED_CI_WAIT_SECONDS: '3600'");
+assertContains(packagePreflightWorkflow, "REQUIRED_CI_POLL_SECONDS: '60'");
+assertContains(packagePreflightWorkflow, "REQUIRED_CI_WRITE_GITHUB_OUTPUT: '1'");
+assertNotContains(packagePreflightWorkflow, "gh run list");
+assertContains("scripts/verify_required_ci.mjs", 'workflowFile: "rust-ci.yml"');
+assertContains("scripts/verify_required_ci.mjs", 'workflowFile: "protobuf-ci.yml"');
+assertContains("scripts/verify_required_ci.mjs", 'workflowFile: "fuzz.yml"');
+assertContains("scripts/verify_required_ci.mjs", 'workflowFile: "oidf-conformance.yml"');
 assertContains(
-  packagePreflightWorkflow,
-  "release commit has no successful Rust CI run",
+  "scripts/verify_required_ci.mjs",
+  'error.code.startsWith("required-ci-run-pending:")',
 );
 assertContains(
-  packagePreflightWorkflow,
-  "release commit has no successful protobuf freshness run",
-);
-assertContains(
-  packagePreflightWorkflow,
-  "release commit has no successful fuzz corpus replay",
-);
-assertContains(
-  packagePreflightWorkflow,
-  "release commit has no successful complete OIDF issuer conformance run",
+  "scripts/verify_required_ci.mjs",
+  'error.code.startsWith("missing-required-ci-run:")',
 );
 assertContains(packagePreflightWorkflow, "node scripts/write_release_attestation.mjs");
 assertContains(packagePreflightWorkflow, "attest-reviewed-evidence:");

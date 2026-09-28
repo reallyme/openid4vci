@@ -30,14 +30,14 @@ jobs:
   verify-source-sha:
     name: Verify release source
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 90
     outputs:
-      fuzz_run_id: ${{ steps.fuzz.outputs.run_id }}
-      oidf_conformance_run_id: ${{ steps.oidf.outputs.run_id }}
-      protobuf_ci_run_id: ${{ steps.protobuf-ci.outputs.run_id }}
+      fuzz_run_id: ${{ steps.required-ci.outputs.fuzz_run_id }}
+      oidf_conformance_run_id: ${{ steps.required-ci.outputs.oidf_conformance_run_id }}
+      protobuf_ci_run_id: ${{ steps.required-ci.outputs.protobuf_ci_run_id }}
       release_sha: ${{ steps.verify-source.outputs.release_sha }}
       release_version: ${{ steps.verify-source.outputs.release_version }}
-      rust_ci_run_id: ${{ steps.rust-ci.outputs.run_id }}
+      rust_ci_run_id: ${{ steps.required-ci.outputs.rust_ci_run_id }}
     steps:
       - name: Checkout requested release commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -61,97 +61,16 @@ jobs:
         working-directory: openid4vci
         run: node scripts/verify_release_source.mjs
 
-      - name: Require successful Rust CI for the release commit
-        id: rust-ci
+      - name: Wait for successful exact-commit release evidence
+        id: required-ci
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
-        run: |
-          runs="$(gh run list \
-            --repo "$GITHUB_REPOSITORY" \
-            --workflow rust-ci.yml \
-            --commit "$RELEASE_SHA" \
-            --limit 20 \
-            --json attempt,conclusion,databaseId,event,headBranch,headSha,status)"
-          run_id="$(jq -er --arg sha "$RELEASE_SHA" '
-            [.[] | select(.headSha == $sha and (.event == "push" or .event == "workflow_dispatch"))]
-            | sort_by(.databaseId) | last
-            | select(.headBranch == "main" and .attempt == 1 and .status == "completed" and .conclusion == "success")
-            | .databaseId
-          ' <<<"$runs")" || {
-            echo "::error::release commit has no successful Rust CI run"
-            exit 1
-          }
-          printf 'run_id=%s\n' "$run_id" >> "$GITHUB_OUTPUT"
-
-      - name: Require successful protobuf freshness for the release commit
-        id: protobuf-ci
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
-        run: |
-          runs="$(gh run list \
-            --repo "$GITHUB_REPOSITORY" \
-            --workflow protobuf-ci.yml \
-            --commit "$RELEASE_SHA" \
-            --limit 20 \
-            --json attempt,conclusion,databaseId,event,headBranch,headSha,status)"
-          run_id="$(jq -er --arg sha "$RELEASE_SHA" '
-            [.[] | select(.headSha == $sha and (.event == "push" or .event == "workflow_dispatch"))]
-            | sort_by(.databaseId) | last
-            | select(.headBranch == "main" and .attempt == 1 and .status == "completed" and .conclusion == "success")
-            | .databaseId
-          ' <<<"$runs")" || {
-            echo "::error::release commit has no successful protobuf freshness run"
-            exit 1
-          }
-          printf 'run_id=%s\n' "$run_id" >> "$GITHUB_OUTPUT"
-
-      - name: Require successful deterministic fuzz corpus replay for the release commit
-        id: fuzz
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
-        run: |
-          runs="$(gh run list \
-            --repo "$GITHUB_REPOSITORY" \
-            --workflow fuzz.yml \
-            --commit "$RELEASE_SHA" \
-            --limit 20 \
-            --json attempt,conclusion,databaseId,event,headBranch,headSha,status)"
-          run_id="$(jq -er --arg sha "$RELEASE_SHA" '
-            [.[] | select(.headSha == $sha and (.event == "push" or .event == "workflow_dispatch"))]
-            | sort_by(.databaseId) | last
-            | select(.headBranch == "main" and .attempt == 1 and .status == "completed" and .conclusion == "success")
-            | .databaseId
-          ' <<<"$runs")" || {
-            echo "::error::release commit has no successful fuzz corpus replay"
-            exit 1
-          }
-          printf 'run_id=%s\n' "$run_id" >> "$GITHUB_OUTPUT"
-
-      - name: Require successful OIDF issuer conformance for the release commit
-        id: oidf
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
-        run: |
-          runs="$(gh run list \
-            --repo "$GITHUB_REPOSITORY" \
-            --workflow oidf-conformance.yml \
-            --commit "$RELEASE_SHA" \
-            --limit 20 \
-            --json attempt,conclusion,databaseId,event,headBranch,headSha,status)"
-          run_id="$(jq -er --arg sha "$RELEASE_SHA" '
-            [.[] | select(.headSha == $sha and .event == "workflow_dispatch")]
-            | sort_by(.databaseId) | last
-            | select(.headBranch == "main" and .attempt == 1 and .status == "completed" and .conclusion == "success")
-            | .databaseId
-          ' <<<"$runs")" || {
-            echo "::error::release commit has no successful complete OIDF issuer conformance run"
-            exit 1
-          }
-          printf 'run_id=%s\n' "$run_id" >> "$GITHUB_OUTPUT"
+          REQUIRED_CI_POLL_SECONDS: '60'
+          REQUIRED_CI_WAIT_SECONDS: '3600'
+          REQUIRED_CI_WRITE_GITHUB_OUTPUT: '1'
+        working-directory: openid4vci
+        run: node scripts/verify_required_ci.mjs
 
   crates-package:
     name: Review crates.io packages

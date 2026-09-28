@@ -5,7 +5,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use openid4vci_types::CredentialResponseEncryption;
+use openid4vci_types::{CredentialResponseEncryption, PublicJwk};
 use reallyme_codec::base64url::bytes_to_base64url;
 use reallyme_openid4vci_wallet::{CredentialJwePrivateKey, JoseJweCredentialResponseDecryptor};
 use serde_json::json;
@@ -29,11 +29,14 @@ fuzz_target!(|data: &[u8]| {
     let Some(y) = uncompressed.get(33..65) else {
         return;
     };
+    let Ok(jwk) = PublicJwk::new(json!({
+        "kty": "EC", "crv": "P-256", "alg": "ECDH-ES", "use": "enc",
+        "kid": "wallet-key-1", "x": bytes_to_base64url(x), "y": bytes_to_base64url(y)
+    })) else {
+        return;
+    };
     let encryption = CredentialResponseEncryption {
-        jwk: json!({
-            "kty": "EC", "crv": "P-256", "alg": "ECDH-ES", "use": "enc",
-            "kid": "wallet-key-1", "x": bytes_to_base64url(x), "y": bytes_to_base64url(y)
-        }),
+        jwk,
         enc: "A256GCM".to_owned(),
         zip: None,
     };
