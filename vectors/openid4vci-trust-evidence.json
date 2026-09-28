@@ -1,0 +1,79 @@
+[
+  {
+    "id": "oid4vci-d-1-key-attestation-valid-current",
+    "spec_section": "OpenID4VCI Appendix D.1 and F.3",
+    "target": "attestation::KeyAttestationPolicy",
+    "input_json": "eyJ0eXAiOiJrZXktYXR0ZXN0YXRpb24rand0IiwiYWxnIjoiRVMyNTYifQ.eyJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDEwMCwiYXR0ZXN0ZWRfa2V5cyI6W3sia3R5IjoiRUMiLCJjcnYiOiJQLTI1NiIsIngiOiJCX3pMUTBVSmI1WWhjbV9FNURlLURQZ2NReENCOHlqbFZKWnlPYXhWSXU0IiwieSI6IkRaY1VkVDdHOTM5VmVxYzNGQ2FkV3NfcmNwUy12Y184WjhGYVpSRVZYNEEifV19.AQID",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-d-1-key-attestation-expired",
+    "spec_section": "OpenID4VCI Appendix D.1 and RFC 7519 4.1.4",
+    "target": "attestation::KeyAttestationPolicy",
+    "input_json": "eyJ0eXAiOiJrZXktYXR0ZXN0YXRpb24rand0IiwiYWxnIjoiRVMyNTYifQ.eyJpYXQiOjE2OTk5OTk5MDAsImV4cCI6MTY5OTk5OTk0MCwiYXR0ZXN0ZWRfa2V5cyI6W3sia3R5IjoiRUMiLCJjcnYiOiJQLTI1NiIsIngiOiJCX3pMUTBVSmI1WWhjbV9FNURlLURQZ2NReENCOHlqbFZKWnlPYXhWSXU0IiwieSI6IkRaY1VkVDdHOTM5VmVxYzNGQ2FkV3NfcmNwUy12Y184WjhGYVpSRVZYNEEifV19.AQID",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-d-1-key-attestation-future-iat",
+    "spec_section": "OpenID4VCI Appendix D.1 and RFC 7519 4.1.6",
+    "target": "attestation::KeyAttestationPolicy",
+    "input_json": "eyJ0eXAiOiJrZXktYXR0ZXN0YXRpb24rand0IiwiYWxnIjoiRVMyNTYifQ.eyJpYXQiOjE3MDAwMDAwNjEsImV4cCI6MTcwMDAwMDIwMCwiYXR0ZXN0ZWRfa2V5cyI6W3sia3R5IjoiRUMiLCJjcnYiOiJQLTI1NiIsIngiOiJCX3pMUTBVSmI1WWhjbV9FNURlLURQZ2NReENCOHlqbFZKWnlPYXhWSXU0IiwieSI6IkRaY1VkVDdHOTM5VmVxYzNGQ2FkV3NfcmNwUy12Y184WjhGYVpSRVZYNEEifV19.AQID",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-d-1-key-attestation-unregistered-resistance",
+    "spec_section": "OpenID4VCI Appendix D.1",
+    "target": "attestation::KeyAttestationPolicy",
+    "input_json": "eyJ0eXAiOiJrZXktYXR0ZXN0YXRpb24rand0IiwiYWxnIjoiRVMyNTYifQ.eyJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDEwMCwia2V5X3N0b3JhZ2UiOlsiZnV0dXJlX3JlZ2lzdHJ5X3ZhbHVlIl0sImF0dGVzdGVkX2tleXMiOlt7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiQl96TFEwVUpiNVloY21fRTVEZS1EUGdjUXhDQjh5amxWSlp5T2F4Vkl1NCIsInkiOiJEWmNVZFQ3RzkzOVZlcWMzRkNhZFdzX3JjcFMtdmNfOFo4RmFaUkVWWDRBIn1dfQ.AQID",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-d-1-key-attestation-rfc7797-b64-rejected",
+    "spec_section": "RFC 7515 4.1.11 and RFC 7797 3, 6",
+    "target": "attestation::KeyAttestationPolicy",
+    "input_json": "eyJ0eXAiOiJrZXktYXR0ZXN0YXRpb24rand0IiwiYWxnIjoiRVMyNTYiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ.eyJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDEwMCwiYXR0ZXN0ZWRfa2V5cyI6W3sia3R5IjoiRUMiLCJjcnYiOiJQLTI1NiIsIngiOiJCX3pMUTBVSmI1WWhjbV9FNURlLURQZ2NReENCOHlqbFZKWnlPYXhWSXU0IiwieSI6IkRaY1VkVDdHOTM5VmVxYzNGQ2FkV3NfcmNwUy12Y184WjhGYVpSRVZYNEEifV19.AQID",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-12-2-3-signed-metadata-valid",
+    "spec_section": "OpenID4VCI 12.2.3",
+    "target": "wallet::SignedIssuerMetadataPolicy",
+    "input_json": "eyJ0eXAiOiJvcGVuaWR2Y2ktaXNzdWVyLW1ldGFkYXRhK2p3dCIsImFsZyI6IkVTMjU2Iiwia2lkIjoibWV0YWRhdGEta2V5LTEifQ.eyJjcmVkZW50aWFsX2lzc3VlciI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJjcmVkZW50aWFsX2VuZHBvaW50IjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9jcmVkZW50aWFsIiwiY3JlZGVudGlhbF9jb25maWd1cmF0aW9uc19zdXBwb3J0ZWQiOnsicGlkIjp7ImZvcm1hdCI6ImRjK3NkLWp3dCJ9fSwiaXNzIjoiaHR0cHM6Ly9zaWduZXIuZXhhbXBsZSIsInN1YiI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDEwMH0.AQID",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-12-2-3-signed-metadata-expired",
+    "spec_section": "OpenID4VCI 12.2.3 and RFC 7519 4.1.4",
+    "target": "wallet::SignedIssuerMetadataPolicy",
+    "input_json": "eyJ0eXAiOiJvcGVuaWR2Y2ktaXNzdWVyLW1ldGFkYXRhK2p3dCIsImFsZyI6IkVTMjU2Iiwia2lkIjoibWV0YWRhdGEta2V5LTEifQ.eyJjcmVkZW50aWFsX2lzc3VlciI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJjcmVkZW50aWFsX2VuZHBvaW50IjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9jcmVkZW50aWFsIiwiY3JlZGVudGlhbF9jb25maWd1cmF0aW9uc19zdXBwb3J0ZWQiOnsicGlkIjp7ImZvcm1hdCI6ImRjK3NkLWp3dCJ9fSwiaXNzIjoiaHR0cHM6Ly9zaWduZXIuZXhhbXBsZSIsInN1YiI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJpYXQiOjE2OTk5OTk5MDAsImV4cCI6MTY5OTk5OTk0MH0.AQID",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-12-2-3-signed-metadata-wrong-subject",
+    "spec_section": "OpenID4VCI 12.2.3",
+    "target": "wallet::SignedIssuerMetadataPolicy",
+    "input_json": "eyJ0eXAiOiJvcGVuaWR2Y2ktaXNzdWVyLW1ldGFkYXRhK2p3dCIsImFsZyI6IkVTMjU2Iiwia2lkIjoibWV0YWRhdGEta2V5LTEifQ.eyJjcmVkZW50aWFsX2lzc3VlciI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJjcmVkZW50aWFsX2VuZHBvaW50IjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9jcmVkZW50aWFsIiwiY3JlZGVudGlhbF9jb25maWd1cmF0aW9uc19zdXBwb3J0ZWQiOnsicGlkIjp7ImZvcm1hdCI6ImRjK3NkLWp3dCJ9fSwiaXNzIjoiaHR0cHM6Ly9zaWduZXIuZXhhbXBsZSIsInN1YiI6Imh0dHBzOi8vb3RoZXIuZXhhbXBsZSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwfQ.AQID",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-12-2-3-signed-metadata-symmetric-algorithm",
+    "spec_section": "OpenID4VCI 12.2.3, RFC 7515 4.1.1, and RFC 8725 3.1",
+    "target": "wallet::SignedIssuerMetadataPolicy",
+    "input_json": "eyJ0eXAiOiJvcGVuaWR2Y2ktaXNzdWVyLW1ldGFkYXRhK2p3dCIsImFsZyI6IkhTMjU2In0.eyJjcmVkZW50aWFsX2lzc3VlciI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJjcmVkZW50aWFsX2VuZHBvaW50IjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9jcmVkZW50aWFsIiwiY3JlZGVudGlhbF9jb25maWd1cmF0aW9uc19zdXBwb3J0ZWQiOnsicGlkIjp7ImZvcm1hdCI6ImRjK3NkLWp3dCJ9fSwiaXNzIjoiaHR0cHM6Ly9zaWduZXIuZXhhbXBsZSIsInN1YiI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDEwMH0.AQID",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-12-2-3-signed-metadata-unknown-critical-header",
+    "spec_section": "OpenID4VCI 12.2.3 and RFC 7515 4.1.11",
+    "target": "wallet::SignedIssuerMetadataPolicy",
+    "input_json": "eyJ0eXAiOiJvcGVuaWR2Y2ktaXNzdWVyLW1ldGFkYXRhK2p3dCIsImFsZyI6IkVTMjU2Iiwia2lkIjoibWV0YWRhdGEta2V5LTEiLCJjcml0IjpbImZ1dHVyZS1leHRlbnNpb24iXX0.eyJjcmVkZW50aWFsX2lzc3VlciI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJjcmVkZW50aWFsX2VuZHBvaW50IjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9jcmVkZW50aWFsIiwiY3JlZGVudGlhbF9jb25maWd1cmF0aW9uc19zdXBwb3J0ZWQiOnsicGlkIjp7ImZvcm1hdCI6ImRjK3NkLWp3dCJ9fSwiaXNzIjoiaHR0cHM6Ly9zaWduZXIuZXhhbXBsZSIsInN1YiI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDEwMH0.AQID",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-12-2-3-signed-metadata-signature-rejected",
+    "spec_section": "OpenID4VCI 12.2.3 and RFC 7515 5.2",
+    "target": "wallet::SignedIssuerMetadataPolicy",
+    "input_json": "eyJ0eXAiOiJvcGVuaWR2Y2ktaXNzdWVyLW1ldGFkYXRhK2p3dCIsImFsZyI6IkVTMjU2Iiwia2lkIjoibWV0YWRhdGEta2V5LTEifQ.eyJjcmVkZW50aWFsX2lzc3VlciI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJjcmVkZW50aWFsX2VuZHBvaW50IjoiaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9jcmVkZW50aWFsIiwiY3JlZGVudGlhbF9jb25maWd1cmF0aW9uc19zdXBwb3J0ZWQiOnsicGlkIjp7ImZvcm1hdCI6ImRjK3NkLWp3dCJ9fSwiaXNzIjoiaHR0cHM6Ly9zaWduZXIuZXhhbXBsZSIsInN1YiI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDEwMH0.AA",
+    "expected": "reject"
+  }
+]

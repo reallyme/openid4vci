@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "test_cases": [
+    {
+      "id": "eudi-wua-valid-client-authentication",
+      "role": "credential_issuer",
+      "topic": "wallet_attestation_client_authentication",
+      "status": "covered-locally",
+      "local_tests": [
+        "secured_credential_endpoint_accepts_dpop_and_wallet_attestation",
+        "secured_credential_endpoint_requires_wallet_attestation_headers",
+        "secured_credential_endpoint_rejects_duplicate_wallet_attestation_headers",
+        "secured_credential_endpoint_rejects_duplicate_wallet_attestation_pop_headers"
+      ]
+    },
+    {
+      "id": "eudi-wua-status-period-metadata",
+      "role": "credential_issuer",
+      "topic": "wallet_unit_attestation_metadata",
+      "status": "covered-locally",
+      "local_tests": [
+        "metadata_accepts_eudi_wua_status_period_preferences"
+      ]
+    },
+    {
+      "id": "eudi-ka-proof-key-mismatch",
+      "role": "credential_issuer",
+      "topic": "key_attestation",
+      "status": "covered-locally",
+      "local_tests": ["jose_verifier_rejects_header_key_attestation_for_different_key"]
+    },
+    {
+      "id": "eudi-issuer-registration-certificate-metadata",
+      "role": "credential_issuer",
+      "topic": "issuer_registration",
+      "status": "extracted-blocked-on-ecosystem-field-names",
+      "local_tests": [
+        "eudi_issuer_registration_metadata_extraction_is_documented"
+      ],
+      "next_action": "Add OpenID4VCI wire fields only after a pinned EUDI source defines concrete Credential Issuer Metadata parameter names, encoding rules, and validation behavior for Registrar URLs and registration certificates."
+    },
+    {
+      "id": "eudi-pid-issuance-profile-metadata",
+      "role": "credential_issuer",
+      "topic": "pid_credential_configuration",
+      "status": "covered-locally-baseline-policy",
+      "local_tests": [
+        "eudi_pid_policy_is_eidas_relevant_high_assurance_issuance_profile"
+      ]
+    },
+    {
+      "id": "eudi-reference-pid-issuer-interop",
+      "role": "black_box_interop",
+      "topic": "pid_issuance",
+      "status": "pinned-not-yet-executed",
+      "local_tests": [],
+      "next_action": "Execute the pinned reference PID issuer interop flow through composed conformance orchestration and retain reviewed evidence in reallyme/identity-conformance."
+    }
+  ]
+}

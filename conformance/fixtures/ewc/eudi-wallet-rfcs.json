@@ -1,0 +1,12 @@
+{
+  "fixture_id": "ewc-eudi-wallet-rfcs",
+  "source": "https://github.com/EWC-consortium/eudi-wallet-rfcs",
+  "profile": "haip-eudi-pid",
+  "target": "interop",
+  "flows": [
+    "pid-issuance",
+    "sd-jwt-vc",
+    "mso-mdoc",
+    "deferred-credential"
+  ]
+}

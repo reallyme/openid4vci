@@ -1,0 +1,334 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+name: Crates.io Release
+
+run-name: Crates.io release @ ${{ github.sha }}
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: crates-release-${{ github.sha }}
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verify-preflight:
+    name: Verify reviewed package preflight
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      attestations: read
+      contents: read
+    outputs:
+      preflight_run_id: ${{ steps.resolve-attestation.outputs.preflight_run_id }}
+      release_sha: ${{ steps.verify-source.outputs.release_sha }}
+      release_version: ${{ steps.verify-source.outputs.release_version }}
+    steps:
+      - name: Checkout current main release commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: openid4vci
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+
+      - name: Resolve current release SHA and version
+        id: verify-source
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          RELEASE_SOURCE_DERIVE_VERSION: '1'
+          RELEASE_SOURCE_WRITE_GITHUB_OUTPUT: '1'
+        working-directory: openid4vci
+        run: node scripts/verify_release_source.mjs
+
+      - name: Resolve latest reviewed package preflight
+        id: resolve-attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
+          RELEASE_VERSION: ${{ steps.verify-source.outputs.release_version }}
+          RELEASE_ATTESTATION_RESOLVE_ONLY: '1'
+          RELEASE_ATTESTATION_WRITE_GITHUB_OUTPUT: '1'
+          RELEASE_ATTESTATION_WAIT_SECONDS: '3600'
+          RELEASE_ATTESTATION_POLL_SECONDS: '20'
+        working-directory: openid4vci
+        run: node scripts/verify_release_attestation.mjs
+
+      - name: Download latest reviewed package attestation
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reallyme-openid4vci-crates-preflight-${{ steps.verify-source.outputs.release_version }}-${{ steps.verify-source.outputs.release_sha }}
+          path: openid4vci/release-attestation
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.resolve-attestation.outputs.preflight_run_id }}
+
+      - name: Download reviewed crate archives for verification
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reallyme-openid4vci-crate-archives-${{ steps.verify-source.outputs.release_version }}-${{ steps.verify-source.outputs.release_sha }}
+          path: openid4vci/reviewed-crates
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.resolve-attestation.outputs.preflight_run_id }}
+
+      - name: Verify preflight conclusion, commit, version, and artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREFLIGHT_RUN_ID: ${{ steps.resolve-attestation.outputs.preflight_run_id }}
+          RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
+          RELEASE_VERSION: ${{ steps.verify-source.outputs.release_version }}
+          RELEASE_ATTESTATION_WAIT_SECONDS: '60'
+          RELEASE_ATTESTATION_POLL_SECONDS: '10'
+          RELEASE_ATTESTATION_CRATE_DIRECTORY: reviewed-crates
+        working-directory: openid4vci
+        run: |
+          gh attestation verify release-attestation/crates-preflight.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/crates-package-preflight.yml" \
+            --source-digest "$RELEASE_SHA" \
+            --source-ref refs/heads/main \
+            --deny-self-hosted-runners
+          archive_count=0
+          for archive in reviewed-crates/*.crate; do
+            if [ ! -f "$archive" ]; then
+              continue
+            fi
+            gh attestation verify "$archive" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/crates-package-preflight.yml" \
+              --source-digest "$RELEASE_SHA" \
+              --source-ref refs/heads/main \
+              --deny-self-hosted-runners
+            archive_count=$((archive_count + 1))
+          done
+          test "$archive_count" -eq 3
+          node scripts/verify_release_attestation.mjs
+
+  publish:
+    name: Publish ReallyMe OpenID4VCI crates
+    needs: [verify-preflight, prepare-source-release]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: crates-io
+    concurrency:
+      group: crates-release-${{ needs.verify-preflight.outputs.release_version }}-${{ needs.verify-preflight.outputs.release_sha }}
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      contents: read
+    env:
+      RELEASE_SHA: ${{ needs.verify-preflight.outputs.release_sha }}
+      RELEASE_VERSION: ${{ needs.verify-preflight.outputs.release_version }}
+    steps:
+      - name: Checkout certified release commit without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify-preflight.outputs.release_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: openid4vci
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        with:
+          toolchain: 1.98.1
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+
+      - name: Download reviewed package attestation
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reallyme-openid4vci-crates-preflight-${{ needs.verify-preflight.outputs.release_version }}-${{ needs.verify-preflight.outputs.release_sha }}
+          path: openid4vci/release-attestation
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ needs.verify-preflight.outputs.preflight_run_id }}
+
+      - name: Download attested crate archives
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reallyme-openid4vci-crate-archives-${{ needs.verify-preflight.outputs.release_version }}-${{ needs.verify-preflight.outputs.release_sha }}
+          path: openid4vci/reviewed-crates
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ needs.verify-preflight.outputs.preflight_run_id }}
+
+      - name: Revalidate current main immediately before publication
+        working-directory: openid4vci
+        run: node scripts/verify_release_source.mjs
+
+      - name: Reverify reviewed package bytes before requesting a publishing token
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREFLIGHT_RUN_ID: ${{ needs.verify-preflight.outputs.preflight_run_id }}
+          RELEASE_ATTESTATION_WAIT_SECONDS: '60'
+          RELEASE_ATTESTATION_POLL_SECONDS: '10'
+          RELEASE_ATTESTATION_CRATE_DIRECTORY: reviewed-crates
+        working-directory: openid4vci
+        run: node scripts/verify_release_attestation.mjs
+
+      - name: Publish crates in reviewed dependency order
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          PUBLICATION_LEDGER_PATH: ${{ runner.temp }}/crates-publication-ledger.json
+          REVIEWED_CRATE_DIRECTORY: reviewed-crates
+        working-directory: openid4vci
+        run: |
+          if [ -z "${CARGO_REGISTRY_TOKEN}" ]; then
+            echo "::error::CARGO_REGISTRY_TOKEN is required"
+            exit 1
+          fi
+          node scripts/publish-crates-in-order.mjs publish
+
+      - name: Preserve machine-readable publication ledger
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reallyme-openid4vci-publication-ledger-${{ needs.verify-preflight.outputs.release_version }}-${{ needs.verify-preflight.outputs.release_sha }}
+          path: ${{ runner.temp }}/crates-publication-ledger.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Summarize crates.io publication
+        run: |
+          {
+            echo '## crates.io publication completed'
+            echo
+            echo "- [reallyme-openid4vci-proto ${RELEASE_VERSION}](https://crates.io/crates/reallyme-openid4vci-proto/${RELEASE_VERSION})"
+            echo "- [reallyme-openid4vci-types ${RELEASE_VERSION}](https://crates.io/crates/reallyme-openid4vci-types/${RELEASE_VERSION})"
+            echo "- [reallyme-openid4vci-wallet ${RELEASE_VERSION}](https://crates.io/crates/reallyme-openid4vci-wallet/${RELEASE_VERSION})"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  prepare-source-release:
+    name: Prepare immutable source identity
+    needs: verify-preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      RELEASE_SHA: ${{ needs.verify-preflight.outputs.release_sha }}
+      RELEASE_VERSION: ${{ needs.verify-preflight.outputs.release_version }}
+    steps:
+      - name: Create or verify immutable release tag
+        id: release-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="reallyme-openid4vci-v${RELEASE_VERSION}"
+          existing_commit=''
+          if resolved_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$tag" --jq '.sha' 2>/dev/null)"; then
+            existing_commit="$resolved_commit"
+          fi
+          if [[ -n "$existing_commit" && "$existing_commit" != "$RELEASE_SHA" ]]; then
+            echo "$tag already exists at a different commit" >&2
+            exit 1
+          fi
+          if [[ -z "$existing_commit" ]]; then
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              --field ref="refs/tags/$tag" \
+              --field sha="$RELEASE_SHA" > /dev/null
+          fi
+          printf 'tag=%s\n' "$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create or verify draft GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release-tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            existing_target="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json targetCommitish --jq '.targetCommitish')"
+            if [[ "$existing_target" != "$RELEASE_SHA" && "$existing_target" != "$RELEASE_TAG" ]]; then
+              echo "$RELEASE_TAG release targets a different source identity" >&2
+              exit 1
+            fi
+            exit 0
+          fi
+          gh release create "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --draft \
+            --target "$RELEASE_SHA" \
+            --title "$RELEASE_TAG" \
+            --notes $'- initial crates.io release of the OpenID4VCI protocol types, protobuf contract, and wallet-side protocol engine'
+
+  finalize:
+    name: Finalize GitHub release
+    needs: [verify-preflight, prepare-source-release, publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: write
+    env:
+      RELEASE_SHA: ${{ needs.verify-preflight.outputs.release_sha }}
+      RELEASE_VERSION: ${{ needs.verify-preflight.outputs.release_version }}
+    steps:
+      - name: Download reviewed package attestation
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reallyme-openid4vci-crates-preflight-${{ needs.verify-preflight.outputs.release_version }}-${{ needs.verify-preflight.outputs.release_sha }}
+          path: release-evidence
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ needs.verify-preflight.outputs.preflight_run_id }}
+
+      - name: Download publication ledger
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reallyme-openid4vci-publication-ledger-${{ needs.verify-preflight.outputs.release_version }}-${{ needs.verify-preflight.outputs.release_sha }}
+          path: release-evidence
+
+      - name: Verify immutable release tag
+        id: release-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="reallyme-openid4vci-v${RELEASE_VERSION}"
+          existing_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$tag" --jq '.sha')"
+          if [[ "$existing_commit" != "$RELEASE_SHA" ]]; then
+            echo "$tag already exists at a different commit" >&2
+            exit 1
+          fi
+          printf 'tag=%s\n' "$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Publish prepared GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release-tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          is_draft="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')"
+          if [[ "$is_draft" == 'false' ]]; then
+            exit 0
+          fi
+          while IFS= read -r evidence; do
+            asset_name="${evidence##*/}"
+            if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+                --json assets --jq '.assets[].name' | grep -Fxq "$asset_name"; then
+              gh release upload "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" "$evidence"
+            fi
+          done < <(find release-evidence -maxdepth 1 -type f -name '*.json' -print | sort)
+          gh release edit "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft=false

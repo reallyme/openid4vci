@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "reallyme-openid4vci-types"
+version = "0.1.0"
+description = "OpenID4VCI 1.0 final wire types for ReallyMe issuance protocol crates."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/reallyme-openid4vci-types"
+categories = ["authentication", "data-structures", "encoding"]
+keywords = ["openid4vci", "credentials", "identity", "reallyme"]
+publish = true
+include = [
+    "/src/**/*.rs",
+    "/examples/**/*.rs",
+    "/tests/**/*.rs",
+    "/Cargo.toml",
+    "/README.md",
+    "/LICENSE-MIT",
+    "/LICENSE-APACHE",
+]
+
+[features]
+default = ["native"]
+native = []
+wasm = []
+
+[dependencies]
+percent-encoding = { workspace = true }
+reallyme-codec = { workspace = true, features = ["base64url", "jcs"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+url = { workspace = true }
+zeroize = { workspace = true }
+
+[lints]
+workspace = true

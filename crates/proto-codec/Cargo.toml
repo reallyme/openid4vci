@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "openid4vci-proto-codec"
+version = "0.1.0"
+description = "Bounded protobuf codecs and typed OpenID4VCI domain conversions."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+default = ["native"]
+native = [
+    "openid4vci-attestation/native",
+    "openid4vci-issuer/native",
+    "openid4vci-profiles/native",
+    "openid4vci-types/native",
+    "reallyme-openid4vci-wallet/native",
+]
+wasm = [
+    "openid4vci-attestation/wasm",
+    "openid4vci-issuer/wasm",
+    "openid4vci-profiles/wasm",
+    "openid4vci-types/wasm",
+    "reallyme-openid4vci-wallet/wasm",
+]
+
+[dependencies]
+buffa = { workspace = true }
+openid4vci-attestation = { workspace = true }
+reallyme-openid4vci-wallet = { workspace = true }
+openid4vci-issuer = { workspace = true }
+openid4vci-profiles = { workspace = true }
+openid4vci-proto = { workspace = true, features = ["generated"] }
+openid4vci-types = { workspace = true }
+reallyme-ssi-proto = { workspace = true, features = ["generated"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+zeroize = { workspace = true }
+
+[lints]
+workspace = true

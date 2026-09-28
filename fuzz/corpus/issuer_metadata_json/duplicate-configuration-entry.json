@@ -1,0 +1,14 @@
+{
+  "credential_issuer": "https://issuer.example",
+  "credential_endpoint": "https://issuer.example/credential",
+  "credential_configurations_supported": {
+    "pid": {
+      "format": "dc+sd-jwt",
+      "vct": "https://credentials.example/pid"
+    },
+    "pid": {
+      "format": "dc+sd-jwt",
+      "vct": "https://credentials.example/pid"
+    }
+  }
+}

@@ -1,0 +1,152 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+name: Fuzz
+
+env:
+  CARGO_FUZZ_VERSION: 0.13.2
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/fuzz.yml"
+      - "Cargo.toml"
+      - "crates/**"
+      - "fuzz/**"
+      - "scripts/run-fuzz-smoke.sh"
+      - "!**/*.md"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/fuzz.yml"
+      - "Cargo.toml"
+      - "crates/**"
+      - "fuzz/**"
+      - "scripts/run-fuzz-smoke.sh"
+      - "!**/*.md"
+  schedule:
+    - cron: "43 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: fuzz target build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout openid4vci
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: openid4vci
+          persist-credentials: false
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        with:
+          toolchain: nightly-2026-09-15
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --version "$CARGO_FUZZ_VERSION" --locked
+
+      - name: Build fuzz targets
+        working-directory: openid4vci
+        run: |
+          cargo +nightly-2026-09-15 metadata --locked --manifest-path fuzz/Cargo.toml --format-version 1 --no-deps
+          cargo +nightly-2026-09-15 fuzz build
+
+      - name: Stage fuzz executables
+        working-directory: openid4vci
+        run: |
+          host_target="$(rustc +nightly-2026-09-15 -vV | sed -n 's/^host: //p')"
+          test -n "$host_target"
+          mkdir -p fuzz-binaries
+          while IFS= read -r fuzz_target; do
+            test -n "$fuzz_target"
+            cp "fuzz/target/${host_target}/release/${fuzz_target}" "fuzz-binaries/${fuzz_target}"
+          done < <(cargo +nightly-2026-09-15 fuzz list)
+
+      - name: Run pull-request fuzz smoke corpus
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        working-directory: openid4vci
+        env:
+          OPENID4VCI_FUZZ_BINARY_DIRECTORY: fuzz-binaries
+          OPENID4VCI_FUZZ_RUNS: "16"
+        run: scripts/run-fuzz-smoke.sh
+
+      - name: Upload scheduled fuzz executables
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-executables-${{ github.sha }}
+          path: openid4vci/fuzz-binaries
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Record staged fuzz executable digests
+        working-directory: openid4vci
+        run: sha256sum fuzz-binaries/*
+
+  scheduled:
+    name: scheduled fuzz (${{ matrix.target }})
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - credential_request_json
+          - issuer_metadata_json
+          - credential_offer_json
+          - credential_offer_uri
+          - nonce_response_json
+          - credential_response_json
+          - deferred_credential_request_json
+          - notification_request_json
+          - problem_details_json
+          - proof_jwt
+          - key_attestation_jwt
+          - issuer_metadata_proto
+          - operation_wire
+          - protojson_messages
+          - oauth_form
+          - signed_metadata_jwt
+          - credential_request_jwe
+          - credential_response_jwe
+    steps:
+      - name: Checkout openid4vci
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: openid4vci
+          persist-credentials: false
+
+      - name: Download fuzz executables
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: fuzz-executables-${{ github.sha }}
+          path: fuzz-executables
+
+      - name: Run time-boxed fuzz target
+        working-directory: openid4vci
+        env:
+          OPENID4VCI_FUZZ_BINARY_DIRECTORY: ../fuzz-executables
+          OPENID4VCI_FUZZ_MAX_TOTAL_TIME: "300"
+          OPENID4VCI_FUZZ_RSS_LIMIT_MB: "4096"
+          OPENID4VCI_FUZZ_TARGET: ${{ matrix.target }}
+        run: |
+          chmod 0755 "../fuzz-executables/${OPENID4VCI_FUZZ_TARGET}"
+          scripts/run-fuzz-smoke.sh
+
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-artifacts-${{ matrix.target }}
+          path: openid4vci/fuzz/artifacts/${{ matrix.target }}
+          if-no-files-found: ignore

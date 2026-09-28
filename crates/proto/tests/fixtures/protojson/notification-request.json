@@ -1,0 +1,5 @@
+{
+  "notificationId": "synthetic-notification-1",
+  "event": "NOTIFICATION_EVENT_CREDENTIAL_ACCEPTED",
+  "eventDescription": "synthetic credential stored"
+}

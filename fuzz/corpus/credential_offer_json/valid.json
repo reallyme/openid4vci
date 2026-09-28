@@ -1,0 +1,4 @@
+{
+  "credential_issuer": "https://issuer.example",
+  "credential_configuration_ids": ["pid"]
+}

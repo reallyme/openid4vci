@@ -1,0 +1,163 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "openid4vci-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+
+[lints.cargo]
+# cargo-fuzz target names intentionally match their Rust source, corpus
+# directory, and release-policy key. Changing only the binary spelling would
+# split that identity.
+non_kebab_case_bins = "allow"
+
+[dependencies]
+libfuzzer-sys = "0.4"
+openid4vci-attestation = { version = "0.1.0", path = "../crates/attestation", default-features = false, features = ["native"] }
+openid4vci-issuer = { version = "0.1.0", path = "../crates/issuer", default-features = false, features = ["native", "identity-jose"] }
+openid4vci-http = { version = "0.1.0", path = "../crates/http", default-features = false, features = ["axum"] }
+openid4vci-proto = { package = "reallyme-openid4vci-proto", version = "0.1.0", path = "../crates/proto", default-features = false, features = ["generated"] }
+openid4vci-proto-codec = { version = "0.1.0", path = "../crates/proto-codec", default-features = false, features = ["native"] }
+openid4vci-types = { package = "reallyme-openid4vci-types", version = "0.1.0", path = "../crates/types", default-features = false }
+reallyme-openid4vci-wallet = { version = "0.1.0", path = "../crates/wallet", default-features = false, features = ["native", "identity-jose"] }
+reallyme-codec = { version = "=0.2.3", features = ["base64url"] }
+reallyme-crypto = { version = "=0.3.9", features = ["native", "p256"] }
+serde_json = "1"
+zeroize = "1"
+
+# Fuzz target identifiers deliberately match their snake_case corpus directory
+# and release-policy keys. Keeping those three names identical prevents a
+# target from silently running against the wrong curated corpus.
+[[bin]]
+name = "credential_request_json"
+path = "fuzz_targets/credential_request_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "issuer_metadata_json"
+path = "fuzz_targets/issuer_metadata_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "credential_offer_json"
+path = "fuzz_targets/credential_offer_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "credential_offer_uri"
+path = "fuzz_targets/credential_offer_uri.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nonce_response_json"
+path = "fuzz_targets/nonce_response_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "credential_response_json"
+path = "fuzz_targets/credential_response_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "deferred_credential_request_json"
+path = "fuzz_targets/deferred_credential_request_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "notification_request_json"
+path = "fuzz_targets/notification_request_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "problem_details_json"
+path = "fuzz_targets/problem_details_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "proof_jwt"
+path = "fuzz_targets/proof_jwt.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "key_attestation_jwt"
+path = "fuzz_targets/key_attestation_jwt.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "issuer_metadata_proto"
+path = "fuzz_targets/issuer_metadata_proto.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "operation_wire"
+path = "fuzz_targets/operation_wire.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "protojson_messages"
+path = "fuzz_targets/protojson_messages.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "oauth_form"
+path = "fuzz_targets/oauth_form.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "signed_metadata_jwt"
+path = "fuzz_targets/signed_metadata_jwt.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "credential_request_jwe"
+path = "fuzz_targets/credential_request_jwe.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "credential_response_jwe"
+path = "fuzz_targets/credential_response_jwe.rs"
+test = false
+doc = false
+bench = false

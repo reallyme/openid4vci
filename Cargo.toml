@@ -1,0 +1,91 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[workspace]
+resolver = "2"
+exclude = ["fuzz"]
+members = [
+    "crates/openid4vci",
+    "crates/proto",
+    "crates/proto-codec",
+    "crates/types",
+    "crates/issuer",
+    "crates/wallet",
+    "crates/attestation",
+    "crates/profiles",
+    "crates/http",
+    "conformance",
+]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.96"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/reallyme/openid4vci"
+publish = false
+
+[workspace.dependencies]
+axum = "0.8"
+axum-server = "0.8"
+buffa = { version = "0.9.2", features = ["json"] }
+ciborium = "0.2"
+ed25519-dalek = { version = "3.0", default-features = false }
+percent-encoding = "2.3"
+p256 = { version = "0.14", default-features = false, features = ["arithmetic"] }
+p384 = { version = "0.14", default-features = false, features = ["arithmetic"] }
+p521 = { version = "0.14", default-features = false, features = ["arithmetic"] }
+proptest = { version = "1.11.0", default-features = false, features = ["std"] }
+secrecy = "0.10.3"
+serde = "1.0"
+serde_json = "1.0"
+thiserror = "2.0"
+tokio = "1"
+tower = "0.5"
+time = "0.3"
+url = "2.5"
+zeroize = { version = "1.9", features = ["derive"] }
+
+reallyme-jose = { version = "=0.4.0", default-features = false }
+reallyme-codec = { version = "=0.2.3", default-features = false }
+reallyme-crypto = { version = "=0.3.9", default-features = false }
+reallyme-ssi-proto = { version = "=0.3.3", default-features = false }
+reallyme-openid-oauth = { version = "=0.3.3", default-features = false }
+reallyme-openid4vc-profiles = { version = "=0.3.3", default-features = false }
+reallyme-trust-core = { version = "=0.3.3", default-features = false }
+envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.3.3", default-features = false }
+reallyme-mdoc = { version = "=0.3.3", default-features = false }
+reallyme-revocation = { version = "=0.3.3", default-features = false }
+reallyme-cose = { version = "=0.2.5", default-features = false }
+
+openid4vci-types = { package = "reallyme-openid4vci-types", path = "crates/types", version = "0.1.0", default-features = false }
+openid4vci-proto = { package = "reallyme-openid4vci-proto", path = "crates/proto", version = "0.1.0", default-features = false }
+openid4vci-proto-codec = { path = "crates/proto-codec", version = "0.1.0", default-features = false }
+openid4vci-issuer = { path = "crates/issuer", version = "0.1.0", default-features = false }
+openid4vci-attestation = { path = "crates/attestation", version = "0.1.0", default-features = false }
+reallyme-openid4vci-wallet = { path = "crates/wallet", version = "0.1.0", default-features = false }
+openid4vci-http = { path = "crates/http", version = "0.1.0", default-features = false }
+openid4vci-profiles = { path = "crates/profiles", version = "0.1.0", default-features = false }
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+overflow-checks = true
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+dbg_macro = "deny"
+expect_used = "deny"
+large_include_file = "deny"
+panic = "deny"
+print_stderr = "deny"
+print_stdout = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+unwrap_used = "deny"
+wildcard_imports = "deny"

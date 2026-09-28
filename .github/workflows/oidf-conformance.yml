@@ -1,0 +1,172 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+name: OIDF Conformance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-oidf-assets:
+    name: Prepare shared OIDF assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    outputs:
+      issuer_matrix: ${{ steps.profile_matrix.outputs.issuer }}
+    steps:
+      - name: Checkout openid4vci
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: openid4vci
+          persist-credentials: false
+
+      - name: Checkout pinned OIDF conformance suite
+        run: |
+          git init conformance-suite
+          git -C conformance-suite remote add origin https://gitlab.com/openid/conformance-suite.git
+          git -C conformance-suite fetch --depth 1 origin 440eec8bac7b12b7389d7ca9cbc459b53507a443
+          git -C conformance-suite checkout --detach FETCH_HEAD
+          test "$(git -C conformance-suite rev-parse HEAD)" = "440eec8bac7b12b7389d7ca9cbc459b53507a443"
+
+      - name: Load issuer protocol profiles
+        id: profile_matrix
+        working-directory: openid4vci
+        run: |
+          issuer_matrix="$(jq -ce '
+            {target: [.profiles[] | select(.entity_under_test == "credential_issuer")]}
+            | if (.target | length) == 4 then . else error("issuer release profile inventory is incomplete") end
+          ' conformance/oidf/profile-matrix.json)"
+          echo "issuer=${issuer_matrix}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build OIDF conformance suite once
+        working-directory: conformance-suite
+        run: >-
+          docker run --rm
+          -u "$(id -u):$(id -g)"
+          -e MAVEN_CONFIG=/tmp/.m2
+          -v "${PWD}:/workspace"
+          -w /workspace
+          maven@sha256:c2a2c58516d160f43b50f12baa427ca86989e0bc942609e04aff61da5d9a7d74
+          mvn -q -DskipTests package
+
+      - name: Pin OIDF runtime base images
+        working-directory: conformance-suite
+        run: |
+          grep -Fqx 'FROM eclipse-temurin:21' server-dev/Dockerfile
+          grep -Fqx 'FROM nginx:1.27.3' nginx/Dockerfile
+          sed -i 's|^FROM eclipse-temurin:21$|FROM eclipse-temurin@sha256:4d06038800655fe1211760cd561de70ef2ed7a47f5d69255e9834414602b7026|' server-dev/Dockerfile
+          sed -i 's|^FROM nginx:1.27.3$|FROM nginx@sha256:bc2f6a7c8ddbccf55bdb19659ce3b0a92ca6559e86d42677a5a02ef6bda2fcef|' nginx/Dockerfile
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        with:
+          toolchain: 1.98.1
+
+      - name: Build HTTP example issuer once
+        working-directory: openid4vci
+        run: cargo build --locked -p openid4vci-http --example issuer --all-features
+
+      - name: Stage shared OIDF assets
+        run: |
+          mkdir -p oidf-assets
+          cp openid4vci/target/debug/examples/issuer oidf-assets/issuer
+          tar -czf oidf-assets/conformance-suite.tar.gz conformance-suite
+
+      - name: Upload shared OIDF assets
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: oidf-shared-assets-${{ github.sha }}
+          path: oidf-assets
+          if-no-files-found: error
+          retention-days: 1
+
+  oid4vci-issuer:
+    name: OID4VCI issuer profile (${{ matrix.target.profile_id }})
+    needs: prepare-oidf-assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare-oidf-assets.outputs.issuer_matrix) }}
+    steps:
+      - name: Checkout openid4vci
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: openid4vci
+          persist-credentials: false
+
+      - name: Preflight OIDF issuer conformance prerequisites
+        working-directory: openid4vci
+        run: scripts/conformance/preflight_oidf_oid4vci_issuer.sh
+
+      - name: Download shared OIDF assets
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: oidf-shared-assets-${{ github.sha }}
+          path: oidf-assets
+
+      - name: Restore shared OIDF assets
+        run: |
+          mkdir -p openid4vci/target/debug/examples
+          cp oidf-assets/issuer openid4vci/target/debug/examples/issuer
+          chmod 0755 openid4vci/target/debug/examples/issuer
+          tar -xzf oidf-assets/conformance-suite.tar.gz
+          test "$(git -C conformance-suite rev-parse HEAD)" = "440eec8bac7b12b7389d7ca9cbc459b53507a443"
+
+      - name: Install OIDF runner dependencies
+        run: python3 -m pip install --require-hashes -r openid4vci/scripts/conformance/oidf-runner-requirements.lock
+
+      - name: Discover OIDF OpenID4VCI plans and modules
+        working-directory: openid4vci
+        run: scripts/conformance/discover_oidf_openid4vci.py ../conformance-suite target/conformance-results/oidf-discovery
+
+      - name: Start OIDF conformance suite
+        working-directory: conformance-suite
+        run: |
+          grep -Fqx '    image: mongo:6.0.13' docker-compose.yml
+          cat > docker-compose.openid4vci-host.yml <<'YAML'
+          services:
+            mongodb:
+              image: mongo@sha256:b415b12f638e2685d06c58ab7fb5943577c50fadec6d9340ef67d21aeac72070
+            server:
+              extra_hosts:
+                - "host.docker.internal:host-gateway"
+          YAML
+          docker compose -f docker-compose.yml -f docker-compose.openid4vci-host.yml up -d --build server nginx mongodb
+
+      - name: Run OID4VCI issuer test plan
+        working-directory: openid4vci
+        env:
+          OIDF_CONFORMANCE_MODE: local
+          OPENID4VCI_ISSUER_BASE_URL: https://host.docker.internal:9443/
+          OPENID4VCI_ISSUER_HEALTHCHECK_BASE_URL: https://localhost.emobix.co.uk:9443/
+          OPENID4VCI_ISSUER_BIND: 0.0.0.0:9443
+          OIDF_PLAN_ID: ${{ matrix.target.plan_id }}
+          OIDF_ISSUER_PLAN_EXPRESSION: ${{ matrix.target.plan_expression }}
+          OIDF_ALIAS: reallyme-${{ matrix.target.profile_id }}
+        run: scripts/conformance/run_oidf_oid4vci_issuer.sh ../conformance-suite target/debug/examples/issuer
+
+      - name: Upload conformance results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: oidf-profile-${{ matrix.target.profile_id }}
+          path: |
+            openid4vci/target/conformance-results
+          if-no-files-found: error
+
+  oid4vci-provenance-tests:
+    name: OID4VCI provenance tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout openid4vci
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Test generic issuer provenance gate
+        run: scripts/conformance/test_assert_oidf_issuer_provenance.sh

@@ -1,0 +1,25 @@
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+//
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
+syntax = "proto3";
+
+package reallyme.openid4vci.v1;
+
+import "reallyme/openid4vci/v1/openid4vci.proto";
+
+option go_package = "github.com/reallyme/openid4vci/gen/go/reallyme/openid4vci/v1;openid4vciv1";
+option java_multiple_files = true;
+option java_outer_classname = "OpenId4VciServiceProto";
+option java_package = "me.really.openid4vci.v1";
+
+// OpenId4VciIssuerService is the transport adapter contract for issuer hosts.
+// Message generation remains independent from the selected Connect or gRPC
+// runtime so transport dependency skew cannot block the canonical contracts.
+service OpenId4VciIssuerService {
+  rpc GetNonce(GetNonceRequest) returns (GetNonceResponse);
+  rpc PreflightCredential(PreflightCredentialRequest) returns (PreflightCredentialResponse);
+  rpc IssueCredential(IssueCredentialRequest) returns (IssueCredentialResponse);
+  rpc GetDeferredCredential(GetDeferredCredentialRequest) returns (GetDeferredCredentialResponse);
+  rpc Notify(NotifyRequest) returns (NotifyResponse);
+}

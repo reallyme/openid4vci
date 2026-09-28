@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "openid4vci-profiles"
+version = "0.1.0"
+description = "OpenID4VCI profile constants and policy surfaces."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+default = ["native"]
+native = ["openid4vci-types/native", "reallyme-openid4vc-profiles/native"]
+wasm = ["openid4vci-types/wasm", "reallyme-openid4vc-profiles/wasm"]
+
+[dependencies]
+openid4vci-types = { workspace = true }
+reallyme-openid4vc-profiles = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

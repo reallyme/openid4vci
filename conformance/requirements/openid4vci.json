@@ -1,0 +1,860 @@
+{
+  "schema_version": 1,
+  "source": {
+    "id": "openid4vci-1.0",
+    "url": "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html"
+  },
+  "requirements": [
+    {
+      "id": "OID4VCI-NONCE-001",
+      "section": "7 Nonce Endpoint",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "nonce_endpoint",
+      "requirement": "Issuer-generated c_nonce values are exposed through the dedicated Nonce Endpoint and consumed by proof validation policy.",
+      "implementation": [
+        "openid4vci_issuer::handle_nonce_request",
+        "openid4vci_issuer::handle_credential_request_body"
+      ],
+      "tests": [
+        "endpoint_consumes_c_nonce_single_use",
+        "endpoint_rejects_unknown_c_nonce",
+        "nonce_response_contains_only_c_nonce"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-happy-flow",
+        "oid4vci-1_0-issuer-fail-invalid-nonce"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json",
+        "crates/http/tests/axum_issuer_tests.rs::black_box_issuer_http_fixture_covers_final_openid4vci_endpoints"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-CREDENTIAL-001",
+      "section": "8.2 Credential Request",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "credential_endpoint",
+      "requirement": "A Credential Request selects exactly one credential_configuration_id or credential_identifier.",
+      "implementation": [
+        "openid4vci_types::CredentialRequest::validate"
+      ],
+      "tests": [
+        "credential_request_requires_exactly_one_selector",
+        "final_negative_vectors_match_implementation_behavior"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-happy-flow",
+        "oid4vci-1_0-issuer-fail-unknown-credential-configuration",
+        "oid4vci-1_0-issuer-fail-unknown-credential-identifier"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json",
+        "crates/http/tests/axum_issuer_tests.rs::black_box_issuer_http_fixture_covers_final_openid4vci_endpoints"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-PROOF-001",
+      "section": "Appendix F Proof Types",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "jwt_proof",
+      "requirement": "JWT proofs use exactly one final-spec JOSE header key binding from kid, jwk, or x5c and reject draft-era payload cnf.jwk fallback.",
+      "implementation": [
+        "openid4vci_issuer::JoseJwtProofVerifier",
+        "openid4vci_issuer::CompactProofJwtParser"
+      ],
+      "tests": [
+        "parser_extracts_public_header_jwk",
+        "parser_rejects_draft_payload_cnf_jwk_without_header_binding",
+        "parser_rejects_missing_header_key_binding",
+        "jose_verifier_accepts_signed_jwt_proof"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-fail-invalid-jwt-proof-signature",
+        "oid4vci-1_0-issuer-fail-missing-proof"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-KEY-ATTESTATION-001",
+      "section": "Appendix D.1 Key Attestation in JWT format; Appendix F.1, F.3, and F.4 Proof Types",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "jwt_proof_key_attestation",
+      "requirement": "Key attestation is evaluated only as key-scoped assurance using mandatory trusted time and selected-metadata algorithm policy. The complete unique public key set, temporal claims, security properties, certification, status, and trust provenance are retained; JWT proof keys must be present in that set and direct attestation produces one batch-bounded credential binding per key. Wallet attestation does not satisfy this requirement.",
+      "implementation": [
+        "openid4vci_attestation::verify_key_attestation",
+        "openid4vci_issuer::KeyAttestationPolicy::from_proof_metadata",
+        "openid4vci_issuer::JoseJwtProofVerifier::with_key_attestation_verifier",
+        "openid4vci_issuer::KeyAttestationProofVerifier"
+      ],
+      "tests": [
+        "jose_verifier_accepts_header_key_attestation",
+        "jose_verifier_rejects_expired_header_key_attestation",
+        "jose_verifier_rejects_header_key_attestation_for_different_key",
+        "jose_verifier_rejects_header_key_attestation_without_verifier",
+        "key_attestation_rejects_private_or_symmetric_attested_keys",
+        "key_attestation_enforces_inclusive_time_boundaries",
+        "key_attestation_preserves_unknown_resistance_and_trust_provenance",
+        "direct_attestation_exposes_every_attested_key_for_credential_binding",
+        "direct_attestation_enforces_security_property_policy",
+        "endpoint_enforces_batch_ceiling_after_verified_key_expansion",
+        "endpoint_rejects_missing_key_attestation_when_required",
+        "mixed_proof_policy_is_selected_by_submitted_type_independent_of_map_order"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-fail-invalid-key-attestation-signature"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-trust-evidence.json",
+        "crates/attestation/tests/key_attestation_tests.rs",
+        "crates/issuer/tests/attestation_proof_tests.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-SIGNED-METADATA-001",
+      "section": "12.2.2 Credential Issuer Metadata Retrieval; 12.2.3 Signed Metadata",
+      "keyword": "MUST",
+      "roles": [
+        "wallet"
+      ],
+      "feature": "signed_credential_issuer_metadata",
+      "requirement": "A Wallet that requests application/jwt Credential Issuer Metadata verifies the exact compact JWS, applies an asymmetric algorithm allow-list and temporal policy, binds sub and credential_issuer to the retrieval identifier, and establishes signer trust plus optional iss authorization before processing metadata.",
+      "implementation": [
+        "reallyme_openid4vci_wallet::verify_signed_issuer_metadata",
+        "reallyme_openid4vci_wallet::SignedIssuerMetadataTrustVerifier",
+        "reallyme_openid4vci_wallet::SignedMetadataTrustEvidence"
+      ],
+      "tests": [
+        "signed_metadata_is_processed_only_after_trust_verification",
+        "signed_metadata_rejects_untrusted_signature_before_metadata_processing",
+        "signed_metadata_rejects_expired_jws",
+        "signed_metadata_enforces_algorithm_and_iat_policy",
+        "signed_metadata_requires_trust_evidence_to_bind_optional_issuer",
+        "signed_metadata_rejects_duplicate_json_members_before_trust",
+        "signed_metadata_rejects_oversized_and_excessively_nested_payloads"
+      ],
+      "oidf_modules": [],
+      "conformance_evidence": [
+        "vectors/openid4vci-trust-evidence.json",
+        "crates/wallet/tests/signed_metadata_tests.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-BATCH-ENDPOINT-001",
+      "section": "14.7 Pre-Final Specifications",
+      "keyword": "MUST_NOT",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "batch_credential_endpoint",
+      "requirement": "Do not expose or test the removed draft Batch Credential Endpoint in final 1.0 mode.",
+      "implementation": [
+        "openid4vci_types::IssuerMetadata::parse_json"
+      ],
+      "tests": [
+        "issuer_metadata_rejects_batch_endpoint_extension",
+        "expected_credential_count_follows_final_proofs_array"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-batch-issuance"
+      ],
+      "conformance_evidence": [
+        "crates/types/tests/final_spec_tests.rs",
+        "crates/issuer/tests/encode_tests.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-PROOFS-001",
+      "section": "3.3.2 Batch Credential Issuance; 8.2 Credential Request",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "proofs_array",
+      "requirement": "Multiple credentials are requested with a final-spec proofs array rather than the removed draft batch endpoint.",
+      "implementation": [
+        "openid4vci_types::Proofs::validate",
+        "openid4vci_issuer::expected_credential_count"
+      ],
+      "tests": [
+        "proofs_allow_multiple_jwt_but_single_attestation",
+        "expected_credential_count_follows_final_proofs_array",
+        "endpoint_rejects_proofs_over_batch_size"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-batch-issuance"
+      ],
+      "conformance_evidence": [
+        "crates/types/tests/final_spec_tests.rs",
+        "crates/issuer/tests/encode_tests.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-METADATA-001",
+      "section": "12.2 Credential Issuer Metadata",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "credential_issuer_metadata",
+      "requirement": "Credential Issuer metadata exposes final endpoint fields and may advertise a Nonce Endpoint independently of proof support.",
+      "implementation": [
+        "openid4vci_types::IssuerMetadata",
+        "openid4vci_types::IssuerMetadataBuilder"
+      ],
+      "tests": [
+        "issuer_metadata_accepts_final_minimum",
+        "metadata_builder_derives_proof_metadata_without_batch_endpoint",
+        "metadata_builder_allows_proofs_without_optional_nonce_endpoint"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-metadata-test"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-OFFER-001",
+      "section": "4.1 Credential Offer",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "credential_offer",
+      "requirement": "Credential Offers use final-spec tx_code semantics, reject user_pin-era shape, reject issuer identifiers with fragments, and accept exactly one offer source in offer URIs.",
+      "implementation": [
+        "openid4vci_types::CredentialOffer",
+        "openid4vci_types::parse_credential_offer_uri",
+        "openid4vci_types::TxCode"
+      ],
+      "tests": [
+        "pre_authorized_offer_uses_tx_code_without_user_pin",
+        "tx_code_description_rejects_over_300_characters",
+        "credential_offer_rejects_issuer_identifier_with_fragment",
+        "credential_offer_uri_rejects_multiple_offer_sources",
+        "credential_offer_uri_rejects_duplicate_offer_parameters",
+        "credential_offer_uri_accepts_single_reference",
+        "generated_offer_uri_source_combinations_fail_closed"
+      ],
+      "oidf_modules": [],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json",
+        "crates/wallet/tests/offer_tests.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-TOKEN-PREAUTH-001",
+      "section": "6.1 Token Request",
+      "keyword": "MUST",
+      "roles": [
+        "wallet"
+      ],
+      "feature": "pre_authorized_code_token_request",
+      "requirement": "Pre-authorized-code token requests include the final pre-authorized_code parameter and only send tx_code with the pre-authorized-code grant.",
+      "implementation": [
+        "reallyme_openid4vci_wallet::PreAuthorizedTokenRequest",
+        "openid4vci_types::PreAuthorizedCodeGrant"
+      ],
+      "tests": [
+        "pre_authorized_token_request_redacts_and_serializes_secrets",
+        "pre_authorized_token_request_rejects_invalid_transaction_code",
+        "pre_authorized_offer_transitions_to_token_and_credential_requests"
+      ],
+      "oidf_modules": [],
+      "conformance_evidence": [
+        "crates/wallet/tests/state_machine_tests.rs",
+        "crates/wallet/tests/offer_tests.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-TOKEN-AUTHCODE-001",
+      "section": "6.1 Token Request",
+      "keyword": "MUST",
+      "roles": [
+        "wallet"
+      ],
+      "feature": "authorization_code_token_request",
+      "requirement": "Authorization-code token requests use the OAuth authorization_code grant shape with PKCE code_verifier support and redacted wallet-held secrets.",
+      "implementation": [
+        "reallyme_openid4vci_wallet::AuthorizationCodeTokenRequest",
+        "reallyme_openid_oauth::PkceCodeVerifier"
+      ],
+      "tests": [
+        "authorization_code_token_request_redacts_and_serializes_secrets",
+        "authorization_code_token_request_rejects_invalid_public_values",
+        "authorization_code_offer_transitions_to_token_and_credential_requests"
+      ],
+      "oidf_modules": [
+        "fapi2-security-profile-final-happy-flow",
+        "fapi2-security-profile-final-ensure-pkce-code-verifier-required",
+        "fapi2-security-profile-final-incorrect-pkce-code-verifier-rejected"
+      ],
+      "conformance_evidence": [
+        "crates/wallet/tests/state_machine_tests.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-CREDENTIAL-RESPONSE-001",
+      "section": "8.3 Credential Response",
+      "keyword": "MUST_NOT",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "credential_response",
+      "requirement": "Immediate Credential Responses do not combine issued credentials with deferred polling interval fields.",
+      "implementation": [
+        "openid4vci_types::CredentialResponse::validate"
+      ],
+      "tests": [
+        "credential_response_rejects_interval_with_credentials",
+        "immediate_response_body_is_not_marked_deferred",
+        "pending_deferred_response_body_is_marked_deferred"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-happy-flow",
+        "oid4vci-1_0-issuer-happy-flow-additional-requests"
+      ],
+      "conformance_evidence": [
+        "crates/http/tests/axum_issuer_tests.rs::black_box_issuer_http_fixture_covers_final_openid4vci_endpoints"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-DEFERRED-001",
+      "section": "9 Deferred Credential Endpoint",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "deferred_credential_endpoint",
+      "requirement": "Deferred issuance responses carry transaction_id and interval while pending, and issuers invalidate a transaction after the credential is obtained.",
+      "implementation": [
+        "openid4vci_types::DeferredCredentialRequest",
+        "openid4vci_issuer::handle_deferred_credential_request_body",
+        "openid4vci_issuer::InMemoryDeferredStore"
+      ],
+      "tests": [
+        "deferred_polling_preserves_pending_and_completed_states",
+        "deferred_retry_preserves_transaction_and_interval",
+        "restored_deferred_transaction_completes_once_then_replay_fails",
+        "deferred_store_takes_transaction_once"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-happy-flow-additional-requests"
+      ],
+      "conformance_evidence": [
+        "crates/http/tests/axum_issuer_tests.rs::black_box_issuer_http_fixture_covers_final_openid4vci_endpoints"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-NOTIFICATION-001",
+      "section": "11 Notification Endpoint",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "notification_endpoint",
+      "requirement": "Notification requests use final notification identifiers, events, and bounded descriptions, with issuer endpoints mapping invalid notifications to typed errors.",
+      "implementation": [
+        "openid4vci_types::NotificationRequest::validate",
+        "openid4vci_issuer::handle_notification_request"
+      ],
+      "tests": [
+        "notification_description_rejects_non_ascii",
+        "notification_endpoint_returns_no_content_on_success",
+        "notification_repeat_is_idempotent_but_malformed_state_fails"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-happy-flow",
+        "oid4vci-1_0-issuer-happy-flow-skip-notification"
+      ],
+      "conformance_evidence": [
+        "crates/http/tests/axum_issuer_tests.rs::black_box_issuer_http_fixture_covers_final_openid4vci_endpoints"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-METADATA-HTTP-001",
+      "section": "12.2.2 Credential Issuer Metadata Retrieval",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "credential_issuer_metadata",
+      "requirement": "Credential Issuer Metadata retrieval returns an unsigned application/json metadata document over the configured issuer well-known route and does not alias unconfigured tenant paths.",
+      "implementation": [
+        "openid4vci_http::issuer_router",
+        "openid4vci_types::IssuerMetadata"
+      ],
+      "tests": [
+        "metadata_endpoint_serves_final_spec_document",
+        "unconfigured_path_scoped_metadata_endpoint_is_not_routed",
+        "metadata_endpoint_sets_representation_cache_key"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-metadata-test",
+        "fapi2-security-profile-final-discovery-end-point-verification"
+      ],
+      "conformance_evidence": [
+        "crates/http/tests/axum_issuer_tests.rs::metadata_endpoint_serves_final_spec_document",
+        "crates/http/tests/axum_issuer_tests.rs::unconfigured_path_scoped_metadata_endpoint_is_not_routed",
+        "crates/http/tests/axum_issuer_transport_tests.rs::metadata_endpoint_sets_representation_cache_key"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-ENCRYPTION-REQUEST-001",
+      "section": "10 Encrypted Credential Requests and Responses",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "credential_response_encryption",
+      "requirement": "When wallet response-encryption parameters are present, the request is required to arrive through the encrypted-request boundary so encryption parameters cannot be substituted in plaintext.",
+      "implementation": [
+        "openid4vci_issuer::require_encrypted_request_for_response_encryption",
+        "openid4vci_http::issuer_router"
+      ],
+      "tests": [
+        "plaintext_request_with_response_encryption_is_rejected",
+        "encrypted_credential_endpoint_returns_application_jwt",
+        "encrypted_deferred_endpoint_returns_application_jwt"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-happy-flow",
+        "oid4vci-1_0-issuer-fail-unsupported-encryption-algorithm"
+      ],
+      "conformance_evidence": [
+        "crates/http/tests/axum_issuer_tests.rs::black_box_issuer_http_fixture_covers_final_openid4vci_endpoints"
+      ],
+      "applicable": true,
+      "status": "implemented-at-policy-boundary"
+    },
+    {
+      "id": "OID4VCI-PROBLEM-001",
+      "section": "8.3.1 Credential Error Response; 9.3 Deferred Credential Error Response; 11.3 Notification Error Response",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "problem_details",
+      "requirement": "Issuer adapter error surfaces map to RFC 9457 Problem Details where applicable, while Credential Endpoint errors use the final OpenID4VCI error-code vocabulary.",
+      "implementation": [
+        "openid4vci_types::ProblemDetails",
+        "openid4vci_types::ProblemType",
+        "openid4vci_types::IssuerProblemStatus"
+      ],
+      "tests": [
+        "every_issuer_status_maps_to_problem_details",
+        "wire_error_codes_use_final_spec_vocabulary",
+        "json_credential_endpoint_returns_credential_error",
+        "secured_credential_endpoint_requires_dpop_header",
+        "black_box_issuer_http_fixture_covers_final_openid4vci_endpoints"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-fail-invalid-nonce",
+        "oid4vci-1_0-issuer-fail-missing-proof",
+        "oid4vci-1_0-issuer-fail-unknown-credential-configuration",
+        "oid4vci-1_0-issuer-fail-unsupported-encryption-algorithm"
+      ],
+      "conformance_evidence": [
+        "crates/http/tests/axum_issuer_tests.rs::black_box_issuer_http_fixture_covers_final_openid4vci_endpoints"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-JWE-001",
+      "section": "10 Encrypted Credential Requests and Responses",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "credential_response_encryption",
+      "requirement": "Credential request and response encryption use concrete ECDH-ES compact JWE encryption/decryption adapters backed by reviewed reallyme-jose support.",
+      "implementation": [
+        "openid4vci_issuer::CredentialRequestDecryptor",
+        "openid4vci_issuer::CredentialResponseEncryptor",
+        "openid4vci_issuer::JoseJweCredentialRequestDecryptor",
+        "openid4vci_issuer::JoseJweCredentialResponseEncryptor",
+        "openid4vci_wallet::WalletCredentialRequest"
+      ],
+      "tests": [
+        "plaintext_request_with_response_encryption_is_rejected",
+        "endpoint_rejects_unsupported_response_encryption_alg",
+        "encrypted_credential_endpoint_returns_application_jwt",
+        "jose_jwe_response_encryptor_roundtrips_p256_ecdh_es",
+        "jose_jwe_request_decryptor_roundtrips_p256_ecdh_es",
+        "jose_jwe_request_decryptor_rejects_wrong_kid",
+        "jose_jwe_response_encryptor_rejects_unsupported_zip_parameter",
+        "rejects_unadvertised_response_compression",
+        "wallet_rejects_unadvertised_response_encryption_selections",
+        "wallet_rejects_response_encryption_when_issuer_advertises_no_capability",
+        "unadvertised_response_compression_is_rejected_before_nonce_or_issuance",
+        "deferred_response_rejects_unadvertised_compression_before_resolution",
+        "jose_jwe_response_encryptor_rejects_private_wallet_jwk",
+        "checked_jwe_vectors_have_supported_compact_headers",
+        "checked_request_decryption_vector_uses_openid4vci_decryptor",
+        "checked_response_encryption_vector_matches_openid4vci_response_model"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-happy-flow",
+        "oid4vci-1_0-issuer-fail-unknown-credential-configuration",
+        "oid4vci-1_0-issuer-fail-unsupported-encryption-algorithm"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-jwe.json",
+        "crates/http/tests/axum_issuer_tests.rs::black_box_issuer_http_fixture_covers_final_openid4vci_endpoints"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-JSON-BOUNDARY-001",
+      "section": "4.1 Credential Offer; 8.2 Credential Request; 12.2 Credential Issuer Metadata",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "json_boundary_validation",
+      "requirement": "Protocol JSON inputs are parsed as bounded, validated wire objects before issuer or wallet logic consumes them.",
+      "implementation": [
+        "openid4vci_types::CredentialRequest::parse_json",
+        "openid4vci_types::IssuerMetadata::parse_json",
+        "openid4vci_types::CredentialOffer::parse_json",
+        "openid4vci_types::validation::parse_json"
+      ],
+      "tests": [
+        "oversized_json_body_is_rejected_before_shape_validation",
+        "deeply_nested_json_body_is_rejected",
+        "final_negative_vectors_match_implementation_behavior",
+        "accept_expectation_is_enforced"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-metadata-test",
+        "oid4vci-1_0-issuer-happy-flow"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json",
+        "fuzz/fuzz_targets/credential_offer_json.rs",
+        "fuzz/fuzz_targets/credential_response_json.rs",
+        "fuzz/fuzz_targets/issuer_metadata_json.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-CREDENTIAL-IDENTIFIER-001",
+      "section": "3.3.4 Identifying Credentials Being Issued Throughout the Issuance Flow",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "credential_identifier",
+      "requirement": "Credential identifier selectors are represented separately from credential configuration identifiers and map to identifier-specific errors.",
+      "implementation": [
+        "openid4vci_types::CredentialSelector",
+        "openid4vci_issuer::handle_credential_request"
+      ],
+      "tests": [
+        "token_authorized_identifier_transitions_to_identifier_request",
+        "endpoint_reports_unknown_credential_identifier_for_identifier_selector",
+        "wire_error_codes_use_final_spec_vocabulary"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-fail-unknown-credential-identifier"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-PROOF-JWT-002",
+      "section": "Appendix F.1 jwt Proof Type",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "jwt_proof_header_and_claim_validation",
+      "requirement": "JWT proofs require the final proof typ, an iat claim, supported asymmetric algorithms, and exactly one public key-binding header mechanism from kid, jwk, or x5c.",
+      "implementation": [
+        "openid4vci_issuer::CompactProofJwtParser",
+        "openid4vci_issuer::JoseJwtProofVerifier"
+      ],
+      "tests": [
+        "parser_rejects_draft_typ_value",
+        "parser_rejects_missing_typ",
+        "parser_rejects_missing_iat",
+        "parser_rejects_none_algorithm",
+        "parser_rejects_missing_header_key_binding",
+        "parser_rejects_mutually_exclusive_binding_headers",
+        "parser_rejects_private_or_symmetric_header_jwk_members"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-fail-invalid-jwt-proof-signature",
+        "oid4vci-1_0-issuer-fail-missing-proof"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json",
+        "fuzz/fuzz_targets/proof_jwt.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-PROOF-CLAIMS-001",
+      "section": "13.8 Proof replay; Appendix F.4 Verifying Proof",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "proof_nonce_and_audience_binding",
+      "requirement": "Issuer proof validation binds proof nonce and audience to issuer policy so a proof cannot be replayed across issuers or issuance sessions.",
+      "implementation": [
+        "openid4vci_issuer::validate_common_claims",
+        "openid4vci_issuer::handle_credential_request"
+      ],
+      "tests": [
+        "common_claim_validation_rejects_missing_nonce_when_required",
+        "common_claim_validation_rejects_wrong_audience",
+        "parser_extracts_nonce_audience_kid_and_key_binding_id",
+        "endpoint_consumes_c_nonce_single_use"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-fail-invalid-nonce",
+        "oid4vci-1_0-issuer-fail-invalid-jwt-proof-signature"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-PROOF-KEY-RESOLUTION-001",
+      "section": "Appendix F.1 jwt Proof Type; Appendix F.4 Verifying Proof",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "proof_key_resolution",
+      "requirement": "Issuer proof validation resolves kid and x5c key references through an injected resolver and fails closed when the resolver is absent; x5c resolution validates the chain and uses the first certificate's public key.",
+      "implementation": [
+        "openid4vci_issuer::ProofKeyResolver",
+        "openid4vci_issuer::JoseJwtProofVerifier"
+      ],
+      "tests": [
+        "jose_verifier_resolves_kid_binding",
+        "jose_verifier_rejects_kid_binding_without_resolver",
+        "jose_verifier_resolves_x5c_leaf_key_binding",
+        "jose_verifier_rejects_x5c_binding_without_resolver",
+        "parser_extracts_nonce_audience_kid_and_key_binding_id"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-fail-invalid-jwt-proof-signature"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-METADATA-CREDENTIAL-CONFIGURATION-001",
+      "section": "12.2.4 Credential Issuer Metadata Parameters; Appendix A.3.2 Credential Issuer Metadata",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "credential_configurations_supported",
+      "requirement": "Credential configuration metadata preserves final format-specific fields, scope, proof metadata, credential metadata, and binding-method relationships.",
+      "implementation": [
+        "openid4vci_types::CredentialConfiguration",
+        "openid4vci_types::ProofTypeMetadata",
+        "openid4vci_proto::issuer_metadata_to_proto",
+        "openid4vci_proto::issuer_metadata_from_proto"
+      ],
+      "tests": [
+        "issuer_metadata_accepts_final_minimum",
+        "metadata_builder_derives_proof_metadata_without_batch_endpoint",
+        "issuer_metadata_preserves_final_and_eudi_fields",
+        "issuer_metadata_rejects_malformed_json_byte_fields"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-metadata-test"
+      ],
+      "conformance_evidence": [
+        "vectors/openid4vci-final-negative.json"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-BATCH-METADATA-001",
+      "section": "3.3.2 Batch Credential Issuance; 14.6 Batch Issuing Credentials",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "batch_credential_issuance_metadata",
+      "requirement": "Final batch issuance is advertised with batch_credential_issuance metadata and bounded by proof count, not by the removed batch endpoint.",
+      "implementation": [
+        "openid4vci_types::BatchCredentialIssuance",
+        "openid4vci_issuer::enforce_batch_size"
+      ],
+      "tests": [
+        "metadata_accepts_batch_issuance_and_rejects_batch_size_below_two",
+        "endpoint_rejects_proofs_over_batch_size",
+        "endpoint_rejects_direct_immediate_response_with_mismatched_proof_count"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-batch-issuance"
+      ],
+      "conformance_evidence": [
+        "crates/types/tests/final_spec_tests.rs",
+        "crates/issuer/tests/state_machine_tests.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-HTTP-SECURITY-001",
+      "section": "13.10 Protecting the Access Token",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "sender_constrained_http_endpoints",
+      "requirement": "Protected issuer HTTP endpoints validate sender-constrained access tokens and DPoP proof target binding before invoking issuer logic.",
+      "implementation": [
+        "openid4vci_http::validate_http_security",
+        "openid4vci_http::IssuerHttpSecurityConfig"
+      ],
+      "tests": [
+        "secured_credential_endpoint_requires_dpop_header",
+        "secured_deferred_endpoint_checks_dpop_target_uri",
+        "protected_resource_rejects_missing_access_token",
+        "internal_connect_service_is_not_exposed_by_public_router",
+        "secured_notification_endpoint_requires_dpop_header"
+      ],
+      "oidf_modules": [
+        "oid4vci-1_0-issuer-fail-on-access-token-in-query",
+        "fapi2-security-profile-final-dpop-negative-tests",
+        "fapi2-security-profile-final-ensure-holder-of-key-required"
+      ],
+      "conformance_evidence": [
+        "crates/http/tests/axum_issuer_tests.rs::secured_credential_endpoint_requires_dpop_header",
+        "crates/http/tests/axum_issuer_tests.rs::secured_deferred_endpoint_checks_dpop_target_uri",
+        "crates/http/tests/axum_issuer_tests.rs::secured_notification_endpoint_requires_dpop_header"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-PREFLIGHT-001",
+      "section": "8 Credential Endpoint",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer"
+      ],
+      "feature": "credential_request_preflight",
+      "requirement": "Credential request validation and proof verification can be performed without issuing credentials or leaking credential key material.",
+      "implementation": [
+        "openid4vci_issuer::preflight_credential_request"
+      ],
+      "tests": [
+        "preflight_then_issue_has_no_preflight_side_effect"
+      ],
+      "oidf_modules": [],
+      "conformance_evidence": [
+        "crates/issuer/tests/state_machine_tests.rs"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "OID4VCI-PROTO-SURFACE-001",
+      "section": "Protocol Adapter Surface",
+      "keyword": "MUST",
+      "roles": [
+        "credential_issuer",
+        "wallet"
+      ],
+      "feature": "protobuf_transport_surface",
+      "requirement": "The protobuf/Buffa contracts preserve the same validated OpenID4VCI data boundary as the JSON wire types without exposing an authorization-bypassing transport service.",
+      "implementation": [
+        "crates/proto/proto/reallyme/openid4vci/v1/openid4vci.proto",
+        "openid4vci_proto::generated",
+        "openid4vci_proto_codec"
+      ],
+      "tests": [
+        "credential_request_survives_buffa_binary_roundtrip",
+        "internal_connect_service_is_not_exposed_by_public_router"
+      ],
+      "oidf_modules": [],
+      "conformance_evidence": [
+        "crates/proto-codec/tests/roundtrip_tests.rs",
+        "crates/http/tests/axum_issuer_tests.rs",
+        "buf lint"
+      ],
+      "applicable": true,
+      "status": "implemented"
+    }
+  ]
+}

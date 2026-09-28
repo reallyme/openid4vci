@@ -1,0 +1,79 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[graph]
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "wasm32-unknown-unknown",
+    "aarch64-apple-ios",
+    "aarch64-linux-android",
+]
+all-features = true
+no-default-features = false
+
+[output]
+feature-depth = 1
+
+[advisories]
+yanked = "deny"
+ignore = []
+
+[licenses]
+confidence-threshold = 0.93
+allow = [
+    "Apache-2.0",
+    "BSD-3-Clause",
+    # The all-feature TLS lane includes rustls-webpki and AWS-LC components
+    # distributed under these standard permissive licenses.
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "Unicode-3.0",
+    "Zlib",
+]
+exceptions = []
+
+[licenses.private]
+ignore = true
+registries = []
+
+[bans]
+# Fail on every newly introduced duplicate. The precise transitional versions
+# below are the reviewed exceptions imposed by published upstream dependency
+# graphs; removing an exception is required as soon as those graphs converge.
+multiple-versions = "deny"
+wildcards = "deny"
+highlight = "all"
+workspace-default-features = "allow"
+external-default-features = "allow"
+# Direct broad error/logging crates are prohibited by workspace lints and source
+# review. Do not ban transitive use until upstream dependencies are ready to
+# replace them without reducing interoperability coverage.
+deny = []
+skip = [
+    { name = "base64", version = "=0.22.1" },
+    { name = "block-buffer", version = "=0.10.4" },
+    { name = "cpufeatures", version = "=0.2.17" },
+    { name = "crypto-common", version = "=0.1.7" },
+    { name = "digest", version = "=0.10.7" },
+    { name = "generic-array", version = "=0.14.7" },
+    { name = "getrandom", version = "=0.2.17" },
+    { name = "hashbrown", version = "=0.15.5" },
+    { name = "keccak", version = "=0.1.6" },
+    { name = "sha3", version = "=0.10.9" },
+    { name = "syn", version = "=2.0.119" },
+]
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
+
+[sources.allow-org]
+github = []
+gitlab = []
+bitbucket = []

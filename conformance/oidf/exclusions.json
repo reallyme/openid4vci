@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "exclusions": [
+    {
+      "module_id": "batch_credential_endpoint",
+      "entity_under_test": "credential_issuer",
+      "specification": "openid4vci-1.0",
+      "supported": false,
+      "exclusion_reason": "OpenID4VCI 1.0 final removed the draft Batch Credential Endpoint; multiple credentials are represented through final request semantics and proofs."
+    },
+    {
+      "module_id": "openid4vp",
+      "entity_under_test": "wallet",
+      "specification": "openid4vp",
+      "supported": false,
+      "exclusion_reason": "OpenID4VP belongs in reallyme/openid4vp, not reallyme/openid4vci."
+    }
+  ]
+}

@@ -1,0 +1,300 @@
+{
+  "schema_version": 1,
+  "source": {
+    "id": "haip-1.0",
+    "url": "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0-final.html"
+  },
+  "requirements": [
+    {
+      "id": "HAIP-ISSUANCE-PROFILE-001",
+      "section": "Issuance profile policy",
+      "keyword": "MUST",
+      "roles": ["credential_issuer", "wallet"],
+      "feature": "profile_policy",
+      "requirement": "High-assurance issuance requires explicit profile policy instead of silently treating base OpenID4VCI as HAIP.",
+      "implementation": [
+        "openid4vci_profiles::haip_policy",
+        "openid4vci_profiles::IssuerProfileRequirements",
+        "reallyme_openid4vc_profiles::Profile"
+      ],
+      "tests": [
+        "haip_is_eidas_relevant_high_assurance_profile",
+        "haip_policy_accepts_complete_issuer_requirements",
+        "haip_policy_rejects_unsupported_issuer_format",
+        "eudi_pid_policy_rejects_metadata_without_configuration_scope"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-AUTHORIZATION-CODE-001",
+      "section": "Authorization Code flow",
+      "keyword": "MUST",
+      "roles": ["authorization_server", "wallet"],
+      "feature": "authorization_code_grant",
+      "requirement": "HAIP issuance uses the OAuth Authorization Code grant and does not treat the pre-authorized code grant as part of the HAIP baseline.",
+      "implementation": [
+        "openid4vci_profiles::ProfilePolicy::authorization_code_grant_required",
+        "openid4vci_http::AxumIssuerSecurityPolicy",
+        "ExampleOAuthAuthorizationServer"
+      ],
+      "tests": [
+        "haip_is_eidas_relevant_high_assurance_profile",
+        "haip_policy_requires_scope_conditional_nonce_and_oauth_security",
+        "router_accepts_complete_haip_authorization_server_contract",
+        "router_rejects_haip_metadata_without_each_mandatory_oauth_control"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-PKCE-001",
+      "section": "Authorization request security",
+      "keyword": "MUST",
+      "roles": ["authorization_server", "wallet"],
+      "feature": "pkce_s256",
+      "requirement": "HAIP Authorization Code requests use PKCE with the S256 code challenge method.",
+      "implementation": [
+        "openid4vci_profiles::ProfilePolicy::pkce_s256_required",
+        "openid4vci_http::AxumIssuerSecurityPolicy",
+        "ExampleOAuthAuthorizationServer::pushed_authorization_request"
+      ],
+      "tests": [
+        "haip_policy_requires_scope_conditional_nonce_and_oauth_security",
+        "router_accepts_complete_haip_authorization_server_contract",
+        "router_rejects_haip_metadata_without_each_mandatory_oauth_control"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-AUTHORIZATION-ISSUER-001",
+      "section": "Authorization response issuer identification",
+      "keyword": "MUST",
+      "roles": ["authorization_server", "wallet"],
+      "feature": "authorization_response_issuer",
+      "requirement": "HAIP authorization responses include the authorization server issuer identifier.",
+      "implementation": [
+        "openid4vci_profiles::ProfilePolicy::authorization_response_issuer_required",
+        "openid4vci_http::AxumIssuerSecurityPolicy",
+        "ExampleOAuthAuthorizationServer::authorize"
+      ],
+      "tests": [
+        "haip_policy_requires_scope_conditional_nonce_and_oauth_security",
+        "router_accepts_complete_haip_authorization_server_contract",
+        "router_rejects_haip_metadata_without_each_mandatory_oauth_control"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-OAUTH-CLIENT-AUTH-001",
+      "section": "OAuth client authentication",
+      "keyword": "MUST",
+      "roles": ["authorization_server", "wallet"],
+      "feature": "oauth_client_authentication",
+      "requirement": "HAIP requires OAuth client authentication at the PAR and Token endpoints while leaving the concrete authentication format to ecosystem policy.",
+      "implementation": [
+        "openid4vci_profiles::ProfilePolicy::oauth_client_authentication_required",
+        "openid4vci_http::AxumIssuerSecurityPolicy",
+        "ExampleOAuthAuthorizationServer"
+      ],
+      "tests": [
+        "haip_does_not_turn_optional_attestation_formats_into_universal_requirements",
+        "haip_policy_requires_scope_conditional_nonce_and_oauth_security",
+        "router_accepts_complete_haip_authorization_server_contract",
+        "router_rejects_haip_metadata_without_each_mandatory_oauth_control"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-ATTESTATION-001",
+      "section": "Wallet and key attestation",
+      "keyword": "MUST",
+      "roles": ["credential_issuer"],
+      "feature": "key_attestation_required",
+      "requirement": "HAIP/EUDI-relevant issuance policy can require key attestation before issuing a credential.",
+      "implementation": [
+        "openid4vci_issuer::CredentialEndpointConfig::key_attestation_required",
+        "openid4vci_attestation::verify_key_attestation"
+      ],
+      "tests": [
+        "endpoint_rejects_missing_key_attestation_when_required",
+        "key_attestation_proof_verifier_accepts_direct_attestation",
+        "haip_policy_requires_scope_conditional_nonce_and_oauth_security",
+        "eudi_pid_policy_extracts_metadata_observable_requirements"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-WALLET-ATTESTATION-001",
+      "section": "Attestation-based client authentication",
+      "keyword": "MUST",
+      "roles": ["credential_issuer", "wallet"],
+      "feature": "wallet_attestation_client_authentication",
+      "requirement": "Wallet attestation client authentication is enforced at protected issuer HTTP boundaries when configured.",
+      "implementation": [
+        "openid4vci_http::IssuerHttpSecurityConfig",
+        "reallyme_openid_oauth::validate_attestation_client_authentication"
+      ],
+      "tests": [
+        "secured_credential_endpoint_accepts_dpop_and_wallet_attestation"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-DPOP-001",
+      "section": "Sender-constrained access tokens",
+      "keyword": "MUST",
+      "roles": ["credential_issuer", "wallet"],
+      "feature": "dpop_sender_constrained_issuance",
+      "requirement": "High-assurance issuance requires sender-constrained protected endpoints; OpenID4VCI enforces DPoP at Credential, Deferred Credential, and Notification boundaries and does not expose the internal Connect service.",
+      "implementation": [
+        "openid4vci_http::IssuerHttpSecurityConfig",
+        "openid4vci_http::validate_http_security",
+        "reallyme_openid_oauth::DpopVerifier"
+      ],
+      "tests": [
+        "secured_credential_endpoint_requires_dpop_header",
+        "secured_deferred_endpoint_checks_dpop_target_uri",
+        "internal_connect_service_is_not_exposed_by_public_router",
+        "secured_notification_endpoint_requires_dpop_header"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-PAR-001",
+      "section": "Authorization request security",
+      "keyword": "MUST",
+      "roles": ["credential_issuer", "wallet"],
+      "feature": "pushed_authorization_requests",
+      "requirement": "High-assurance authorization-code issuance policy requires PAR; OpenID4VCI delegates request construction and validation to shared reallyme-openid-oauth, while the issuer adapter binds callbacks and atomically consumes each accepted request_uri at authorization.",
+      "implementation": [
+        "openid4vci_profiles::haip_policy",
+        "openid4vci_profiles::eudi_pid_policy",
+        "reallyme_openid_oauth::par",
+        "ExampleOAuthAuthorizationServer::authorize"
+      ],
+      "tests": [
+        "haip_is_eidas_relevant_high_assurance_profile",
+        "eudi_pid_policy_is_eidas_relevant_high_assurance_issuance_profile",
+        "haip_policy_requires_scope_conditional_nonce_and_oauth_security",
+        "authorization_consumes_par_before_a_replay_can_mint_another_code",
+        "concurrent_authorization_replay_mints_exactly_one_code",
+        "user_rejection_also_consumes_par"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented-at-profile-boundary"
+    },
+    {
+      "id": "HAIP-ISSUANCE-EUDI-PID-001",
+      "section": "EUDI PID issuance profile",
+      "keyword": "MUST",
+      "roles": ["credential_issuer", "wallet"],
+      "feature": "eudi_pid_issuance_profile",
+      "requirement": "EUDI PID issuance is represented as an explicit eIDAS-relevant high-assurance profile requiring configuration scopes, DPoP, PAR, and a Nonce Endpoint when key binding is supported.",
+      "implementation": [
+        "openid4vci_profiles::eudi_pid_policy",
+        "reallyme_openid4vc_profiles::Profile"
+      ],
+      "tests": [
+        "eudi_pid_policy_is_eidas_relevant_high_assurance_issuance_profile",
+        "eudi_pid_policy_does_not_require_optional_encryption_extensions",
+        "eudi_pid_policy_extracts_metadata_observable_requirements"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-RESPONSE-ENCRYPTION-001",
+      "section": "Credential response confidentiality",
+      "keyword": "MAY",
+      "roles": ["credential_issuer", "wallet"],
+      "feature": "credential_response_encryption",
+      "requirement": "The implementation supports the optional encrypted Credential and Deferred Credential response extension with fail-closed algorithm negotiation; HAIP does not make this extension universal.",
+      "implementation": [
+        "openid4vci_issuer::CredentialResponseEncryptor",
+        "openid4vci_issuer::JoseJweCredentialResponseEncryptor",
+        "openid4vci_types::CredentialResponseEncryptionMetadata",
+        "openid4vci_wallet::WalletCredentialRequest"
+      ],
+      "tests": [
+        "encrypted_credential_endpoint_returns_application_jwt",
+        "encrypted_deferred_endpoint_returns_application_jwt",
+        "endpoint_rejects_unsupported_response_encryption_alg",
+        "rejects_unadvertised_response_compression",
+        "wallet_rejects_unadvertised_response_encryption_selections",
+        "wallet_rejects_response_encryption_when_issuer_advertises_no_capability",
+        "unadvertised_response_compression_is_rejected_before_nonce_or_issuance",
+        "deferred_response_rejects_unadvertised_compression_before_resolution",
+        "jose_jwe_response_encryptor_roundtrips_p256_ecdh_es",
+        "checked_jwe_vectors_have_supported_compact_headers",
+        "checked_response_encryption_vector_matches_openid4vci_response_model",
+        "eudi_pid_policy_does_not_require_optional_encryption_extensions"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented"
+    },
+    {
+      "id": "HAIP-ISSUANCE-ATTESTATION-METADATA-001",
+      "section": "Wallet and key attestation status maintenance",
+      "keyword": "MUST",
+      "roles": ["credential_issuer", "wallet"],
+      "feature": "attestation_status_period_metadata",
+      "requirement": "EUDI/HAIP issuance metadata can publish wallet-instance and key-attestation status-period preferences without moving attestation certificate validation into OpenID4VCI.",
+      "implementation": [
+        "openid4vci_types::IssuerMetadata",
+        "openid4vci_types::KeyAttestationsRequired",
+        "openid4vci_proto::issuer_metadata_to_proto",
+        "openid4vci_proto::issuer_metadata_from_proto"
+      ],
+      "tests": [
+        "metadata_accepts_eudi_wua_status_period_preferences",
+        "issuer_metadata_preserves_final_and_eudi_fields"
+      ],
+      "oidf_modules": [],
+      "applicable": true,
+      "status": "implemented-at-wire-boundary"
+    },
+    {
+      "id": "HAIP-ISSUANCE-WALLET-SECURITY-OUTCOME-001",
+      "section": "FAPI 2.0 wallet security validation",
+      "keyword": "MUST",
+      "roles": ["wallet"],
+      "feature": "typed_wallet_security_rejections",
+      "requirement": "The OIDF wallet control plane accepts successful negative-test evidence only when the canonical composed wallet returns the exact typed protocol rejection expected for that module; transport, storage, and unclassified failures remain failures.",
+      "implementation": [
+        "openid4vci_http::HolderHarnessProtocolRejectionReason",
+        "openid4vci_http::HolderHarnessFlowOutcome::protocol_rejected",
+        "scripts/conformance/drive_oidf_wallet_modules.py"
+      ],
+      "tests": [
+        "records_typed_protocol_rejection_as_a_terminal_flow"
+      ],
+      "oidf_modules": [
+        "fapi2-security-profile-final-client-test-discovery-issuer-mismatch",
+        "fapi2-security-profile-final-client-test-invalid-authorization-response-iss",
+        "fapi2-security-profile-final-client-test-remove-authorization-response-iss",
+        "fapi2-security-profile-final-client-test-ensure-authorization-response-with-invalid-state-fails",
+        "fapi2-security-profile-final-client-test-ensure-authorization-response-with-invalid-missing-state-fails"
+      ],
+      "applicable": true,
+      "status": "implemented-at-composed-wallet-boundary"
+    }
+  ]
+}

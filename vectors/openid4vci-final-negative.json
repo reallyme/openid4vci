@@ -1,0 +1,142 @@
+[
+  {
+    "id": "oid4vci-8-2-selector-both",
+    "spec_section": "OpenID4VCI 8.2",
+    "target": "types::CredentialRequest",
+    "input_json": "{\"credential_configuration_id\":\"pid\",\"credential_identifier\":\"abc\"}",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-8-2-selector-none",
+    "spec_section": "OpenID4VCI 8.2",
+    "target": "types::CredentialRequest",
+    "input_json": "{\"proofs\":{\"jwt\":[\"a.b.c\"]}}",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-8-2-selector-configuration-id",
+    "spec_section": "OpenID4VCI 8.2",
+    "target": "types::CredentialRequest",
+    "input_json": "{\"credential_configuration_id\":\"pid\",\"proofs\":{\"jwt\":[\"a.b.c\"]}}",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-f-attestation-cardinality",
+    "spec_section": "OpenID4VCI Appendix F",
+    "target": "types::Proofs",
+    "input_json": "{\"credential_configuration_id\":\"pid\",\"proofs\":{\"attestation\":[\"a.b.c\",\"d.e.f\"]}}",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-8-2-proofs-two-types",
+    "spec_section": "OpenID4VCI 8.2",
+    "target": "types::Proofs",
+    "input_json": "{\"credential_configuration_id\":\"pid\",\"proofs\":{\"jwt\":[\"a.b.c\"],\"attestation\":[\"d.e.f\"]}}",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-11-notification-description-ascii",
+    "spec_section": "OpenID4VCI 11.1",
+    "target": "types::NotificationRequest",
+    "input_json": "{\"notification_id\":\"n-1\",\"event\":\"credential_failure\",\"event_description\":\"contains unicode é\"}",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-11-notification-event-accepted",
+    "spec_section": "OpenID4VCI 11.1",
+    "target": "types::NotificationRequest",
+    "input_json": "{\"notification_id\":\"n-1\",\"event\":\"credential_accepted\"}",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-8-3-interval-with-credentials",
+    "spec_section": "OpenID4VCI 8.3",
+    "target": "types::CredentialResponse",
+    "input_json": "{\"credentials\":[{\"credential\":\"vc\"}],\"interval\":5}",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-8-3-immediate-response",
+    "spec_section": "OpenID4VCI 8.3",
+    "target": "types::CredentialResponse",
+    "input_json": "{\"credentials\":[{\"credential\":\"vc\"}]}",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-9-2-pending-response",
+    "spec_section": "OpenID4VCI 9.2",
+    "target": "types::CredentialResponse",
+    "input_json": "{\"transaction_id\":\"tx-1\",\"interval\":5}",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-12-2-1-offer-issuer-fragment",
+    "spec_section": "OpenID4VCI 12.2.1",
+    "target": "types::CredentialOffer",
+    "input_json": "{\"credential_issuer\":\"https://issuer.example#frag\",\"credential_configuration_ids\":[\"pid\"]}",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-4-1-1-offer-minimum",
+    "spec_section": "OpenID4VCI 4.1.1",
+    "target": "types::CredentialOffer",
+    "input_json": "{\"credential_issuer\":\"https://issuer.example\",\"credential_configuration_ids\":[\"pid\"]}",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-12-2-metadata-batch-size-below-two",
+    "spec_section": "OpenID4VCI 12.2.4",
+    "target": "types::IssuerMetadata",
+    "input_json": "{\"credential_issuer\":\"https://issuer.example\",\"credential_endpoint\":\"https://issuer.example/credential\",\"batch_credential_issuance\":{\"batch_size\":1},\"credential_configurations_supported\":{\"pid\":{\"format\":\"dc+sd-jwt\"}}}",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-12-2-metadata-minimum",
+    "spec_section": "OpenID4VCI 12.2.4",
+    "target": "types::IssuerMetadata",
+    "input_json": "{\"credential_issuer\":\"https://issuer.example\",\"credential_endpoint\":\"https://issuer.example/credential\",\"credential_configurations_supported\":{\"pid\":{\"format\":\"dc+sd-jwt\"}}}",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-f-1-jwt-proof-kid-binding",
+    "spec_section": "OpenID4VCI Appendix F.1",
+    "target": "issuer::CompactProofJwtParser",
+    "input_json": "eyJhbGciOiJFZERTQSIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0Iiwia2lkIjoicHJvb2Yta2V5LTEifQ.eyJpYXQiOjE3MDAwMDAwMDAsImF1ZCI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJub25jZSI6Im5vbmNlLTEifQ.AQID",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-f-1-jwt-proof-jwk-binding",
+    "spec_section": "OpenID4VCI Appendix F.1",
+    "target": "issuer::CompactProofJwtParser",
+    "input_json": "eyJhbGciOiJFZERTQSIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiQndjSEJ3Y0hCd2NIQndjSEJ3Y0hCd2NIQndjSEJ3Y0hCd2NIQndjSEJ3YyJ9fQ.eyJpYXQiOjE3MDAwMDAwMDAsImF1ZCI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJub25jZSI6Im5vbmNlLTEifQ.AQID",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-f-1-jwt-proof-x5c-binding",
+    "spec_section": "OpenID4VCI Appendix F.1",
+    "target": "issuer::CompactProofJwtParser",
+    "input_json": "eyJhbGciOiJFZERTQSIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwieDVjIjpbImNlcnRpZmljYXRlIl19.eyJpYXQiOjE3MDAwMDAwMDAsImF1ZCI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJub25jZSI6Im5vbmNlLTEifQ.AQID",
+    "expected": "accept"
+  },
+  {
+    "id": "oid4vci-f-1-jwt-proof-missing-key-binding",
+    "spec_section": "OpenID4VCI Appendix F.1 and F.4",
+    "target": "issuer::CompactProofJwtParser",
+    "input_json": "eyJhbGciOiJFZERTQSIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0In0.eyJpYXQiOjE3MDAwMDAwMDAsImF1ZCI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJub25jZSI6Im5vbmNlLTEifQ.AQID",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-f-1-jwt-proof-conflicting-key-bindings",
+    "spec_section": "OpenID4VCI Appendix F.1",
+    "target": "issuer::CompactProofJwtParser",
+    "input_json": "eyJhbGciOiJFZERTQSIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0Iiwia2lkIjoicHJvb2Yta2V5LTEiLCJ4NWMiOlsiY2VydGlmaWNhdGUiXX0.eyJpYXQiOjE3MDAwMDAwMDAsImF1ZCI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJub25jZSI6Im5vbmNlLTEifQ.AQID",
+    "expected": "reject"
+  },
+  {
+    "id": "oid4vci-f-4-jwt-proof-rejects-symmetric-jwk-material",
+    "spec_section": "OpenID4VCI Appendix F.4",
+    "target": "issuer::CompactProofJwtParser",
+    "input_json": "eyJhbGciOiJFZERTQSIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiQndjSEJ3Y0hCd2NIQndjSEJ3Y0hCd2NIQndjSEJ3Y0hCd2NIQndjSEJ3YyIsImsiOiJzZWNyZXQifX0.eyJpYXQiOjE3MDAwMDAwMDAsImF1ZCI6Imh0dHBzOi8vaXNzdWVyLmV4YW1wbGUiLCJub25jZSI6Im5vbmNlLTEifQ.AQID",
+    "expected": "reject"
+  }
+]

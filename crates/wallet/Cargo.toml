@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "reallyme-openid4vci-wallet"
+version = "0.1.0"
+description = "Wallet-side OpenID4VCI request builders and validation helpers."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/reallyme-openid4vci-wallet"
+categories = ["authentication", "data-structures", "web-programming"]
+keywords = ["openid4vci", "credentials", "identity", "wallet"]
+publish = true
+include = [
+    "/src/**/*.rs",
+    "/tests/**/*",
+    "/Cargo.toml",
+    "/README.md",
+    "/LICENSE-MIT",
+    "/LICENSE-APACHE",
+]
+
+[features]
+default = ["native"]
+native = [
+    "openid4vci-types/native",
+    "reallyme-crypto?/native",
+    "reallyme-jose?/native",
+    "reallyme-openid-oauth/native",
+]
+wasm = [
+    "openid4vci-types/wasm",
+    "reallyme-crypto?/wasm",
+    "reallyme-jose?/wasm",
+    "reallyme-openid-oauth/wasm",
+]
+identity-jose = ["dep:reallyme-crypto", "dep:reallyme-jose"]
+
+[dependencies]
+reallyme-codec = { workspace = true, features = ["base64url", "jcs"] }
+reallyme-crypto = { workspace = true, optional = true }
+reallyme-jose = { workspace = true, optional = true }
+reallyme-openid-oauth = { workspace = true }
+openid4vci-types = { workspace = true }
+secrecy = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+url = { workspace = true }
+zeroize = { workspace = true }
+
+[lints]
+workspace = true

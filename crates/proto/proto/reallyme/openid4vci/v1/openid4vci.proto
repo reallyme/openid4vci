@@ -1,0 +1,494 @@
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+//
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
+syntax = "proto3";
+
+package reallyme.openid4vci.v1;
+
+option go_package = "github.com/reallyme/openid4vci/gen/go/reallyme/openid4vci/v1;openid4vciv1";
+option java_multiple_files = true;
+option java_outer_classname = "OpenId4VciProto";
+option java_package = "me.really.openid4vci.v1";
+
+// Every field whose name ends in `_json`, plus CredentialEnvelope.json and
+// Proofs.di_vp_json, carries one complete UTF-8 JSON value. The proto-codec
+// accepts at most 262144 bytes per value, rejects duplicate object keys and
+// nesting deeper than 64 containers, and rejects trailing data. Producers emit
+// compact Serde JSON; consumers must not rely on object-key ordering or lexical
+// number formatting. Generated owners zeroize these byte buffers on clear and
+// drop after the deterministic generated-code hardening step.
+
+// OpenId4VciErrorReason is the component-specific reason-code enum carried by
+// reallyme.identity.common.v1.IdentityStackError when domain is OPENID4VCI.
+// Values are stable public boundary codes; internal errors must map into one of
+// these before crossing RPC, SDK, FFI, storage, audit, or telemetry boundaries.
+// After the first public release, removed values must reserve both their number
+// and name; published values must never be renumbered or reused.
+enum OpenId4VciErrorReason {
+  OPEN_ID4_VCI_ERROR_REASON_UNSPECIFIED = 0;
+
+  // Shared OpenID4VCI wire-validation reasons.
+  OPEN_ID4_VCI_ERROR_REASON_MISSING_REQUIRED_FIELD = 1;
+  OPEN_ID4_VCI_ERROR_REASON_FORBIDDEN_FIELD = 2;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_STRING = 3;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_URL = 4;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_JSON = 5;
+  OPEN_ID4_VCI_ERROR_REASON_PAYLOAD_TOO_LARGE = 6;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_CREDENTIAL_SELECTOR = 7;
+  OPEN_ID4_VCI_ERROR_REASON_PROOF_REQUIRED = 8;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_PROOFS = 9;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_CREDENTIAL_RESPONSE = 10;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_NOTIFICATION = 11;
+
+  // Issuer endpoint and credential-production reasons.
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_REQUEST = 12;
+  OPEN_ID4_VCI_ERROR_REASON_UNSUPPORTED_CREDENTIAL = 13;
+  OPEN_ID4_VCI_ERROR_REASON_UNKNOWN_CREDENTIAL_IDENTIFIER = 14;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_PROOF = 15;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_NONCE = 16;
+  OPEN_ID4_VCI_ERROR_REASON_ENCRYPTION_REQUIRED = 17;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_ENCRYPTION_PARAMETERS = 18;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_TRANSACTION = 19;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_NOTIFICATION_ID = 20;
+  OPEN_ID4_VCI_ERROR_REASON_STORAGE_UNAVAILABLE = 21;
+  OPEN_ID4_VCI_ERROR_REASON_ENCODING_FAILED = 22;
+  OPEN_ID4_VCI_ERROR_REASON_CREDENTIAL_REQUEST_DENIED = 23;
+  OPEN_ID4_VCI_ERROR_REASON_UNSUPPORTED_CREDENTIAL_TYPE = 24;
+  OPEN_ID4_VCI_ERROR_REASON_UNSUPPORTED_CREDENTIAL_FORMAT = 25;
+  OPEN_ID4_VCI_ERROR_REASON_SERVER_ERROR = 26;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_PROOF_POLICY = 27;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_SIGNATURE_REJECTED = 28;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_TRUST_REJECTED = 29;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_TRUST_INDETERMINATE = 30;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_STATUS_REJECTED = 31;
+
+  // Wallet and key attestation validation reasons.
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_MISSING_JWT = 32;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_INVALID_JWT = 33;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_INVALID_HEADER = 34;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_INVALID_CLAIMS = 35;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_INVALID_NONCE = 36;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_UNSUPPORTED_ALGORITHM = 37;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_ALGORITHM_NOT_ALLOWED = 38;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_EXPIRED = 39;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_FUTURE_ISSUED = 40;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_STALE = 41;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_UNSUPPORTED_KEY = 42;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_DUPLICATE_KEY = 43;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_SIGNATURE_INVALID = 44;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_TRUST_INVALID = 45;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_TRUST_UNDETERMINED = 46;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_STATUS_INVALID = 47;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_STATUS_UNDETERMINED = 48;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_INVALID_TRUST_EVIDENCE = 49;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_STATUS_INDETERMINATE = 50;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_EVIDENCE_EXPIRED = 51;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_EVIDENCE_STALE = 52;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_EVIDENCE_FUTURE_ISSUED = 53;
+  OPEN_ID4_VCI_ERROR_REASON_INVALID_ATTESTED_KEY = 54;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_ALGORITHM_REJECTED = 55;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_SECURITY_PROPERTIES_REJECTED = 56;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_TRUST_EVIDENCE_STALE = 57;
+  OPEN_ID4_VCI_ERROR_REASON_ATTESTATION_TRUST_EVIDENCE_FUTURE_ISSUED = 58;
+
+  // Holder-side discovery, metadata, and request-construction reasons.
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_MISSING_REQUIRED_VALUE = 59;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_INVALID_STRING = 60;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_INVALID_REQUEST = 61;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_OFFER_RESOLUTION_REQUIRED = 62;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_INVALID_AUTHORIZATION_SERVER = 63;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_REQUEST_ENCRYPTION_REQUIRED = 64;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_RESPONSE_ENCRYPTION_REQUIRED = 65;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_ISSUER_METADATA_RESOLUTION_FAILED = 66;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_INVALID_ISSUER_METADATA = 67;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_ISSUER_METADATA_ISSUER_MISMATCH = 68;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_INVALID_SIGNED_METADATA = 69;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_EXPIRED_SIGNED_METADATA = 70;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_UNTRUSTED_SIGNED_METADATA = 71;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_FUTURE_SIGNED_METADATA = 72;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_STALE_SIGNED_METADATA = 73;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_SIGNED_METADATA_UNSUPPORTED_ALGORITHM = 74;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_SIGNED_METADATA_ALGORITHM_NOT_ALLOWED = 75;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_SIGNED_METADATA_SIGNATURE_REJECTED = 76;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_SIGNED_METADATA_TRUST_INDETERMINATE = 77;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_INVALID_SIGNED_METADATA_TRUST_EVIDENCE = 78;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_SIGNED_METADATA_TRUST_EVIDENCE_STALE = 79;
+  OPEN_ID4_VCI_ERROR_REASON_HOLDER_SIGNED_METADATA_TRUST_EVIDENCE_FUTURE_ISSUED = 80;
+
+  // High-assurance profile policy reasons.
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_CREDENTIAL_CONFIGURATION_REQUIRED = 81;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_UNSUPPORTED_CREDENTIAL_FORMAT = 82;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_CREDENTIAL_CONFIGURATION_SCOPE_REQUIRED = 83;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_PROOF_REQUIRED = 84;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_NONCE_ENDPOINT_REQUIRED = 85;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_KEY_ATTESTATION_REQUIRED = 86;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_WALLET_ATTESTATION_REQUIRED = 87;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_DPOP_REQUIRED = 88;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_PAR_REQUIRED = 89;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_REQUEST_ENCRYPTION_SUPPORT_REQUIRED = 90;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_REQUEST_ENCRYPTION_REQUIRED = 91;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_RESPONSE_ENCRYPTION_SUPPORT_REQUIRED = 92;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_RESPONSE_ENCRYPTION_REQUIRED = 93;
+
+  // Bounded protobuf and ProtoJSON codec reasons.
+  OPEN_ID4_VCI_ERROR_REASON_PROTO_DECODE = 94;
+  OPEN_ID4_VCI_ERROR_REASON_PROTO_JSON_SERIALIZE = 95;
+  OPEN_ID4_VCI_ERROR_REASON_PROTO_JSON_DESERIALIZE = 96;
+  OPEN_ID4_VCI_ERROR_REASON_PROTO_MISSING_REQUIRED_FIELD = 97;
+  OPEN_ID4_VCI_ERROR_REASON_PROTO_INVALID_ENUM = 98;
+  OPEN_ID4_VCI_ERROR_REASON_PROTO_INVALID_JSON = 99;
+  OPEN_ID4_VCI_ERROR_REASON_PROTO_INVALID_WIRE_VALUE = 100;
+
+  // OAuth authorization-server and token-flow reasons.
+  OPEN_ID4_VCI_ERROR_REASON_OAUTH_AUTHORIZATION_SERVER_UNAVAILABLE = 101;
+  OPEN_ID4_VCI_ERROR_REASON_OAUTH_INVALID_REQUEST = 102;
+  OPEN_ID4_VCI_ERROR_REASON_OAUTH_INVALID_GRANT = 103;
+  OPEN_ID4_VCI_ERROR_REASON_OAUTH_INVALID_CLIENT = 104;
+  OPEN_ID4_VCI_ERROR_REASON_OAUTH_INVALID_PUSHED_AUTHORIZATION_REQUEST = 105;
+  OPEN_ID4_VCI_ERROR_REASON_OAUTH_INVALID_DPOP_PROOF = 106;
+  OPEN_ID4_VCI_ERROR_REASON_OAUTH_INVALID_REQUEST_URI = 107;
+  OPEN_ID4_VCI_ERROR_REASON_OAUTH_INSUFFICIENT_AUTHORIZATION = 108;
+
+  // HTTP adapter and composed wallet-flow reasons.
+  OPEN_ID4_VCI_ERROR_REASON_HTTP_INVALID_METADATA = 109;
+  OPEN_ID4_VCI_ERROR_REASON_HTTP_INVALID_BODY_LIMIT = 110;
+  OPEN_ID4_VCI_ERROR_REASON_HTTP_MISSING_SECURITY_VERIFIER = 111;
+  OPEN_ID4_VCI_ERROR_REASON_HTTP_WALLET_FLOW_LAUNCH_REJECTED = 112;
+  OPEN_ID4_VCI_ERROR_REASON_HTTP_WALLET_ATTESTATION_UNAVAILABLE = 113;
+  OPEN_ID4_VCI_ERROR_REASON_HTTP_TOKEN_EXCHANGE_FAILED = 114;
+  OPEN_ID4_VCI_ERROR_REASON_HTTP_CREDENTIAL_REQUEST_FAILED = 115;
+  OPEN_ID4_VCI_ERROR_REASON_HTTP_CREDENTIAL_STORAGE_FAILED = 116;
+
+  // Additional high-assurance authorization-server policy reasons. Values are
+  // appended to preserve every previously published wire number.
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_AUTHORIZATION_CODE_GRANT_REQUIRED = 117;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_PKCE_S256_REQUIRED = 118;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_AUTHORIZATION_RESPONSE_ISSUER_REQUIRED = 119;
+  OPEN_ID4_VCI_ERROR_REASON_PROFILE_OAUTH_CLIENT_AUTHENTICATION_REQUIRED = 120;
+}
+
+// ProblemDetails is the canonical proto representation of an RFC 9457
+// OpenID4VCI problem response. `reason` is the stable typed classification;
+// `error`, `status`, and `title` are validated projections for HTTP/JSON
+// compatibility rather than independent free-form error channels.
+message ProblemDetails {
+  string type_uri = 1 [json_name = "type"];
+  string title = 2;
+  uint32 status = 3;
+  string instance = 4; // reallyme:sensitive
+  string error = 5;
+  OpenId4VciErrorReason reason = 6;
+}
+
+// CredentialFormat is the protobuf boundary equivalent of OpenID4VCI credential
+// format identifiers.
+enum CredentialFormat {
+  CREDENTIAL_FORMAT_UNSPECIFIED = 0;
+  CREDENTIAL_FORMAT_JWT_VC_JSON = 1;
+  CREDENTIAL_FORMAT_DC_SD_JWT = 2;
+  CREDENTIAL_FORMAT_MSO_MDOC = 3;
+  CREDENTIAL_FORMAT_LDP_VC = 4;
+  CREDENTIAL_FORMAT_JWT_VC_JSON_LD = 5;
+}
+
+// NotificationEvent is the final OpenID4VCI Notification Endpoint event enum.
+enum NotificationEvent {
+  NOTIFICATION_EVENT_UNSPECIFIED = 0;
+  NOTIFICATION_EVENT_CREDENTIAL_ACCEPTED = 1;
+  NOTIFICATION_EVENT_CREDENTIAL_FAILURE = 2;
+  NOTIFICATION_EVENT_CREDENTIAL_DELETED = 3;
+}
+
+// TxCodeInputMode describes the expected transaction-code input mode.
+enum TxCodeInputMode {
+  TX_CODE_INPUT_MODE_UNSPECIFIED = 0;
+  TX_CODE_INPUT_MODE_NUMERIC = 1;
+  TX_CODE_INPUT_MODE_TEXT = 2;
+}
+
+// TxCode is the final tx_code object replacing draft user_pin fields.
+message TxCode {
+  TxCodeInputMode input_mode = 1;
+  uint64 length = 2;
+  string description = 3;
+}
+
+message AuthorizationCodeGrant {
+  string issuer_state = 1; // reallyme:sensitive
+  string authorization_server = 2;
+}
+
+message PreAuthorizedCodeGrant {
+  string pre_authorized_code = 1; // reallyme:sensitive
+  TxCode tx_code = 2;
+  string authorization_server = 3;
+}
+
+message CredentialOfferGrants {
+  AuthorizationCodeGrant authorization_code = 1;
+  PreAuthorizedCodeGrant pre_authorized_code = 2;
+}
+
+// CredentialOffer is the proto-first representation of an OpenID4VCI Credential
+// Offer document.
+message CredentialOffer {
+  string credential_issuer = 1;
+  repeated string credential_configuration_ids = 2;
+  CredentialOfferGrants grants = 3;
+}
+
+message CredentialOfferUri {
+  oneof payload {
+    CredentialOffer credential_offer = 1;
+    string credential_offer_uri = 2; // reallyme:sensitive
+  }
+}
+
+message CredentialSelector {
+  oneof selector {
+    string credential_configuration_id = 1;
+    string credential_identifier = 2; // reallyme:sensitive
+  }
+}
+
+// Proofs carries final-spec OpenID4VCI proof members. Exactly one repeated
+// member family is populated in valid Credential Requests.
+message Proofs {
+  repeated string jwt = 1; // reallyme:sensitive
+  repeated bytes di_vp_json = 2;
+  repeated string attestation = 3; // reallyme:sensitive
+}
+
+// CredentialResponseEncryption carries wallet-provided JWE parameters. jwk_json
+// is a UTF-8 JSON object encoded as bytes to avoid redefining JWK here.
+message CredentialResponseEncryption {
+  bytes jwk_json = 1;
+  string enc = 2;
+  string zip = 3;
+}
+
+message CredentialRequest {
+  CredentialSelector selector = 1;
+  Proofs proofs = 2;
+  CredentialResponseEncryption credential_response_encryption = 3;
+}
+
+message CredentialEnvelope {
+  oneof credential {
+    string compact = 1; // reallyme:sensitive
+    bytes json = 2;
+    bytes binary = 3;
+  }
+}
+
+message ImmediateCredentialResponse {
+  repeated CredentialEnvelope credentials = 1;
+  string notification_id = 2; // reallyme:sensitive
+}
+
+message DeferredCredentialResponse {
+  string transaction_id = 1; // reallyme:sensitive
+  uint64 interval = 2;
+}
+
+message CredentialResponse {
+  oneof response {
+    ImmediateCredentialResponse immediate = 1;
+    DeferredCredentialResponse deferred = 2;
+  }
+}
+
+message DeferredCredentialRequest {
+  string transaction_id = 1; // reallyme:sensitive
+  CredentialResponseEncryption credential_response_encryption = 2;
+}
+
+message NonceRequest {}
+
+message NonceResponse {
+  string c_nonce = 1; // reallyme:sensitive
+}
+
+message GetNonceRequest {}
+
+message GetNonceResponse {
+  NonceResponse nonce = 1;
+}
+
+message NotificationRequest {
+  string notification_id = 1; // reallyme:sensitive
+  NotificationEvent event = 2;
+  string event_description = 3; // reallyme:sensitive
+}
+
+message NotifyRequest {
+  NotificationRequest notification = 1;
+}
+
+message NotifyResponse {}
+
+message IssueCredentialRequest {
+  CredentialRequest credential_request = 1;
+}
+
+message IssueCredentialResponse {
+  CredentialResponse credential_response = 1;
+}
+
+message CredentialRequestPreflight {
+  CredentialSelector selector = 1;
+  uint32 binding_key_count = 2;
+  uint32 verified_proof_count = 3;
+  bool includes_key_attestation = 4;
+  bool response_encryption_requested = 5;
+}
+
+message PreflightCredentialRequest {
+  CredentialRequest credential_request = 1;
+}
+
+message PreflightCredentialResponse {
+  CredentialRequestPreflight preflight = 1;
+}
+
+message GetDeferredCredentialRequest {
+  DeferredCredentialRequest deferred_credential_request = 1;
+}
+
+message GetDeferredCredentialResponse {
+  CredentialResponse credential_response = 1;
+}
+
+message ProofTypeMetadata {
+  repeated string proof_signing_alg_values_supported = 1;
+  KeyAttestationsRequired key_attestations_required = 2;
+}
+
+// ProofTypeMetadataEntry replaces a protobuf map so the proof-type identifier
+// remains visible to the closed-world scalar sensitivity policy.
+message ProofTypeMetadataEntry {
+  string proof_type = 1;
+  ProofTypeMetadata metadata = 2;
+}
+
+message KeyAttestationsRequired {
+  repeated string key_storage = 1;
+  repeated string user_authentication = 2;
+  uint64 preferred_key_storage_status_period = 3;
+}
+
+message CredentialSigningAlg {
+  oneof value {
+    string named = 1;
+    int64 cose = 2;
+  }
+}
+
+message CredentialConfiguration {
+  CredentialFormat format = 1;
+  string scope = 2;
+  repeated string cryptographic_binding_methods_supported = 3;
+  repeated CredentialSigningAlg credential_signing_alg_values_supported = 4;
+  repeated ProofTypeMetadataEntry proof_types_supported = 5;
+  bytes claims_json = 6;
+  string vct = 7;
+  string doctype = 8;
+  bytes credential_metadata_json = 9;
+}
+
+message CredentialRequestEncryptionMetadata {
+  repeated string alg_values_supported = 1;
+  repeated string enc_values_supported = 2;
+  repeated string zip_values_supported = 3;
+  bytes jwks_json = 4;
+  bool encryption_required = 5;
+}
+
+message CredentialResponseEncryptionMetadata {
+  repeated string alg_values_supported = 1;
+  repeated string enc_values_supported = 2;
+  repeated string zip_values_supported = 3;
+  bool encryption_required = 4;
+}
+
+message BatchCredentialIssuance {
+  uint64 batch_size = 1;
+}
+
+// CredentialConfigurationEntry replaces a protobuf map so configuration IDs
+// have explicit ownership and duplicate entries can fail closed in the codec.
+message CredentialConfigurationEntry {
+  string credential_configuration_id = 1;
+  CredentialConfiguration configuration = 2;
+}
+
+message IssuerMetadata {
+  string credential_issuer = 1;
+  repeated string authorization_servers = 2;
+  string credential_endpoint = 3;
+  string nonce_endpoint = 4;
+  string deferred_credential_endpoint = 5;
+  string notification_endpoint = 6;
+  CredentialRequestEncryptionMetadata credential_request_encryption = 7;
+  CredentialResponseEncryptionMetadata credential_response_encryption = 8;
+  repeated CredentialConfigurationEntry credential_configurations_supported = 9;
+  uint64 preferred_client_status_period = 10;
+  BatchCredentialIssuance batch_credential_issuance = 11;
+}
+
+// OpenId4VciOperationContractVersion versions the composed SDK/Wasm validation
+// boundary independently from individual message evolution.
+enum OpenId4VciOperationContractVersion {
+  OPEN_ID4_VCI_OPERATION_CONTRACT_VERSION_UNSPECIFIED = 0;
+  OPEN_ID4_VCI_OPERATION_CONTRACT_VERSION_V1 = 1;
+}
+
+// OpenId4VciOperationError is the deterministic failure outcome returned by the
+// composed SDK/Wasm boundary. It never carries backend text or caller input.
+message OpenId4VciOperationError {
+  OpenId4VciErrorReason reason = 1;
+}
+
+// OpenId4VciOperationRequest validates and normalizes exactly one generated
+// OpenID4VCI document. The request is protobuf-first so platform SDKs do not
+// maintain a second DTO protocol.
+message OpenId4VciOperationRequest {
+  OpenId4VciOperationContractVersion contract_version = 1;
+  oneof operation {
+    CredentialOffer credential_offer = 2;
+    IssuerMetadata issuer_metadata = 3;
+    CredentialRequest credential_request = 4;
+    CredentialResponse credential_response = 5;
+    DeferredCredentialRequest deferred_credential_request = 6;
+    NonceResponse nonce_response = 7;
+    NotificationRequest notification_request = 8;
+    ProblemDetails problem_details = 9;
+  }
+}
+
+// OpenId4VciOperationResult contains exactly one validated canonical message.
+// Keeping successful results nested lets the response outcome remain a stable
+// result/error contract as operations are added in later schema revisions.
+message OpenId4VciOperationResult {
+  oneof result {
+    CredentialOffer credential_offer = 1;
+    IssuerMetadata issuer_metadata = 2;
+    CredentialRequest credential_request = 3;
+    CredentialResponse credential_response = 4;
+    DeferredCredentialRequest deferred_credential_request = 5;
+    NonceResponse nonce_response = 6;
+    NotificationRequest notification_request = 7;
+    ProblemDetails problem_details = 8;
+  }
+}
+
+// OpenId4VciOperationResponse returns one generated result or one typed error.
+// Callers must verify the contract version and the nested result oneof.
+message OpenId4VciOperationResponse {
+  oneof outcome {
+    OpenId4VciOperationResult result = 1;
+    OpenId4VciOperationError error = 2;
+  }
+  OpenId4VciOperationContractVersion contract_version = 3;
+}

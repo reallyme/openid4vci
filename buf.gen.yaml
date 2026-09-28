@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+version: v2
+plugins:
+  - local: protoc-gen-buffa
+    out: crates/proto/src/generated/buffa
+    opt: [views=true, json=true]
+  - local: protoc-gen-buffa-packaging
+    out: crates/proto/src/generated/buffa
+    strategy: all

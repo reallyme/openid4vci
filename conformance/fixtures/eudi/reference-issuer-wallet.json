@@ -1,0 +1,12 @@
+{
+  "fixture_id": "eudi-reference-issuer-wallet",
+  "source": "https://github.com/eu-digital-identity-wallet",
+  "profile": "haip-eudi-pid",
+  "target": "interop",
+  "flows": [
+    "pre-authorized-code-with-tx-code",
+    "authorization-code-with-par-dpop",
+    "wallet-attestation-client-auth",
+    "key-attestation-proof"
+  ]
+}

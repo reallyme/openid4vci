@@ -1,0 +1,8 @@
+{
+  "credentials": [
+    {
+      "credential": "synthetic-credential.sd-jwt"
+    }
+  ],
+  "notification_id": "synthetic-notification-1"
+}

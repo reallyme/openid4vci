@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+schema: reallyme.identity.conformance_artifact_map.v1
+repository: reallyme/openid4vci
+artifacts: {}

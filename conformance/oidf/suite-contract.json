@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "repository": "https://gitlab.com/openid/conformance-suite",
+  "commit": "440eec8bac7b12b7389d7ca9cbc459b53507a443",
+  "describe": "release-v5.3.1",
+  "plans": [
+    {
+      "plan_id": "oid4vci-1_0-issuer-haip-test-plan",
+      "entity_under_test": "credential_issuer",
+      "profile": "haip",
+      "certification": true
+    },
+    {
+      "plan_id": "oid4vci-1_0-issuer-test-plan",
+      "entity_under_test": "credential_issuer",
+      "profile": "base",
+      "certification": false
+    },
+    {
+      "plan_id": "oid4vci-1_0-wallet-haip-test-plan",
+      "entity_under_test": "wallet",
+      "profile": "haip",
+      "certification": true
+    },
+    {
+      "plan_id": "oid4vci-1_0-wallet-test-plan",
+      "entity_under_test": "wallet",
+      "profile": "base",
+      "certification": false
+    }
+  ]
+}

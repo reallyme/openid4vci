@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "openid4vci-issuer"
+version = "0.1.0"
+description = "Transport-agnostic OpenID4VCI issuer endpoint engine."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+default = ["native"]
+native = [
+    "dep:p384",
+    "dep:p521",
+    "openid4vci-attestation/native",
+    "openid4vci-types/native",
+    "reallyme-crypto/native",
+    "reallyme-jose?/native",
+]
+wasm = [
+    "openid4vci-attestation/wasm",
+    "openid4vci-types/wasm",
+    "reallyme-crypto/wasm",
+    "reallyme-jose?/wasm",
+]
+identity-jose = [
+    "dep:reallyme-jose",
+    "reallyme-crypto/ed25519",
+]
+
+[dependencies]
+openid4vci-attestation = { workspace = true }
+reallyme-codec = { workspace = true, features = ["base64url", "jcs"] }
+openid4vci-types = { workspace = true }
+p256 = { workspace = true }
+p384 = { workspace = true, optional = true }
+p521 = { workspace = true, optional = true }
+reallyme-crypto = { workspace = true, features = ["csprng", "hmac"] }
+reallyme-jose = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+zeroize = { workspace = true }
+
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+reallyme-jose = { workspace = true, features = ["native"] }
+
+[lints]
+workspace = true

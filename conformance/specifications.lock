@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "specifications": [
+    {
+      "id": "openid4vci-1.0",
+      "name": "OpenID for Verifiable Credential Issuance 1.0",
+      "url": "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-final.html",
+      "live_errata_url": "https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html",
+      "reviewed_sha256": "f123c3178cacd27688b15b762098a045e9eb35eccfe2f5f18a357c3815e06ba7",
+      "reviewed_on": "2026-09-27",
+      "role": "normative",
+      "status": "active"
+    },
+    {
+      "id": "haip-1.0",
+      "name": "OpenID4VC High Assurance Interoperability Profile 1.0",
+      "url": "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0-final.html",
+      "live_errata_url": "https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html",
+      "reviewed_sha256": "3996e0479d06b72d6d68668b8ae3cd39fddfc29ae9220c0c3fead7dc060ec4fb",
+      "reviewed_on": "2026-09-27",
+      "role": "normative-for-high-assurance-issuance",
+      "status": "active"
+    },
+    {
+      "id": "oauth-rfc9449",
+      "name": "OAuth 2.0 Demonstrating Proof of Possession",
+      "url": "https://www.rfc-editor.org/rfc/rfc9449.html",
+      "role": "supporting",
+      "status": "active"
+    },
+    {
+      "id": "oauth-rfc9126",
+      "name": "OAuth 2.0 Pushed Authorization Requests",
+      "url": "https://www.rfc-editor.org/rfc/rfc9126.html",
+      "role": "supporting",
+      "status": "active"
+    },
+    {
+      "id": "eudi-arf",
+      "name": "EUDI Architecture and Reference Framework",
+      "url": "https://github.com/eu-digital-identity-wallet/eudi-doc-architecture-and-reference-framework",
+      "role": "profile-requirement-source",
+      "status": "pinned-release",
+      "pinned_release": "v2.9.0",
+      "pinned_commit": "28644bfba9381fee5669f3eac90e96c5ef25f044",
+      "source_lock": "conformance/eudi/sources.lock"
+    }
+  ]
+}

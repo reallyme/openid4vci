@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[oidf]
+suite = "https://gitlab.com/openid/conformance-suite"
+pinned_commit = "440eec8bac7b12b7389d7ca9cbc459b53507a443"
+plan = "oid4vci-1_0-wallet-haip-test-plan"
+
+[target]
+crate = "openid4vci-http"
+example = "holder_harness"
+host_endpoint_env = "OPENID4VCI_WALLET_HARNESS_ENDPOINT"
+host_token_env = "OPENID4VCI_WALLET_HARNESS_TOKEN"
+protocol_owner = "reallyme/openid4vci"
+wallet_core_owner = "reallyme/wallet"
+
+[wire]
+openid4vci = "1.0-final"
+credential_offer = true
+credential_offer_uri = true
+batch_credential_endpoint = false
+credential_response_encryption = true
+wallet_attestation_client_authentication = true
+
+[fixtures]
+oidf = "conformance/fixtures/oidf"
+eudi = "conformance/fixtures/eudi"
+ewc = "conformance/fixtures/ewc"

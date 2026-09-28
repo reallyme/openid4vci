@@ -1,0 +1,6 @@
+{
+  "credential_configuration_id": "pid",
+  "proofs": {
+    "jwt": ["synthetic-proof.jwt"]
+  }
+}

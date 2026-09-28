@@ -1,0 +1,15 @@
+{
+  "credentialIssuer": "https://issuer.example",
+  "credentialEndpoint": "https://issuer.example/credential",
+  "nonceEndpoint": "https://issuer.example/nonce",
+  "credentialConfigurationsSupported": [
+    {
+      "credentialConfigurationId": "pid",
+      "configuration": {
+        "format": "CREDENTIAL_FORMAT_DC_SD_JWT",
+        "scope": "pid",
+        "vct": "https://credentials.example/pid"
+      }
+    }
+  ]
+}

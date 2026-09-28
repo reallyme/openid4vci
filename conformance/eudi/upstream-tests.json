@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "upstream_tests": [
+    {
+      "id": "eudi-fcaf-wallet-solution-pid-provider-interface",
+      "source_id": "eudi-functional-conformance-assessment",
+      "source_release": "v0.0.10",
+      "source_commit": "944b8f89cc17873c47026a05dfa9d212e89b0ee3",
+      "source_path": "docs/fcaf/suts/wallet_solution/pid_provider/ws_pp.md",
+      "target_role": "wallet",
+      "openid4vci_scope": "holder_pid_issuance_interop",
+      "status": "candidate-upstream-test-plan",
+      "next_action": "Convert the pinned FCAF wallet-solution PID-provider interface into executable black-box wallet/issuer interop steps."
+    },
+    {
+      "id": "eudi-testing-application-issuer-wallet-flows",
+      "source_id": "eudi-testing-application",
+      "source_release": "2026.Q1",
+      "source_commit": "62c4ba73007ea25440e6ba24a651937bc692629b",
+      "source_path": "src/test/resources/features",
+      "target_role": "black_box_interop",
+      "openid4vci_scope": "reference_wallet_and_pid_provider_flows",
+      "status": "pinned-not-yet-executed",
+      "next_action": "Run the pinned EUDI testing application against the example issuer or a dedicated interop deployment through reallyme/identity-conformance and retain reviewed evidence there."
+    },
+    {
+      "id": "eudi-jvm-openid4vci-reference-library",
+      "source_id": "eudi-jvm-openid4vci",
+      "source_release": "v0.12.0",
+      "source_commit": "2d932a7ceeef1afdb2ff7a383819f1b1bb6683c1",
+      "target_role": "reference_library",
+      "openid4vci_scope": "cross_implementation_request_response_interop",
+      "status": "pinned-not-yet-executed",
+      "next_action": "Execute the pinned JVM implementation as a two-sided comparator and retain its command, inputs, outputs, commit, timestamp, and divergence-detection control before claiming interoperability."
+    },
+    {
+      "id": "eudi-ios-openid4vci-reference-library",
+      "source_id": "eudi-ios-openid4vci",
+      "source_release": "v0.41.0",
+      "source_commit": "fdc9c9de49c631049af8e8b6b5734f8c5923f6c4",
+      "target_role": "reference_library",
+      "openid4vci_scope": "cross_implementation_request_response_interop",
+      "status": "pinned-not-yet-executed",
+      "next_action": "Execute the pinned iOS implementation as a two-sided comparator and retain its command, inputs, outputs, commit, timestamp, and divergence-detection control before claiming interoperability."
+    },
+    {
+      "id": "eudi-reference-pid-issuer",
+      "source_id": "eudi-pid-issuer",
+      "source_release": "v0.10.0",
+      "source_commit": "c9302c2ab420ab4d1578bda97d1b256e5b5e701e",
+      "target_role": "reference_issuer",
+      "openid4vci_scope": "issuer_black_box_interop",
+      "status": "pinned-not-yet-executed",
+      "next_action": "Run black-box issuance flows against the pinned EUDI reference PID issuer through reallyme/identity-conformance and retain reviewed differences there."
+    }
+  ]
+}

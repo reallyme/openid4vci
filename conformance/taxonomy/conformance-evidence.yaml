@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+schema: reallyme.identity.conformance_evidence_map.v1
+repository: reallyme/openid4vci
+# Promotions require the exact requirement digest and all mandatory source,
+# negative-test, round-trip, and conformance-result evidence classes.
+requirements: {}

@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+artifacts/
+corpus/*
+!corpus/credential_offer_json/
+corpus/credential_offer_json/*
+!corpus/credential_offer_json/valid.json
+!corpus/credential_request_json/
+corpus/credential_request_json/*
+!corpus/credential_request_json/valid.json
+!corpus/credential_response_json/
+corpus/credential_response_json/*
+!corpus/credential_response_json/valid.json
+!corpus/deferred_credential_request_json/
+corpus/deferred_credential_request_json/*
+!corpus/deferred_credential_request_json/valid.json
+!corpus/issuer_metadata_json/
+corpus/issuer_metadata_json/*
+!corpus/issuer_metadata_json/duplicate-configuration-entry.json
+!corpus/issuer_metadata_json/valid.json
+!corpus/notification_request_json/
+corpus/notification_request_json/*
+!corpus/notification_request_json/valid.json
+!corpus/operation_wire/
+corpus/operation_wire/*
+!corpus/operation_wire/credential-offer-request.json
+!corpus/problem_details_json/
+corpus/problem_details_json/*
+!corpus/problem_details_json/valid.json
+!corpus/protojson_messages/
+corpus/protojson_messages/*
+!corpus/protojson_messages/duplicate-operation-member.json
+!corpus/protojson_messages/operation-request.json
+target/

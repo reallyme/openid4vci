@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "openid4vci-attestation"
+version = "0.1.0"
+description = "Key attestation and wallet attestation models for OpenID4VCI."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+default = ["native"]
+native = ["reallyme-crypto/native"]
+wasm = ["reallyme-crypto/wasm"]
+
+[dependencies]
+# The public crypto facade validates Ed25519 key length but does not expose the
+# backend's weak-point rejection. This direct dependency is the same backend
+# already used by reallyme-crypto, and is required for strict attested-JWK
+# validation until that primitive is available through the public facade.
+ed25519-dalek.workspace = true
+reallyme-codec = { workspace = true, features = ["base64url", "jcs"] }
+reallyme-crypto = { workspace = true, features = ["jwk", "p256", "secp256k1", "ed25519"] }
+secrecy = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+url = { workspace = true }
+zeroize = { workspace = true }
+
+[lints]
+workspace = true

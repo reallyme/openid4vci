@@ -1,0 +1,130 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+# Rust build artifacts
+/target
+target/
+**/target/
+*.rmeta
+*.rlib
+*.prof*
+*.gcda
+*.gcno
+*.profraw
+*.d
+
+# OS/editor noise
+.DS_Store
+**/.DS_Store
+*.swp
+*.swo
+*~
+
+# Local environment
+.env
+.env.*
+!.env.example
+.secrets/
+**/.secrets/
+
+# Local developer state
+llms.txt
+LLMS.txt
+/.agents/
+
+# Generated artifacts
+/coverage/
+/tarpaulin-report.html
+/crypto-lane-logs/
+proptest-regressions/
+
+# Generated Rust/source artifacts
+**/generated
+**/generated/**
+**/src/generated
+**/src/generated/**
+!crates/proto/src/generated/
+!crates/proto/src/generated/**
+**/src/pb
+**/src/pb/**
+**/src/prost
+**/src/prost/**
+**/*_grpc.rs
+**/*.grpc.rs
+**/*_pb.rs
+**/*.pb.rs
+**/*_tonic.rs
+**/*.tonic.rs
+**/*_prost.rs
+**/*.prost.rs
+**/*_generated.rs
+**/*.generated.rs
+**/*.gen.rs
+**/*.protos.rs
+**/*.capnp.rs
+
+# JavaScript tooling
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.yarn/
+!.yarn/patches/
+!.yarn/plugins/
+!.yarn/releases/
+!.yarn/sdks/
+!.yarn/versions/
+.turbo/
+.vite/
+dist/
+coverage/
+/release-attestation/
+
+# Python tooling
+__pycache__/
+*.py[cod]
+
+# Swift Package Manager
+.build/
+**/.build/
+.swiftpm/
+**/.swiftpm/
+
+# Swift/Xcode local state
+DerivedData/
+**/DerivedData/
+*.xcresult/
+**/*.xcresult/
+*.xctestrun
+**/*.xctestrun
+*.xcuserstate
+**/*.xcuserstate
+xcuserdata/
+**/xcuserdata/
+*.xcworkspace/xcuserdata/
+**/*.xcworkspace/xcuserdata/
+
+# Gradle/Kotlin
+.gradle/
+**/.gradle/
+.kotlin/
+**/.kotlin/
+build/
+**/build/
+local.properties
+**/local.properties
+*.iml
+**/*.iml
+.idea/
+**/.idea/
+captures/
+**/captures/
+externalNativeBuild/
+**/externalNativeBuild/
+.cxx/
+**/.cxx/
+
+AGENTS.md

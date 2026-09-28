@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-07-12",
+  "source_policy": "Released tags are pinned when present. Public EUDI repositories with no release tags are pinned to the observed HEAD and must be re-reviewed before making conformance claims.",
+  "sources": [
+    {
+      "id": "eudi-arf",
+      "kind": "normative_profile_source",
+      "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-architecture-and-reference-framework",
+      "pinned_release": "v2.9.0",
+      "pinned_commit": "28644bfba9381fee5669f3eac90e96c5ef25f044",
+      "status": "pinned-release",
+      "relevant_paths": [
+        "docs/architecture-and-reference-framework-main.md",
+        "docs/technical-specifications/ts3-wallet-unit-attestation.md",
+        "docs/annexes/annex-2/annex-2.02-high-level-requirements-by-topic.md",
+        "docs/annexes/annex-3/annex-3.01-pid-rulebook.md"
+      ]
+    },
+    {
+      "id": "eudi-wallet-unit-attestation",
+      "kind": "technical_specification_source",
+      "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-standards-and-technical-specifications",
+      "pinned_release": null,
+      "pinned_commit": "b53874f1477a76f00a91c87cfd3f18abea572e65",
+      "status": "pinned-head-no-release-tag-observed",
+      "relevant_paths": [
+        "docs/technical-specifications/ts3-wallet-unit-attestation.md"
+      ],
+      "note": "ARF v2.9.0 links this repository for the full Wallet Unit Attestation technical specification."
+    },
+    {
+      "id": "eudi-zkp-technical-specifications",
+      "kind": "out_of_scope_presentation_tracking_source",
+      "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-standards-and-technical-specifications",
+      "pinned_release": null,
+      "pinned_commit": "b53874f1477a76f00a91c87cfd3f18abea572e65",
+      "status": "pinned-head-no-release-tag-observed",
+      "relevant_paths": [
+        "docs/technical-specifications/ts4-zkp.md",
+        "docs/technical-specifications/ts13-zksnarks.md",
+        "docs/technical-specifications/ts14-zkps-from-mms.md"
+      ],
+      "note": "Tracked to keep OpenID4VCI scope boundaries explicit; ZKP presentation behavior belongs in reallyme/openid4vp and reallyme/zk-api integration points."
+    },
+    {
+      "id": "eudi-pid-rulebook",
+      "kind": "profile_rulebook_source",
+      "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog",
+      "pinned_release": null,
+      "pinned_commit": "9b9bd9aa4dc9ef9127ac74f08b644917dce05dfc",
+      "status": "pinned-head-no-release-tag-observed",
+      "relevant_paths": [
+        "rulebooks/pid/pid-rulebook.md"
+      ],
+      "note": "ARF Annex 3.01 points to this catalog for the current PID rulebook."
+    },
+    {
+      "id": "eudi-functional-conformance-assessment",
+      "kind": "assessment_source",
+      "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-functional-conformance-assessment",
+      "pinned_release": "v0.0.10",
+      "pinned_tag_object": "2b9f1131235489ad14fcc32bac616584f3d5eeba",
+      "pinned_commit": "944b8f89cc17873c47026a05dfa9d212e89b0ee3",
+      "status": "pinned-release",
+      "relevant_paths": [
+        "docs/fcaf/suts/wallet_solution/pid_provider/ws_pp.md",
+        "docs/fcaf/templates/test-spec-template.md",
+        "docs/introduction.md"
+      ]
+    },
+    {
+      "id": "eudi-testing-application",
+      "kind": "black_box_interop_target",
+      "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-testing-application",
+      "pinned_release": "2026.Q1",
+      "pinned_commit": "62c4ba73007ea25440e6ba24a651937bc692629b",
+      "status": "pinned-release",
+      "relevant_paths": [
+        "src/test/resources/features",
+        "target/test-classes/features"
+      ],
+      "note": "Tracked only as black-box interop evidence. Do not copy application code or test style into this workspace."
+    },
+    {
+      "id": "eudi-jvm-openid4vci",
+      "kind": "reference_library_interop_target",
+      "repository": "https://github.com/eu-digital-identity-wallet/eudi-lib-jvm-openid4vci-kt",
+      "pinned_release": "v0.12.0",
+      "pinned_tag_object": "708fbe932d54564208522997c1202f782a05ac5f",
+      "pinned_commit": "2d932a7ceeef1afdb2ff7a383819f1b1bb6683c1",
+      "status": "pinned-release"
+    },
+    {
+      "id": "eudi-ios-openid4vci",
+      "kind": "reference_library_interop_target",
+      "repository": "https://github.com/eu-digital-identity-wallet/eudi-lib-ios-openid4vci-swift",
+      "pinned_release": "v0.41.0",
+      "pinned_tag_object": "e333235017bcf39e46b40ba2f2bdceb8c4db8b4a",
+      "pinned_commit": "fdc9c9de49c631049af8e8b6b5734f8c5923f6c4",
+      "status": "pinned-release"
+    },
+    {
+      "id": "eudi-pid-issuer",
+      "kind": "reference_issuer_interop_target",
+      "repository": "https://github.com/eu-digital-identity-wallet/eudi-srv-pid-issuer",
+      "pinned_release": "v0.10.0",
+      "pinned_tag_object": "d4ceab1761a1eb3b7d68f9ff22b478183787f4cc",
+      "pinned_commit": "c9302c2ab420ab4d1578bda97d1b256e5b5e701e",
+      "status": "pinned-release"
+    }
+  ]
+}

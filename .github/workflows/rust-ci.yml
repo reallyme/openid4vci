@@ -1,0 +1,178 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+name: Rust CI
+
+env:
+  CARGO_AUDIT_VERSION: 0.22.2
+  CARGO_DENY_VERSION: 0.20.2
+  CARGO_NEXTEST_VERSION: 0.9.140
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths-ignore:
+      - ".github/renovate.json"
+      - "**/*.md"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - ".github/renovate.json"
+      - "**/*.md"
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: fmt, lint, test, dependency policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout openid4vci
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: openid4vci
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        with:
+          toolchain: 1.98.1
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          workspaces: openid4vci
+          cache-bin: false
+
+      - name: Install nextest
+        uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2.85.2
+        with:
+          tool: cargo-nextest@${{ env.CARGO_NEXTEST_VERSION }}
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+
+      - name: Format
+        working-directory: openid4vci
+        run: scripts/check-openid4vci-format.sh
+
+      - name: Check Rust source policy
+        working-directory: openid4vci
+        run: scripts/check-rust-source-policy.sh
+
+      - name: Prove policy scripts fail closed when ripgrep is unavailable or fails
+        working-directory: openid4vci
+        run: scripts/test-policy-tool-failures.sh
+
+      - name: Check shared release readiness policy
+        working-directory: openid4vci
+        run: npm exec --yes --package=github:reallyme/release-readiness#bdedc88f3f25fcc14242730d4dec6ce6a0c75531 -- reallyme-release-readiness --policy-only
+
+      - name: Verify SSI remote dependency graph
+        working-directory: openid4vci
+        run: node scripts/check-ssi-remote-resolution.mjs
+
+      - name: Check proto-first boundaries
+        working-directory: openid4vci
+        run: node scripts/check-proto-first-boundaries.mjs
+
+      - name: Check JSON boundaries
+        working-directory: openid4vci
+        run: node scripts/check-json-boundaries.mjs
+
+      - name: Check SDK facade surface
+        working-directory: openid4vci
+        run: node scripts/check-sdk-facade-inventory.mjs
+
+      - name: Test OIDF runner tooling
+        working-directory: openid4vci
+        run: python3 -m unittest discover -s scripts/conformance -p 'test_*.py'
+
+      - name: Clippy
+        working-directory: openid4vci
+        run: cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
+
+      - name: Test native lane
+        working-directory: openid4vci
+        run: cargo nextest run --locked --workspace --no-default-features --features native
+
+      - name: Test all features
+        working-directory: openid4vci
+        run: cargo nextest run --locked --workspace --all-features
+
+      - name: Build documentation
+        working-directory: openid4vci
+        env:
+          RUSTDOCFLAGS: -Dwarnings
+        run: cargo doc --locked --workspace --no-deps --all-features
+
+      - name: Check wasm lane
+        working-directory: openid4vci
+        run: cargo check --locked --workspace --no-default-features --features wasm --target wasm32-unknown-unknown
+
+      - name: Check Rust packaging policy
+        working-directory: openid4vci
+        run: scripts/check-rust-packaging-policy.sh
+
+      - name: Check ZK boundary policy
+        working-directory: openid4vci
+        run: scripts/check-zk-boundary-policy.sh
+
+      - name: Test release tooling
+        working-directory: openid4vci
+        run: node --test scripts/*.test.mjs
+
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2.85.2
+        with:
+          tool: cargo-deny@${{ env.CARGO_DENY_VERSION }}
+
+      - name: Dependency policy
+        working-directory: openid4vci
+        run: cargo deny --locked check
+
+      - name: Fuzz dependency policy
+        working-directory: openid4vci
+        run: cargo deny --locked --manifest-path fuzz/Cargo.toml --config fuzz/deny.toml check
+
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2.85.2
+        with:
+          tool: cargo-audit@${{ env.CARGO_AUDIT_VERSION }}
+
+      - name: Security advisory audit
+        working-directory: openid4vci
+        run: scripts/audit_committed_lockfiles.sh
+
+  msrv:
+    name: published crates on Rust 1.96
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout openid4vci
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: openid4vci
+          persist-credentials: false
+
+      - name: Install minimum supported Rust toolchain
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        with:
+          toolchain: 1.96.0
+
+      - name: Check published crates at the declared MSRV
+        working-directory: openid4vci
+        run: >-
+          cargo +1.96.0 check --locked
+          -p reallyme-openid4vci-types
+          -p reallyme-openid4vci-proto
+          -p reallyme-openid4vci-wallet
+          --all-features

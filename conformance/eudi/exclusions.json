@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "exclusions": [
+    {
+      "id": "eudi-openid4vp-presentation",
+      "source": "EUDI profile material",
+      "exclusion_reason": "Presentation behavior belongs in reallyme/openid4vp."
+    },
+    {
+      "id": "credential-envelope-cryptography",
+      "source": "EUDI profile material",
+      "exclusion_reason": "Envelope parsing, signing, encryption, and certificate validation belong in reallyme/ssi and reallyme/crypto; openid4vci maps their outcomes to issuance protocol behavior."
+    }
+  ]
+}

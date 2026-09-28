@@ -1,0 +1,8 @@
+{
+  "fixture_id": "oidf-oid4vci-wallet-harness",
+  "source": "https://gitlab.com/openid/conformance-suite",
+  "target": "crates/http/examples/holder_harness",
+  "profile": "openid4vci-final",
+  "purpose": "scheduled OIDF conformance-suite wallet plan control endpoint",
+  "execute_mode_requirement": "A composed identity/wallet harness must expose /healthz with composed_flow_driver_enabled=true before wallet-role OIDF execution starts."
+}

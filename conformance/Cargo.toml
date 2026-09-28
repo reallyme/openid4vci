@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "openid4vci-conformance"
+version = "0.1.0"
+description = "Machine-readable OpenID4VCI conformance vector harness."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+default = ["native"]
+native = [
+  "openid4vci-attestation/native",
+  "openid4vci-issuer/identity-jose",
+  "openid4vci-issuer/native",
+  "openid4vci-types/native",
+  "reallyme-openid4vci-wallet/identity-jose",
+  "reallyme-openid4vci-wallet/native",
+]
+wasm = [
+  "openid4vci-attestation/wasm",
+  "openid4vci-issuer/identity-jose",
+  "openid4vci-issuer/wasm",
+  "openid4vci-types/wasm",
+  "reallyme-openid4vci-wallet/identity-jose",
+  "reallyme-openid4vci-wallet/wasm",
+]
+
+[dependencies]
+openid4vci-attestation = { workspace = true }
+openid4vci-issuer = { workspace = true }
+openid4vci-types = { workspace = true }
+reallyme-openid4vci-wallet = { workspace = true }
+reallyme-codec = { workspace = true, features = ["base64url"] }
+reallyme-crypto = { workspace = true, features = ["sha2"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+zeroize = { workspace = true }
+
+[dev-dependencies]
+buffa = { workspace = true }
+openid4vci-proto = { workspace = true, features = ["generated"] }
+openid4vci-proto-codec = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+proptest = { workspace = true }
+
+[lints]
+workspace = true

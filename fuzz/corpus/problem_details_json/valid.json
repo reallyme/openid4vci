@@ -1,0 +1,7 @@
+{
+  "type": "about:blank",
+  "title": "invalid_proof",
+  "status": 400,
+  "instance": "urn:reallyme:synthetic:problem:1",
+  "error": "invalid_proof"
+}

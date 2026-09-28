@@ -1,0 +1,96 @@
+{
+  "schema_version": 2,
+  "suite_contract": "conformance/oidf/suite-contract.json",
+  "source_repository": "https://github.com/reallyme/openid4vci",
+  "protocol_profile": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL",
+  "repository_role_scope": [
+    "credential_issuer",
+    "wallet"
+  ],
+  "credential_format_scope": [
+    "sd_jwt_vc",
+    "mdoc"
+  ],
+  "profiles": [
+    {
+      "profile_id": "issuer-sd-jwt-vc-wallet-initiated",
+      "entity_under_test": "credential_issuer",
+      "plan_id": "oid4vci-1_0-issuer-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-issuer-haip-test-plan[vci_authorization_code_flow_variant=wallet_initiated][credential_format=sd_jwt_vc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Issuer sd_jwt_vc wallet_initiated",
+      "expected_module_count": 63
+    },
+    {
+      "profile_id": "issuer-sd-jwt-vc-issuer-initiated",
+      "entity_under_test": "credential_issuer",
+      "plan_id": "oid4vci-1_0-issuer-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-issuer-haip-test-plan[vci_authorization_code_flow_variant=issuer_initiated][credential_format=sd_jwt_vc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Issuer sd_jwt_vc issuer_initiated",
+      "expected_module_count": 63
+    },
+    {
+      "profile_id": "issuer-mdoc-wallet-initiated",
+      "entity_under_test": "credential_issuer",
+      "plan_id": "oid4vci-1_0-issuer-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-issuer-haip-test-plan[vci_authorization_code_flow_variant=wallet_initiated][credential_format=mdoc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Issuer mdoc wallet_initiated",
+      "expected_module_count": 63
+    },
+    {
+      "profile_id": "issuer-mdoc-issuer-initiated",
+      "entity_under_test": "credential_issuer",
+      "plan_id": "oid4vci-1_0-issuer-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-issuer-haip-test-plan[vci_authorization_code_flow_variant=issuer_initiated][credential_format=mdoc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Issuer mdoc issuer_initiated",
+      "expected_module_count": 63
+    },
+    {
+      "profile_id": "wallet-sd-jwt-vc-wallet-initiated",
+      "entity_under_test": "wallet",
+      "plan_id": "oid4vci-1_0-wallet-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-wallet-haip-test-plan[vci_authorization_code_flow_variant=wallet_initiated][credential_format=sd_jwt_vc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Wallet sd_jwt_vc wallet_initiated",
+      "expected_module_count": 22
+    },
+    {
+      "profile_id": "wallet-sd-jwt-vc-issuer-initiated-by-value",
+      "entity_under_test": "wallet",
+      "plan_id": "oid4vci-1_0-wallet-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-wallet-haip-test-plan[vci_authorization_code_flow_variant=issuer_initiated][vci_credential_offer_variant=by_value][credential_format=sd_jwt_vc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Wallet sd_jwt_vc issuer_initiated by_value",
+      "expected_module_count": 22
+    },
+    {
+      "profile_id": "wallet-sd-jwt-vc-issuer-initiated-by-reference",
+      "entity_under_test": "wallet",
+      "plan_id": "oid4vci-1_0-wallet-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-wallet-haip-test-plan[vci_authorization_code_flow_variant=issuer_initiated][vci_credential_offer_variant=by_reference][credential_format=sd_jwt_vc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Wallet sd_jwt_vc issuer_initiated by_reference",
+      "expected_module_count": 22
+    },
+    {
+      "profile_id": "wallet-mdoc-wallet-initiated",
+      "entity_under_test": "wallet",
+      "plan_id": "oid4vci-1_0-wallet-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-wallet-haip-test-plan[vci_authorization_code_flow_variant=wallet_initiated][credential_format=mdoc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Wallet mdoc wallet_initiated",
+      "expected_module_count": 22
+    },
+    {
+      "profile_id": "wallet-mdoc-issuer-initiated-by-value",
+      "entity_under_test": "wallet",
+      "plan_id": "oid4vci-1_0-wallet-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-wallet-haip-test-plan[vci_authorization_code_flow_variant=issuer_initiated][vci_credential_offer_variant=by_value][credential_format=mdoc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Wallet mdoc issuer_initiated by_value",
+      "expected_module_count": 22
+    },
+    {
+      "profile_id": "wallet-mdoc-issuer-initiated-by-reference",
+      "entity_under_test": "wallet",
+      "plan_id": "oid4vci-1_0-wallet-haip-test-plan",
+      "plan_expression": "oid4vci-1_0-wallet-haip-test-plan[vci_authorization_code_flow_variant=issuer_initiated][vci_credential_offer_variant=by_reference][credential_format=mdoc]",
+      "profile_name": "OID4VCI-1.0-FINAL+HAIP-1.0-FINAL Wallet mdoc issuer_initiated by_reference",
+      "expected_module_count": 22
+    }
+  ]
+}

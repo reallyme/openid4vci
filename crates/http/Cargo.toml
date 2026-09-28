@@ -1,0 +1,136 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "openid4vci-http"
+version = "0.1.0"
+description = "Feature-gated HTTP adapter boundary for OpenID4VCI."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+default = []
+stack-errors = [
+    "dep:openid4vci-proto-codec",
+    "dep:openid4vci-proto",
+    "dep:reallyme-ssi-proto",
+    "reallyme-ssi-proto/generated",
+]
+issuer-service = [
+    "dep:openid4vci-issuer",
+    "dep:openid4vci-proto",
+    "dep:openid4vci-proto-codec",
+    "dep:thiserror",
+    "openid4vci-issuer/native",
+    "openid4vci-proto/generated",
+]
+axum = [
+    "issuer-service",
+    "dep:axum",
+    "dep:buffa",
+    "dep:reallyme-codec",
+    "dep:reallyme-crypto",
+    "dep:reallyme-openid-oauth",
+    "dep:serde",
+    "dep:serde_json",
+    "dep:secrecy",
+    "reallyme-codec/base64url",
+    "reallyme-crypto/native",
+    "reallyme-crypto/csprng",
+    "reallyme-crypto/sha2",
+    "dep:tokio",
+    "dep:url",
+    "dep:zeroize",
+]
+holder-harness = [
+    "dep:reallyme-openid4vci-wallet",
+    "dep:thiserror",
+    "dep:zeroize",
+    "reallyme-openid4vci-wallet/native",
+    "stack-errors",
+]
+axum-holder-harness = [
+    "holder-harness",
+    "dep:axum",
+    "dep:reallyme-codec",
+    "dep:reallyme-crypto",
+    "dep:secrecy",
+    "dep:serde",
+    "dep:serde_json",
+    "dep:tokio",
+    "dep:url",
+    "dep:zeroize",
+    "reallyme-codec/jcs",
+]
+tls = [
+    "axum",
+    "dep:axum-server",
+]
+reqwest = ["reallyme-openid4vci-wallet/native"]
+identity-jose = [
+    "issuer-service",
+    "dep:ciborium",
+    "dep:reallyme-mdoc",
+    "dep:openid4vci-attestation",
+    "dep:reallyme-cose",
+    "openid4vci-issuer/identity-jose",
+    "reallyme-mdoc/native",
+    "reallyme-cose/native",
+    "reallyme-crypto/dispatch",
+    "reallyme-crypto/jwk",
+    "reallyme-crypto/p256",
+]
+
+[dependencies]
+axum = { workspace = true, optional = true }
+axum-server = { workspace = true, features = ["tls-rustls"], optional = true }
+buffa = { workspace = true, optional = true }
+ciborium = { workspace = true, optional = true }
+reallyme-mdoc = { workspace = true, optional = true }
+openid4vci-attestation = { workspace = true, optional = true }
+reallyme-openid4vci-wallet = { workspace = true, optional = true }
+openid4vci-issuer = { workspace = true, optional = true }
+reallyme-codec = { workspace = true, optional = true }
+reallyme-cose = { workspace = true, optional = true }
+reallyme-crypto = { workspace = true, optional = true }
+reallyme-ssi-proto = { workspace = true, optional = true }
+reallyme-openid-oauth = { workspace = true, optional = true }
+openid4vci-proto = { workspace = true, optional = true }
+openid4vci-proto-codec = { workspace = true, optional = true }
+openid4vci-types = { workspace = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+secrecy = { workspace = true, optional = true }
+thiserror = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["macros", "net", "rt-multi-thread", "signal"], optional = true }
+url = { workspace = true, optional = true }
+zeroize = { workspace = true, optional = true }
+
+[dev-dependencies]
+buffa = { workspace = true }
+envelopes-x509 = { workspace = true }
+reallyme-revocation = { workspace = true }
+reallyme-trust-core = { workspace = true }
+serde_json = { workspace = true }
+time = { workspace = true }
+tower = { workspace = true, features = ["util"] }
+
+[lints]
+workspace = true
+
+[[example]]
+name = "issuer"
+required-features = ["axum", "identity-jose", "tls"]
+
+[[example]]
+name = "holder_harness"
+required-features = ["axum-holder-harness"]
+
+[[test]]
+name = "stack_error_tests"
+path = "tests/stack_error_tests.rs"
+required-features = ["axum", "axum-holder-harness", "stack-errors"]

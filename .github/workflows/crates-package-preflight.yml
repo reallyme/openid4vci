@@ -1,0 +1,303 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+name: Crates Package Preflight
+
+env:
+  CARGO_AUDIT_VERSION: 0.22.2
+  CARGO_SEMVER_CHECKS_VERSION: 0.49.0
+
+run-name: Crates package preflight ${{ inputs.version }} @ ${{ github.sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without a leading v
+        required: true
+        type: string
+        default: 0.1.0
+
+concurrency:
+  group: crates-package-preflight-${{ inputs.version }}-${{ github.sha }}
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verify-source-sha:
+    name: Verify release source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      fuzz_run_id: ${{ steps.fuzz.outputs.run_id }}
+      oidf_conformance_run_id: ${{ steps.oidf.outputs.run_id }}
+      protobuf_ci_run_id: ${{ steps.protobuf-ci.outputs.run_id }}
+      release_sha: ${{ steps.verify-source.outputs.release_sha }}
+      release_version: ${{ steps.verify-source.outputs.release_version }}
+      rust_ci_run_id: ${{ steps.rust-ci.outputs.run_id }}
+    steps:
+      - name: Checkout requested release commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: openid4vci
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+
+      - name: Match workflow head, current main, and crate versions
+        id: verify-source
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_SOURCE_WRITE_GITHUB_OUTPUT: '1'
+        working-directory: openid4vci
+        run: node scripts/verify_release_source.mjs
+
+      - name: Require successful Rust CI for the release commit
+        id: rust-ci
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
+        run: |
+          runs="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow rust-ci.yml \
+            --commit "$RELEASE_SHA" \
+            --limit 20 \
+            --json attempt,conclusion,databaseId,event,headBranch,headSha,status)"
+          run_id="$(jq -er --arg sha "$RELEASE_SHA" '
+            [.[] | select(.headSha == $sha and (.event == "push" or .event == "workflow_dispatch"))]
+            | sort_by(.databaseId) | last
+            | select(.headBranch == "main" and .attempt == 1 and .status == "completed" and .conclusion == "success")
+            | .databaseId
+          ' <<<"$runs")" || {
+            echo "::error::release commit has no successful Rust CI run"
+            exit 1
+          }
+          printf 'run_id=%s\n' "$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Require successful protobuf freshness for the release commit
+        id: protobuf-ci
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
+        run: |
+          runs="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow protobuf-ci.yml \
+            --commit "$RELEASE_SHA" \
+            --limit 20 \
+            --json attempt,conclusion,databaseId,event,headBranch,headSha,status)"
+          run_id="$(jq -er --arg sha "$RELEASE_SHA" '
+            [.[] | select(.headSha == $sha and (.event == "push" or .event == "workflow_dispatch"))]
+            | sort_by(.databaseId) | last
+            | select(.headBranch == "main" and .attempt == 1 and .status == "completed" and .conclusion == "success")
+            | .databaseId
+          ' <<<"$runs")" || {
+            echo "::error::release commit has no successful protobuf freshness run"
+            exit 1
+          }
+          printf 'run_id=%s\n' "$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Require successful deterministic fuzz corpus replay for the release commit
+        id: fuzz
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
+        run: |
+          runs="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow fuzz.yml \
+            --commit "$RELEASE_SHA" \
+            --limit 20 \
+            --json attempt,conclusion,databaseId,event,headBranch,headSha,status)"
+          run_id="$(jq -er --arg sha "$RELEASE_SHA" '
+            [.[] | select(.headSha == $sha and (.event == "push" or .event == "workflow_dispatch"))]
+            | sort_by(.databaseId) | last
+            | select(.headBranch == "main" and .attempt == 1 and .status == "completed" and .conclusion == "success")
+            | .databaseId
+          ' <<<"$runs")" || {
+            echo "::error::release commit has no successful fuzz corpus replay"
+            exit 1
+          }
+          printf 'run_id=%s\n' "$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Require successful OIDF issuer conformance for the release commit
+        id: oidf
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ steps.verify-source.outputs.release_sha }}
+        run: |
+          runs="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow oidf-conformance.yml \
+            --commit "$RELEASE_SHA" \
+            --limit 20 \
+            --json attempt,conclusion,databaseId,event,headBranch,headSha,status)"
+          run_id="$(jq -er --arg sha "$RELEASE_SHA" '
+            [.[] | select(.headSha == $sha and .event == "workflow_dispatch")]
+            | sort_by(.databaseId) | last
+            | select(.headBranch == "main" and .attempt == 1 and .status == "completed" and .conclusion == "success")
+            | .databaseId
+          ' <<<"$runs")" || {
+            echo "::error::release commit has no successful complete OIDF issuer conformance run"
+            exit 1
+          }
+          printf 'run_id=%s\n' "$run_id" >> "$GITHUB_OUTPUT"
+
+  crates-package:
+    name: Review crates.io packages
+    needs: verify-source-sha
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout certified release commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.verify-source-sha.outputs.release_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: openid4vci
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        with:
+          toolchain: 1.98.1
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2.85.2
+        with:
+          tool: cargo-audit@${{ env.CARGO_AUDIT_VERSION }},cargo-semver-checks@${{ env.CARGO_SEMVER_CHECKS_VERSION }}
+
+      - name: Scan complete Git history
+        working-directory: openid4vci
+        run: scripts/run-gitleaks.sh
+
+      - name: Audit committed lockfiles
+        working-directory: openid4vci
+        run: scripts/audit_committed_lockfiles.sh
+
+      - name: Run complete release-readiness gate
+        env:
+          RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
+        working-directory: openid4vci
+        run: npm exec --yes --package=github:reallyme/release-readiness#bdedc88f3f25fcc14242730d4dec6ce6a0c75531 -- reallyme-release-readiness
+
+      - name: Check release version and publish order
+        env:
+          RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
+        working-directory: openid4vci
+        run: node scripts/publish-crates-in-order.mjs order
+
+      - name: Reject public API breaks against each published baseline
+        env:
+          RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
+        working-directory: openid4vci
+        run: |
+          for crate in \
+            reallyme-openid4vci-proto \
+            reallyme-openid4vci-types \
+            reallyme-openid4vci-wallet; do
+            baseline="$(curl --fail --silent --show-error "https://crates.io/api/v1/crates/${crate}" \
+              | jq -r --arg release "$RELEASE_VERSION" \
+                '[.versions[] | select(.yanked == false and .num != $release)][0].num // empty')"
+            if [[ -n "$baseline" ]]; then
+              cargo semver-checks --package "$crate" --baseline-version "$baseline"
+            else
+              echo "${crate}: no published baseline; initial release check is not applicable"
+            fi
+          done
+
+      - name: Inspect normalized crate tarballs and dry-run publication
+        env:
+          RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
+        working-directory: openid4vci
+        run: node scripts/publish-crates-in-order.mjs inspect
+
+      - name: Write reviewed package attestation
+        env:
+          FUZZ_RUN_ID: ${{ needs.verify-source-sha.outputs.fuzz_run_id }}
+          OIDF_CONFORMANCE_RUN_ID: ${{ needs.verify-source-sha.outputs.oidf_conformance_run_id }}
+          PROTOBUF_CI_RUN_ID: ${{ needs.verify-source-sha.outputs.protobuf_ci_run_id }}
+          RELEASE_SHA: ${{ needs.verify-source-sha.outputs.release_sha }}
+          RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
+          RUST_CI_RUN_ID: ${{ needs.verify-source-sha.outputs.rust_ci_run_id }}
+        working-directory: openid4vci
+        run: node scripts/write_release_attestation.mjs
+
+      - name: Upload reviewed package attestation
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reallyme-openid4vci-crates-preflight-${{ inputs.version }}-${{ github.sha }}
+          path: openid4vci/release-attestation/crates-preflight.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload reviewed crate archives
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reallyme-openid4vci-crate-archives-${{ inputs.version }}-${{ github.sha }}
+          path: openid4vci/target/package/*.crate
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Summarize reviewed release
+        env:
+          RELEASE_SHA: ${{ needs.verify-source-sha.outputs.release_sha }}
+          RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
+        run: |
+          {
+            echo '## Crates package preflight passed'
+            echo
+            echo "- Version: \`${RELEASE_VERSION}\`"
+            echo "- Commit: \`${RELEASE_SHA}\`"
+            echo "- Publish set: \`reallyme-openid4vci-proto\`, \`reallyme-openid4vci-types\`, and \`reallyme-openid4vci-wallet\`"
+            echo "- Attestation run ID: \`${GITHUB_RUN_ID}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  attest-reviewed-evidence:
+    name: Attest reviewed package evidence
+    needs: [verify-source-sha, crates-package]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      attestations: write
+      contents: read
+      id-token: write
+    steps:
+      - name: Download reviewed package attestation
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reallyme-openid4vci-crates-preflight-${{ inputs.version }}-${{ github.sha }}
+          path: release-attestation
+
+      - name: Download reviewed crate archives
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reallyme-openid4vci-crate-archives-${{ inputs.version }}-${{ github.sha }}
+          path: reviewed-crates
+
+      - name: Cryptographically attest reviewed package evidence
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: release-attestation/crates-preflight.json
+
+      - name: Cryptographically attest reviewed crate archives
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: reviewed-crates/*.crate

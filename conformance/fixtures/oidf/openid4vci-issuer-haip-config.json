@@ -1,0 +1,93 @@
+{
+  "alias": "openid4vci-haip-issuer",
+  "description": "ReallyMe OpenID4VCI HTTP example issuer - OID4VCI 1.0 Final HAIP issuer plan",
+  "vci": {
+    "credential_issuer_url": "{OPENID4VCI_ISSUER_BASE_URL}openid4vci/example-issuer/",
+    "authorization_server": "{OPENID4VCI_AUTHORIZATION_SERVER}",
+    "credential_configuration_id": "pid"
+  },
+  "client": {
+    "client_id": "openid4vci-conformance-wallet",
+    "scope": "openid4vci",
+    "jwks": {
+      "keys": [
+        {
+          "kty": "EC",
+          "d": "C9AWp9_vYfHj-ckdYAo0aYk-ZGXOPwoKJEqmYGlqUGI",
+          "use": "sig",
+          "crv": "P-256",
+          "kid": "openid4vci-conformance-wallet-1",
+          "x": "yHNp8QgNiVSxSxIH_n_nH23dpUDlNhbgvLKSrjK1hDs",
+          "y": "3_rlpW_FXqghp8dKPpkjfvbfACQQFLFZwJXxOr319Ac",
+          "alg": "ES256"
+        }
+      ]
+    },
+    "redirect_uri": "{LOCALBASEURL}test/a/openid4vci-haip-issuer/callback"
+  },
+  "client2": {
+    "client_id": "openid4vci-conformance-wallet-2",
+    "scope": "openid4vci",
+    "jwks": {
+      "keys": [
+        {
+          "kty": "EC",
+          "d": "Gkmh-vjcuC8QStQqLqM_PhJQUp8KepSGGL2-stl79Bs",
+          "use": "sig",
+          "crv": "P-256",
+          "kid": "openid4vci-conformance-wallet-2",
+          "x": "p-_IHEO9b_XZIyW2SHyYrRyMndwcWjGhnhS-yF6HRiY",
+          "y": "_6IzIjawRYvQLdrypBlCqeBh27jR2tLNUq8h86deoe8",
+          "alg": "ES256"
+        }
+      ]
+    },
+    "redirect_uri": "{LOCALBASEURL}test/a/openid4vci-haip-issuer/callback2"
+  },
+  "credential": {
+    "trust_anchor_pem": "-----BEGIN CERTIFICATE-----\nMIICKzCCAbGgAwIBAgIUCshnTMlbzyFnjG17iOdOhdZGp4owCgYIKoZIzj0EAwMw\nLDEqMCgGA1UEAwwhT3BlbklENFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MB4X\nDTI2MDExNTE2NTQyNFoXDTQxMDExMTE2NTQyNFowLDEqMCgGA1UEAwwhT3BlbklE\nNFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MHYwEAYHKoZIzj0CAQYFK4EEACID\nYgAELDjIIc5bYkiQCKrBDTkDnF9wkO1lNI4og9rERzeatPdIT6g/Q6vHIOA7UPZo\nFRv5m+lN50xsaAaZzXgqeX1VxVD71FQBkT+CnpqRbcgAcpug5wC36N7Pgddu8H/v\nT8lWo4GTMIGQMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0G\nA1UdDgQWBBTgt/z+s54ZDXsVA/YQLaW4RI7WajBLBgNVHREERDBCghZsb2NhbGhv\nc3QuZW1vYml4LmNvLnVrgihzdGFuemFlZC10cmloeWRyb3h5LXNoZW5hLm5ncm9r\nLWZyZWUuZGV2MAoGCCqGSM49BAMDA2gAMGUCMQCuRHw+0d1av0FKQwqyl2UJgI4F\nXBFSQiyQj25Uii6g4mK5sUVDV3txBvPku5G7AKsCMDJYACWvj8Ll3CPfxJ+nQib6\nXWCTUoo7AOlBMecuvI86XRClZgDacEAOsYt2WyqBFg==\n-----END CERTIFICATE-----\n",
+    "status_list_trust_anchor_pem": "{vp-signing-ca.crt}"
+  },
+  "client_attestation": {
+    "issuer": "https://client-attester.example.org/",
+    "trust_anchor": "-----BEGIN CERTIFICATE-----\nMIICKzCCAbGgAwIBAgIUCshnTMlbzyFnjG17iOdOhdZGp4owCgYIKoZIzj0EAwMw\nLDEqMCgGA1UEAwwhT3BlbklENFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MB4X\nDTI2MDExNTE2NTQyNFoXDTQxMDExMTE2NTQyNFowLDEqMCgGA1UEAwwhT3BlbklE\nNFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MHYwEAYHKoZIzj0CAQYFK4EEACID\nYgAELDjIIc5bYkiQCKrBDTkDnF9wkO1lNI4og9rERzeatPdIT6g/Q6vHIOA7UPZo\nFRv5m+lN50xsaAaZzXgqeX1VxVD71FQBkT+CnpqRbcgAcpug5wC36N7Pgddu8H/v\nT8lWo4GTMIGQMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0G\nA1UdDgQWBBTgt/z+s54ZDXsVA/YQLaW4RI7WajBLBgNVHREERDBCghZsb2NhbGhv\nc3QuZW1vYml4LmNvLnVrgihzdGFuemFlZC10cmloeWRyb3h5LXNoZW5hLm5ncm9r\nLWZyZWUuZGV2MAoGCCqGSM49BAMDA2gAMGUCMQCuRHw+0d1av0FKQwqyl2UJgI4F\nXBFSQiyQj25Uii6g4mK5sUVDV3txBvPku5G7AKsCMDJYACWvj8Ll3CPfxJ+nQib6\nXWCTUoo7AOlBMecuvI86XRClZgDacEAOsYt2WyqBFg==\n-----END CERTIFICATE-----\n",
+    "key_attestation_trust_anchor_pem": "-----BEGIN CERTIFICATE-----\nMIICKzCCAbGgAwIBAgIUCshnTMlbzyFnjG17iOdOhdZGp4owCgYIKoZIzj0EAwMw\nLDEqMCgGA1UEAwwhT3BlbklENFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MB4X\nDTI2MDExNTE2NTQyNFoXDTQxMDExMTE2NTQyNFowLDEqMCgGA1UEAwwhT3BlbklE\nNFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MHYwEAYHKoZIzj0CAQYFK4EEACID\nYgAELDjIIc5bYkiQCKrBDTkDnF9wkO1lNI4og9rERzeatPdIT6g/Q6vHIOA7UPZo\nFRv5m+lN50xsaAaZzXgqeX1VxVD71FQBkT+CnpqRbcgAcpug5wC36N7Pgddu8H/v\nT8lWo4GTMIGQMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0G\nA1UdDgQWBBTgt/z+s54ZDXsVA/YQLaW4RI7WajBLBgNVHREERDBCghZsb2NhbGhv\nc3QuZW1vYml4LmNvLnVrgihzdGFuemFlZC10cmloeWRyb3h5LXNoZW5hLm5ncm9r\nLWZyZWUuZGV2MAoGCCqGSM49BAMDA2gAMGUCMQCuRHw+0d1av0FKQwqyl2UJgI4F\nXBFSQiyQj25Uii6g4mK5sUVDV3txBvPku5G7AKsCMDJYACWvj8Ll3CPfxJ+nQib6\nXWCTUoo7AOlBMecuvI86XRClZgDacEAOsYt2WyqBFg==\n-----END CERTIFICATE-----\n",
+    "attester_jwks": {
+      "keys": [
+        {
+          "kty": "EC",
+          "crv": "P-256",
+          "alg": "ES256",
+          "use": "sig",
+          "x": "p-_IHEO9b_XZIyW2SHyYrRyMndwcWjGhnhS-yF6HRiY",
+          "y": "_6IzIjawRYvQLdrypBlCqeBh27jR2tLNUq8h86deoe8",
+          "d": "Gkmh-vjcuC8QStQqLqM_PhJQUp8KepSGGL2-stl79Bs",
+          "kid": "ct_client_attester_key",
+          "x5c": [
+            "MIICTDCCAdKgAwIBAgIUPlAaWKujE4TvY8sCwXmyDMGgOIwwCgYIKoZIzj0EAwIwLDEqMCgGA1UEAwwhT3BlbklENFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MB4XDTI2MDExNTE2NTQyNFoXDTI4MDQxOTE2NTQyNFowUTELMAkGA1UEBhMCREUxFzAVBgNVBAoMDkV4YW1wbGUgSXNzdWVyMRAwDgYDVQQLDAdPSUQ0VkNJMRcwFQYDVQQDDA5pc3N1ZXIuZXhhbXBsZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABKfvyBxDvW/12SMltkh8mK0cjJ3cHFoxoZ4Uvsheh0Ym/6IzIjawRYvQLdrypBlCqeBh27jR2tLNUq8h86deoe+jgawwgakwDAYDVR0TAQH/BAIwADAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMB0GA1UdDgQWBBSNQHXEutjrfQDfbTgLG0mHepGesjAfBgNVHSMEGDAWgBTgt/z+s54ZDXsVA/YQLaW4RI7WajAqBgNVHREEIzAhgg5pc3N1ZXIuZXhhbXBsZYIJbG9jYWxob3N0hwR/AAABMAoGCCqGSM49BAMCA2gAMGUCMQC24WF0JjXEH0MuirdaXckJuxQUR2N7m3CO2WnUvnmnvEVUfgrUB0G78SFL0LDbuHECMByQ90GH0dB94Z2/4D6f4uDm0j9m6LHTEM0XrW9JcGT2fDMfVEMgUYrMod6yHWbgSw=="
+          ]
+        }
+      ]
+    },
+    "key_attestation_jwks": {
+      "keys": [
+        {
+          "kty": "EC",
+          "crv": "P-256",
+          "alg": "ES256",
+          "use": "sig",
+          "x": "p-_IHEO9b_XZIyW2SHyYrRyMndwcWjGhnhS-yF6HRiY",
+          "y": "_6IzIjawRYvQLdrypBlCqeBh27jR2tLNUq8h86deoe8",
+          "d": "Gkmh-vjcuC8QStQqLqM_PhJQUp8KepSGGL2-stl79Bs",
+          "kid": "ct_key_attestation_key",
+          "x5c": [
+            "MIICTDCCAdKgAwIBAgIUPlAaWKujE4TvY8sCwXmyDMGgOIwwCgYIKoZIzj0EAwIwLDEqMCgGA1UEAwwhT3BlbklENFZDSSBDb25mb3JtYW5jZSBUZXN0cyBSb290MB4XDTI2MDExNTE2NTQyNFoXDTI4MDQxOTE2NTQyNFowUTELMAkGA1UEBhMCREUxFzAVBgNVBAoMDkV4YW1wbGUgSXNzdWVyMRAwDgYDVQQLDAdPSUQ0VkNJMRcwFQYDVQQDDA5pc3N1ZXIuZXhhbXBsZTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABKfvyBxDvW/12SMltkh8mK0cjJ3cHFoxoZ4Uvsheh0Ym/6IzIjawRYvQLdrypBlCqeBh27jR2tLNUq8h86deoe+jgawwgakwDAYDVR0TAQH/BAIwADAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMB0GA1UdDgQWBBSNQHXEutjrfQDfbTgLG0mHepGesjAfBgNVHSMEGDAWgBTgt/z+s54ZDXsVA/YQLaW4RI7WajAqBgNVHREEIzAhgg5pc3N1ZXIuZXhhbXBsZYIJbG9jYWxob3N0hwR/AAABMAoGCCqGSM49BAMCA2gAMGUCMQC24WF0JjXEH0MuirdaXckJuxQUR2N7m3CO2WnUvnmnvEVUfgrUB0G78SFL0LDbuHECMByQ90GH0dB94Z2/4D6f4uDm0j9m6LHTEM0XrW9JcGT2fDMfVEMgUYrMod6yHWbgSw=="
+          ]
+        }
+      ]
+    }
+  },
+  "options": {
+    "browsercontrol_css_enable": false
+  }
+}

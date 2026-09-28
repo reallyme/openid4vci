@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+# Release, dependency, and CI policy changes require review from the repository owner.
+/.github/workflows/ @vanderbr
+/.github/renovate.json @vanderbr
+/scripts/ @vanderbr
+/Cargo.toml @vanderbr
+/Cargo.lock @vanderbr
+/deny.toml @vanderbr

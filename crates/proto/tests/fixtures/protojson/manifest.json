@@ -1,0 +1,35 @@
+{
+  "schema_package": "reallyme.openid4vci.v1",
+  "fixture_version": 1,
+  "spdx_license": "MIT OR Apache-2.0",
+  "fixtures": [
+    {
+      "file": "credential-offer.json",
+      "message": "CredentialOffer"
+    },
+    {
+      "file": "issuer-metadata.json",
+      "message": "IssuerMetadata"
+    },
+    {
+      "file": "credential-request.json",
+      "message": "CredentialRequest"
+    },
+    {
+      "file": "credential-response.json",
+      "message": "CredentialResponse"
+    },
+    {
+      "file": "deferred-credential-request.json",
+      "message": "DeferredCredentialRequest"
+    },
+    {
+      "file": "notification-request.json",
+      "message": "NotificationRequest"
+    },
+    {
+      "file": "problem-details.json",
+      "message": "ProblemDetails"
+    }
+  ]
+}
