@@ -193,7 +193,7 @@ shared.assertReallyMeProtobufReleasePolicy({
   generatedFreshnessMode,
   workflowMode: "delegated",
   generatedFreshnessStepRun:
-    "npm exec --yes --package=github:reallyme/release-readiness#bdedc88f3f25fcc14242730d4dec6ce6a0c75531 -- reallyme-release-readiness --generated-freshness",
+    "node .release-readiness/scripts/run-consumer-check.mjs --generated-freshness",
   installBufUses:
     "bufbuild/buf-setup-action@a47c93e0b1648d5651a065437926377d060baa99",
   hardeningPolicy: {
@@ -414,6 +414,8 @@ for (const path of [
   "conformance/fixtures/oidf/openid4vci-conformance-mdoc-iaca.pem",
   "scripts/check-proto-first-boundaries.mjs",
   "scripts/check-openid4vci-format.sh",
+  "scripts/check-published-semver.mjs",
+  "scripts/check-published-semver.test.mjs",
   "scripts/publish-crates-in-order.mjs",
   "scripts/publish-crates-in-order.test.mjs",
   "scripts/verify_release_source.mjs",
@@ -515,11 +517,20 @@ assertContains("README.md", "[MIT License](LICENSE-MIT)");
 assertContains("README.md", "[Apache License, Version 2.0](LICENSE-APACHE)");
 assertContains(
   "README.md",
-  "npm exec --yes --package=github:reallyme/release-readiness#bdedc88f3f25fcc14242730d4dec6ce6a0c75531 -- reallyme-release-readiness",
+  "git -C .release-readiness checkout --detach bdedc88f3f25fcc14242730d4dec6ce6a0c75531",
 );
+assertContains("README.md", "node .release-readiness/scripts/run-consumer-check.mjs");
 assertContains(".gitignore", "!crates/proto/src/generated/**");
+assertContains(".gitignore", "/.release-readiness/");
 assertContains(".github/workflows/rust-ci.yml", "scripts/check-openid4vci-format.sh");
 assertContains(".github/workflows/rust-ci.yml", "scripts/check-rust-source-policy.sh");
+assertContains(".github/workflows/rust-ci.yml", "tool: ripgrep@15.2.0");
+assertContains(".github/workflows/rust-ci.yml", "CARGO_SEMVER_CHECKS_VERSION: 0.50.0");
+assertContains(
+  ".github/workflows/rust-ci.yml",
+  "cargo-semver-checks@${{ env.CARGO_SEMVER_CHECKS_VERSION }}",
+);
+assertContains(".github/workflows/rust-ci.yml", "node scripts/check-published-semver.mjs");
 assertContains(".github/workflows/rust-ci.yml", "scripts/test-policy-tool-failures.sh");
 assertContains(
   ".github/workflows/rust-ci.yml",
@@ -788,13 +799,33 @@ assertContains(packagePreflightWorkflow, "scripts/run-gitleaks.sh");
 assertContains(packagePreflightWorkflow, "scripts/audit_committed_lockfiles.sh");
 assertContains(
   packagePreflightWorkflow,
-  "npm exec --yes --package=github:reallyme/release-readiness#bdedc88f3f25fcc14242730d4dec6ce6a0c75531 -- reallyme-release-readiness",
+  "node .release-readiness/scripts/run-consumer-check.mjs",
 );
+assertContains(
+  ".github/workflows/protobuf-ci.yml",
+  "node .release-readiness/scripts/run-consumer-check.mjs --generated-freshness",
+);
+assertContains(
+  ".github/workflows/rust-ci.yml",
+  "node .release-readiness/scripts/run-consumer-check.mjs --policy-only",
+);
+for (const releaseReadinessWorkflow of [
+  packagePreflightWorkflow,
+  ".github/workflows/protobuf-ci.yml",
+  ".github/workflows/rust-ci.yml",
+]) {
+  assertContains(releaseReadinessWorkflow, "repository: reallyme/release-readiness");
+  assertContains(
+    releaseReadinessWorkflow,
+    "ref: bdedc88f3f25fcc14242730d4dec6ce6a0c75531",
+  );
+  assertContains(releaseReadinessWorkflow, "persist-credentials: false");
+  assertNotContains(releaseReadinessWorkflow, "npm exec --yes --package=github:");
+}
 assertContains(packagePreflightWorkflow, "cargo-audit@${{ env.CARGO_AUDIT_VERSION }}");
-assertContains(packagePreflightWorkflow, "CARGO_SEMVER_CHECKS_VERSION: 0.49.0");
-assertContains(packagePreflightWorkflow, "cargo-semver-checks@${{ env.CARGO_SEMVER_CHECKS_VERSION }}");
-assertContains(packagePreflightWorkflow, "cargo semver-checks --package");
-assertContains(packagePreflightWorkflow, "--baseline-version \"$baseline\"");
+assertNotContains(packagePreflightWorkflow, "https://crates.io/api/");
+assertNotContains(packagePreflightWorkflow, "cargo-semver-checks");
+assertNotContains(packagePreflightWorkflow, "semver-checks");
 assertContains(".github/workflows/secret-scan.yml", "fetch-depth: 0");
 assertContains(".github/workflows/secret-scan.yml", "scripts/run-gitleaks.sh");
 assertNotContains(".github/workflows/secret-scan.yml", "paths-ignore:");
@@ -896,6 +927,7 @@ assertContains(
   "CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}",
 );
 assertWorkflowJobScalar(cratesReleaseWorkflow, "publish", "environment", "crates-io");
+assertWorkflowJobScalar(cratesReleaseWorkflow, "publish", "timeout-minutes", "120");
 assertWorkflowJobNotContains(cratesReleaseWorkflow, "publish", "id-token:");
 assertWorkflowJobNotContains(cratesReleaseWorkflow, "publish", "rust-cache");
 assertWorkflowJobNotContains(

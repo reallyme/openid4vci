@@ -32,6 +32,7 @@ target/
 llms.txt
 LLMS.txt
 /.agents/
+/.release-readiness/
 
 # Generated artifacts
 /coverage/

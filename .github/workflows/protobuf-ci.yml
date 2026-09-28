@@ -51,6 +51,14 @@ jobs:
           path: openid4vci
           persist-credentials: false
 
+      - name: Checkout release-readiness runner
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: reallyme/release-readiness
+          ref: bdedc88f3f25fcc14242730d4dec6ce6a0c75531
+          path: openid4vci/.release-readiness
+          persist-credentials: false
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
@@ -90,4 +98,4 @@ jobs:
 
       - name: Check release readiness generated freshness
         working-directory: openid4vci
-        run: npm exec --yes --package=github:reallyme/release-readiness#bdedc88f3f25fcc14242730d4dec6ce6a0c75531 -- reallyme-release-readiness --generated-freshness
+        run: node .release-readiness/scripts/run-consumer-check.mjs --generated-freshness

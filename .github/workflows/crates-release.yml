@@ -122,7 +122,7 @@ jobs:
     name: Publish ReallyMe OpenID4VCI crates
     needs: [verify-preflight, prepare-source-release]
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 120
     environment: crates-io
     concurrency:
       group: crates-release-${{ needs.verify-preflight.outputs.release_version }}-${{ needs.verify-preflight.outputs.release_sha }}

@@ -217,7 +217,9 @@ CI also checks the public crate set with Rust 1.96.
 Run the repository gate and the core Rust checks before submitting changes:
 
 ```sh
-npm exec --yes --package=github:reallyme/release-readiness#bdedc88f3f25fcc14242730d4dec6ce6a0c75531 -- reallyme-release-readiness
+git clone --no-checkout https://github.com/reallyme/release-readiness.git .release-readiness
+git -C .release-readiness checkout --detach bdedc88f3f25fcc14242730d4dec6ce6a0c75531
+node .release-readiness/scripts/run-consumer-check.mjs
 cargo fmt --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features

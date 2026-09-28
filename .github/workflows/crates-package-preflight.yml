@@ -6,7 +6,6 @@ name: Crates Package Preflight
 
 env:
   CARGO_AUDIT_VERSION: 0.22.2
-  CARGO_SEMVER_CHECKS_VERSION: 0.49.0
 
 run-name: Crates package preflight ${{ inputs.version }} @ ${{ github.sha }}
 
@@ -168,6 +167,14 @@ jobs:
           persist-credentials: false
           path: openid4vci
 
+      - name: Checkout release-readiness runner
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: reallyme/release-readiness
+          ref: bdedc88f3f25fcc14242730d4dec6ce6a0c75531
+          path: openid4vci/.release-readiness
+          persist-credentials: false
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
@@ -181,7 +188,7 @@ jobs:
       - name: Install cargo-audit
         uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2.85.2
         with:
-          tool: cargo-audit@${{ env.CARGO_AUDIT_VERSION }},cargo-semver-checks@${{ env.CARGO_SEMVER_CHECKS_VERSION }}
+          tool: cargo-audit@${{ env.CARGO_AUDIT_VERSION }}
 
       - name: Scan complete Git history
         working-directory: openid4vci
@@ -195,32 +202,13 @@ jobs:
         env:
           RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
         working-directory: openid4vci
-        run: npm exec --yes --package=github:reallyme/release-readiness#bdedc88f3f25fcc14242730d4dec6ce6a0c75531 -- reallyme-release-readiness
+        run: node .release-readiness/scripts/run-consumer-check.mjs
 
       - name: Check release version and publish order
         env:
           RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
         working-directory: openid4vci
         run: node scripts/publish-crates-in-order.mjs order
-
-      - name: Reject public API breaks against each published baseline
-        env:
-          RELEASE_VERSION: ${{ needs.verify-source-sha.outputs.release_version }}
-        working-directory: openid4vci
-        run: |
-          for crate in \
-            reallyme-openid4vci-proto \
-            reallyme-openid4vci-types \
-            reallyme-openid4vci-wallet; do
-            baseline="$(curl --fail --silent --show-error "https://crates.io/api/v1/crates/${crate}" \
-              | jq -r --arg release "$RELEASE_VERSION" \
-                '[.versions[] | select(.yanked == false and .num != $release)][0].num // empty')"
-            if [[ -n "$baseline" ]]; then
-              cargo semver-checks --package "$crate" --baseline-version "$baseline"
-            else
-              echo "${crate}: no published baseline; initial release check is not applicable"
-            fi
-          done
 
       - name: Inspect normalized crate tarballs and dry-run publication
         env:

@@ -8,6 +8,7 @@ env:
   CARGO_AUDIT_VERSION: 0.22.2
   CARGO_DENY_VERSION: 0.20.2
   CARGO_NEXTEST_VERSION: 0.9.140
+  CARGO_SEMVER_CHECKS_VERSION: 0.50.0
 
 on:
   workflow_dispatch:
@@ -26,6 +27,45 @@ permissions:
   contents: read
 
 jobs:
+  semver:
+    name: Public API semver
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout openid4vci
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: openid4vci
+          persist-credentials: false
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+
+      # cargo-semver-checks consumes rustdoc JSON, whose schema follows the
+      # compiler. Pin both so an upstream release cannot silently change this
+      # release gate.
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
+        with:
+          toolchain: 1.98.1
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          workspaces: openid4vci
+          cache-bin: false
+
+      - name: Install cargo-semver-checks
+        uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2.85.2
+        with:
+          tool: cargo-semver-checks@${{ env.CARGO_SEMVER_CHECKS_VERSION }}
+
+      - name: Check public crate versions against crates.io
+        working-directory: openid4vci
+        run: node scripts/check-published-semver.mjs
+
   rust:
     name: fmt, lint, test, dependency policy
     runs-on: ubuntu-24.04
@@ -35,6 +75,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: openid4vci
+          persist-credentials: false
+
+      - name: Checkout release-readiness runner
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: reallyme/release-readiness
+          ref: bdedc88f3f25fcc14242730d4dec6ce6a0c75531
+          path: openid4vci/.release-readiness
           persist-credentials: false
 
       - name: Install Rust toolchain
@@ -60,6 +108,11 @@ jobs:
         with:
           node-version: "24"
 
+      - name: Install ripgrep
+        uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2.85.2
+        with:
+          tool: ripgrep@15.2.0
+
       - name: Format
         working-directory: openid4vci
         run: scripts/check-openid4vci-format.sh
@@ -74,7 +127,7 @@ jobs:
 
       - name: Check shared release readiness policy
         working-directory: openid4vci
-        run: npm exec --yes --package=github:reallyme/release-readiness#bdedc88f3f25fcc14242730d4dec6ce6a0c75531 -- reallyme-release-readiness --policy-only
+        run: node .release-readiness/scripts/run-consumer-check.mjs --policy-only
 
       - name: Verify SSI remote dependency graph
         working-directory: openid4vci
