@@ -19,13 +19,8 @@ on:
   push:
     branches:
       - main
-    paths:
-      - ".github/workflows/fuzz.yml"
-      - "Cargo.toml"
-      - "crates/**"
-      - "fuzz/**"
-      - "scripts/run-fuzz-smoke.sh"
-      - "!**/*.md"
+    # Release preflight requires successful fuzz evidence for every exact
+    # release commit, including CI-only and documentation-only changes.
   schedule:
     - cron: "43 3 * * 1"
   workflow_dispatch:

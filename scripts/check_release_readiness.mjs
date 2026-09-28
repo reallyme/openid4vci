@@ -556,6 +556,10 @@ assertContains(".github/workflows/fuzz.yml", "protojson_messages");
 assertContains(".github/workflows/fuzz.yml", '      - "!**/*.md"');
 assertContains(
   ".github/workflows/fuzz.yml",
+  "push:\n    branches:\n      - main\n    # Release preflight requires successful fuzz evidence for every exact",
+);
+assertContains(
+  ".github/workflows/fuzz.yml",
   "cargo +nightly-2026-09-15 metadata --locked --manifest-path fuzz/Cargo.toml --format-version 1 --no-deps",
 );
 assertNotContains(
@@ -891,6 +895,7 @@ assertWorkflowJobContains(
   "verify-preflight",
   "gh attestation verify",
 );
+assertWorkflowJobScalar(cratesReleaseWorkflow, "verify-preflight", "timeout-minutes", "90");
 assertWorkflowJobContains(
   cratesReleaseWorkflow,
   "publish",
@@ -922,6 +927,21 @@ assertWorkflowJobContains(
   "gh release edit",
 );
 assertWorkflowJobContains(cratesReleaseWorkflow, "finalize", "--draft=false");
+assertWorkflowJobContains(
+  cratesReleaseWorkflow,
+  "finalize",
+  "reallyme-openid4vci-crate-archives-",
+);
+assertWorkflowJobContains(
+  cratesReleaseWorkflow,
+  "finalize",
+  '"reallyme-openid4vci-wallet-${RELEASE_VERSION}.crate"',
+);
+assertWorkflowJobContains(
+  cratesReleaseWorkflow,
+  "finalize",
+  "is already public but is missing",
+);
 assertContains(
   cratesReleaseWorkflow,
   "CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}",
