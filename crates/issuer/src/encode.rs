@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -20,6 +20,14 @@ use zeroize::Zeroize;
 use crate::error::{IssuerError, IssuerResult, IssuerStatus};
 use crate::proof::VerifiedProofSet;
 
+mod reallyme_zk;
+
+pub use reallyme_zk::{
+    CommonRootCredentialEncoder, CommonRootIssuanceRequestBinding, CommonRootIssuedCredential,
+    CommonRootProofBinding, IssuanceStatusEvidence, COMMON_ROOT_POSEIDON2_HASH_SUITE,
+    COMMON_ROOT_PROFILE, COMMON_ROOT_SHA256_HASH_SUITE, REALLYME_ZK_V1_FORMAT,
+};
+
 /// Issued credential payload supplied to an OpenID4VCI encoder.
 #[derive(PartialEq)]
 pub struct IssuedCredential {
@@ -27,6 +35,7 @@ pub struct IssuedCredential {
     pub format: CredentialFormat,
     /// Final JSON credential value, usually a compact string or object.
     pub credential: Value,
+    trusted_reallyme_zk_v1_compact: Option<String>,
 }
 
 impl Debug for IssuedCredential {
@@ -42,16 +51,55 @@ impl Debug for IssuedCredential {
 impl Drop for IssuedCredential {
     fn drop(&mut self) {
         zeroize_json_strings(&mut self.credential);
+        if let Some(compact) = &mut self.trusted_reallyme_zk_v1_compact {
+            compact.zeroize();
+        }
     }
 }
 
 impl IssuedCredential {
     /// Creates an issued credential and validates that the payload is present.
+    ///
+    /// This public constructor is for non-ZK credentials that were already
+    /// issued by the product credential stack. ReallyMe ZK credentials must be
+    /// constructed through [`CommonRootIssuedCredential`] so the OpenID4VCI
+    /// encoder cannot be used as an authorization step for caller-supplied
+    /// proof bytes.
     pub fn new(format: CredentialFormat, credential: Value) -> IssuerResult<Self> {
+        if format == CredentialFormat::ReallyMeZkV1 {
+            return Err(IssuerError::new(IssuerStatus::UnsupportedCredential));
+        }
         if credential.is_null() {
             return Err(IssuerError::new(IssuerStatus::EncodingFailed));
         }
-        Ok(Self { format, credential })
+        Ok(Self {
+            format,
+            credential,
+            trusted_reallyme_zk_v1_compact: None,
+        })
+    }
+
+    pub(crate) fn new_reallyme_zk_v1(credential: Value) -> IssuerResult<Self> {
+        let compact = credential
+            .as_str()
+            .ok_or_else(|| IssuerError::new(IssuerStatus::EncodingFailed))?;
+        if compact.is_empty() {
+            return Err(IssuerError::new(IssuerStatus::EncodingFailed));
+        }
+        let trusted_reallyme_zk_v1_compact = compact.to_owned();
+        Ok(Self {
+            format: CredentialFormat::ReallyMeZkV1,
+            credential,
+            trusted_reallyme_zk_v1_compact: Some(trusted_reallyme_zk_v1_compact),
+        })
+    }
+
+    pub(crate) fn has_intact_reallyme_zk_v1_marker(&self) -> bool {
+        self.format == CredentialFormat::ReallyMeZkV1
+            && matches!(
+                (&self.credential, &self.trusted_reallyme_zk_v1_compact),
+                (Value::String(compact), Some(marker)) if compact == marker
+            )
     }
 }
 
@@ -109,6 +157,11 @@ impl CredentialEncoder for PassThroughCredentialEncoder {
         _request: &CredentialRequest,
         issued: &IssuedCredential,
     ) -> IssuerResult<CredentialEnvelope> {
+        if self.format == CredentialFormat::ReallyMeZkV1
+            || issued.format == CredentialFormat::ReallyMeZkV1
+        {
+            return Err(IssuerError::new(IssuerStatus::UnsupportedCredential));
+        }
         if issued.format != self.format {
             return Err(IssuerError::new(IssuerStatus::UnsupportedCredential));
         }

@@ -7,7 +7,7 @@
 [![OpenID4VCI 1.0 Final](https://img.shields.io/badge/OpenID4VCI-1.0%20Final-0f766e)](https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0-final.html)
 [![HAIP 1.0 Final](https://img.shields.io/badge/HAIP-1.0%20Final-0f766e)](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0-final.html)
 [![crates.io](https://img.shields.io/crates/v/reallyme-openid4vci.svg)](https://crates.io/crates/reallyme-openid4vci)
-[![MSRV](https://img.shields.io/badge/MSRV-1.96-475569)](Cargo.toml)
+[![MSRV](https://img.shields.io/badge/MSRV-1.99-475569)](Cargo.toml)
 [![Security Policy](https://img.shields.io/badge/security-policy-0f766e)](docs/SECURITY.md)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](#license)
 
@@ -43,7 +43,7 @@ the Rust protocol stack, add the public facade:
 
 ```toml
 [dependencies]
-reallyme-openid4vci = "0.1"
+reallyme-openid4vci = "0.2"
 ```
 
 The parser treats a Credential Offer as untrusted input, enforces the final
@@ -220,15 +220,15 @@ Regenerate the canonical protobuf contract through the reviewed pipeline:
 scripts/regenerate-openid4vci-proto.sh
 ```
 
-Published crates declare Rust 1.96 as their minimum supported Rust version.
-Repository development and primary CI use the pinned Rust 1.98.1 toolchain;
-CI also checks the public crate set with Rust 1.96.
+Published crates declare Rust 1.99 as their minimum supported Rust version.
+Repository development and primary CI use the pinned Rust 1.99.0 toolchain;
+CI also checks the public crate set with Rust 1.99.
 
 Run the repository gate and the core Rust checks before submitting changes:
 
 ```sh
 git clone --no-checkout https://github.com/reallyme/release-readiness.git .release-readiness
-git -C .release-readiness checkout --detach bdedc88f3f25fcc14242730d4dec6ce6a0c75531
+git -C .release-readiness checkout --detach v0.6.9
 node .release-readiness/scripts/run-consumer-check.mjs
 cargo fmt --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
@@ -252,6 +252,6 @@ Third-party components retain their own licenses and notices.
 
 ## Copyright and Trademarks
 
-Copyright © 2026 by ReallyMe LLC.
+Copyright © 2026 by ReallyMe Technologies Limited.
 
-ReallyMe® is a registered trademark of ReallyMe LLC.
+ReallyMe® is a registered trademark of ReallyMe Technologies Limited.

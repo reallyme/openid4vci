@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -80,6 +80,7 @@ pub fn credential_format_to_proto(value: &types::CredentialFormat) -> pb::Creden
         types::CredentialFormat::SdJwtVc => pb::CredentialFormat::DcSdJwt,
         types::CredentialFormat::MsoMdoc => pb::CredentialFormat::MsoMdoc,
         types::CredentialFormat::LdpVc => pb::CredentialFormat::LdpVc,
+        types::CredentialFormat::ReallyMeZkV1 => pb::CredentialFormat::ReallymeZkV1,
         _ => pb::CredentialFormat::Unspecified,
     }
 }
@@ -94,6 +95,7 @@ pub fn credential_format_from_proto(
         pb::CredentialFormat::DcSdJwt => Ok(types::CredentialFormat::SdJwtVc),
         pb::CredentialFormat::MsoMdoc => Ok(types::CredentialFormat::MsoMdoc),
         pb::CredentialFormat::LdpVc => Ok(types::CredentialFormat::LdpVc),
+        pb::CredentialFormat::ReallymeZkV1 => Ok(types::CredentialFormat::ReallyMeZkV1),
         pb::CredentialFormat::Unspecified => Err(ProtoError::InvalidEnum),
     }
 }

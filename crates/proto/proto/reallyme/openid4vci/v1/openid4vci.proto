@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -190,6 +190,7 @@ enum CredentialFormat {
   CREDENTIAL_FORMAT_MSO_MDOC = 3;
   CREDENTIAL_FORMAT_LDP_VC = 4;
   CREDENTIAL_FORMAT_JWT_VC_JSON_LD = 5;
+  CREDENTIAL_FORMAT_REALLYME_ZK_V1 = 6;
 }
 
 // NotificationEvent is the final OpenID4VCI Notification Endpoint event enum.
@@ -272,6 +273,7 @@ message CredentialRequest {
   CredentialSelector selector = 1;
   Proofs proofs = 2;
   CredentialResponseEncryption credential_response_encryption = 3;
+  ReallyMeZkV1IssuanceRequest reallyme_zk_v1_issuance = 4;
 }
 
 message CredentialEnvelope {
@@ -280,6 +282,50 @@ message CredentialEnvelope {
     bytes json = 2;
     bytes binary = 3;
   }
+}
+
+// The custom reallyme_zk_v1 OpenID4VCI credential string is unpadded base64url
+// of this message. Its version, fixed-width proof fields, and request
+// reconciliation fields must be checked before any embedded SSI message is
+// trusted or stored.
+message ReallyMeZkV1Credential {
+  uint32 version = 1;
+  bytes credential_envelope_pb = 2; // reallyme:sensitive
+  bytes status_list_pb = 3; // reallyme:sensitive
+  ReallyMeZkV1ProofBinding proof_binding = 4;
+  bytes verified_holder_public_key = 5; // reallyme:sensitive
+  bytes lineage_tag_commitment = 6;
+  bytes wallet_opening_commitment = 7;
+  bytes opaque_lineage_leaf = 8;
+}
+
+message ReallyMeZkV1ProofBinding {
+  uint32 version = 1;
+  bytes envelope_hash = 2;
+  bytes claims_root = 3;
+  bytes issuer_public_key_x = 4;
+  bytes issuer_public_key_y = 5;
+  bytes subject_public_key_x = 6;
+  bytes subject_public_key_y = 7;
+  bytes issuer_envelope_signature = 8;
+  bytes issuer_root_binding_signature = 9;
+  bytes issuer_subject_binding_signature = 10;
+  bytes issuance_binding = 11;
+  bytes issuer_validity_status_signature = 12;
+}
+
+// Wallet-prepared issuance intent for reallyme_zk_v1 credentials. The wallet
+// keeps salted private openings locally and sends only the public root plus
+// non-secret reconciliation commitments. The issuer compares every field with
+// the response container it returns; the wallet independently derives the
+// commitments from its private openings before accepting the response.
+message ReallyMeZkV1IssuanceRequest {
+  uint32 version = 1;
+  bytes claims_root = 2;
+  bytes verified_holder_public_key = 3; // reallyme:sensitive
+  bytes lineage_tag_commitment = 4;
+  bytes wallet_opening_commitment = 5;
+  bytes opaque_lineage_leaf = 6;
 }
 
 message ImmediateCredentialResponse {

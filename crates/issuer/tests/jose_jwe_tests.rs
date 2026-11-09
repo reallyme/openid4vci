@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -70,6 +70,7 @@ fn jose_jwe_request_decryptor_roundtrips_p256_ecdh_es() -> IssuerResult<()> {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let plaintext =
         serde_json::to_vec(&request).map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;

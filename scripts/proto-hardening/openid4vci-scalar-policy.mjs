@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -45,6 +45,28 @@ export const OPENID4VCI_SCALAR_FIELD_CLASSIFICATIONS = Object.freeze([
   sensitive("CredentialEnvelope", "compact", "string"),
   sensitive("CredentialEnvelope", "json", "bytes"),
   sensitive("CredentialEnvelope", "binary", "bytes"),
+  sensitive("ReallyMeZkV1Credential", "credential_envelope_pb", "bytes"),
+  sensitive("ReallyMeZkV1Credential", "status_list_pb", "bytes"),
+  sensitive("ReallyMeZkV1Credential", "verified_holder_public_key", "bytes"),
+  sensitive("ReallyMeZkV1Credential", "lineage_tag_commitment", "bytes"),
+  sensitive("ReallyMeZkV1Credential", "wallet_opening_commitment", "bytes"),
+  sensitive("ReallyMeZkV1Credential", "opaque_lineage_leaf", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "envelope_hash", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "claims_root", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "issuer_public_key_x", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "issuer_public_key_y", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "subject_public_key_x", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "subject_public_key_y", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "issuer_envelope_signature", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "issuer_root_binding_signature", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "issuer_subject_binding_signature", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "issuance_binding", "bytes"),
+  sensitive("ReallyMeZkV1ProofBinding", "issuer_validity_status_signature", "bytes"),
+  sensitive("ReallyMeZkV1IssuanceRequest", "claims_root", "bytes"),
+  sensitive("ReallyMeZkV1IssuanceRequest", "verified_holder_public_key", "bytes"),
+  sensitive("ReallyMeZkV1IssuanceRequest", "lineage_tag_commitment", "bytes"),
+  sensitive("ReallyMeZkV1IssuanceRequest", "wallet_opening_commitment", "bytes"),
+  sensitive("ReallyMeZkV1IssuanceRequest", "opaque_lineage_leaf", "bytes"),
   sensitive("ImmediateCredentialResponse", "notification_id", "string"),
   sensitive("DeferredCredentialResponse", "transaction_id", "string"),
   sensitive("DeferredCredentialRequest", "transaction_id", "string"),

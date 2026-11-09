@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -252,6 +252,7 @@ impl WalletCredentialRequest {
                 credential_identifier: None,
                 proofs,
                 credential_response_encryption,
+                reallyme_zk_v1_issuance: None,
             },
             dpop_proof_jwt,
         )
@@ -273,6 +274,7 @@ impl WalletCredentialRequest {
                 credential_identifier: Some(credential_identifier),
                 proofs,
                 credential_response_encryption,
+                reallyme_zk_v1_issuance: None,
             },
             dpop_proof_jwt,
         )

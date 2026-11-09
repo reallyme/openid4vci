@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -62,7 +62,7 @@ const shared = createReleaseReadinessContext({
 
 shared.assertReallyMeReleasePackagePolicy({
   scriptPath: "scripts/check_release_readiness.mjs",
-  version: "0.6.6",
+  version: "0.6.9",
 });
 shared.assertWorkflowActionsPinned();
 shared.assertNodeWorkflowJobsPinNode({ nodeVersion: "24" });
@@ -150,7 +150,7 @@ shared.assertSpdxHeaders({
   requireExclusionsMatched: true,
   requireExclusionReasons: true,
   copyright:
-    "SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved",
+    "SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved",
   license: "SPDX-License-Identifier: MIT OR Apache-2.0",
 });
 
@@ -515,11 +515,16 @@ assertContains(
   "ProtoCodecResult<Zeroizing<Vec<u8>>>",
 );
 assertContains("Cargo.toml", 'license = "MIT OR Apache-2.0"');
+assertContains(
+  "Cargo.toml",
+  'reallyme-zk-api = { version = "=0.2.1", default-features = false }',
+);
+assertNotContains("Cargo.toml", 'reallyme-zk-api = { path =');
 assertContains("README.md", "[MIT License](LICENSE-MIT)");
 assertContains("README.md", "[Apache License, Version 2.0](LICENSE-APACHE)");
 assertContains(
   "README.md",
-  "git -C .release-readiness checkout --detach bdedc88f3f25fcc14242730d4dec6ce6a0c75531",
+  "git -C .release-readiness checkout --detach v0.6.9",
 );
 assertContains("README.md", "node .release-readiness/scripts/run-consumer-check.mjs");
 assertContains(".gitignore", "!crates/proto/src/generated/**");
@@ -707,8 +712,8 @@ if (
   fail("Renovate must update every direct SSI-family dependency as one group");
 }
 
-assertContains("Cargo.toml", 'rust-version = "1.96"');
-assertContains("rust-toolchain.toml", 'channel = "1.98.1"');
+assertContains("Cargo.toml", 'rust-version = "1.99"');
+assertContains("rust-toolchain.toml", 'channel = "1.99.0"');
 for (const workflow of [
   rustCiWorkflow,
   protobufWorkflow,
@@ -716,7 +721,7 @@ for (const workflow of [
   packagePreflightWorkflow,
   cratesReleaseWorkflow,
 ]) {
-  assertContains(workflow, "toolchain: 1.98.1");
+  assertContains(workflow, "toolchain: 1.99.0");
 }
 assertContains(
   rustCiWorkflow,
@@ -731,8 +736,8 @@ assertContains(
   "cargo doc --locked --workspace --no-deps --all-features",
 );
 assertContains(rustCiWorkflow, "scripts/audit_committed_lockfiles.sh");
-assertWorkflowJobContains(rustCiWorkflow, "msrv", "toolchain: 1.96.0");
-assertWorkflowJobContains(rustCiWorkflow, "msrv", "cargo +1.96.0 check --locked");
+assertWorkflowJobContains(rustCiWorkflow, "msrv", "toolchain: 1.99.0");
+assertWorkflowJobContains(rustCiWorkflow, "msrv", "cargo +1.99.0 check --locked");
 assertContains(rustCiWorkflow, "cargo deny --locked check");
 assertContains(
   rustCiWorkflow,
@@ -866,7 +871,7 @@ for (const releaseReadinessWorkflow of [
   assertContains(releaseReadinessWorkflow, "repository: reallyme/release-readiness");
   assertContains(
     releaseReadinessWorkflow,
-    "ref: bdedc88f3f25fcc14242730d4dec6ce6a0c75531",
+    "ref: v0.6.9",
   );
   assertContains(releaseReadinessWorkflow, "persist-credentials: false");
   assertNotContains(releaseReadinessWorkflow, "npm exec --yes --package=github:");
@@ -1120,15 +1125,15 @@ assertNotContains(
   "cargo check --locked --workspace --no-default-features --features native",
 );
 
-const ssiRemoteResolution = spawnSync(
+const publishedDependencyResolution = spawnSync(
   process.execPath,
   ["scripts/check-ssi-remote-resolution.mjs"],
   { cwd: root, encoding: "utf8" },
 );
-if (ssiRemoteResolution.status !== 0) {
-  const detail = ssiRemoteResolution.stderr.trim();
+if (publishedDependencyResolution.status !== 0) {
+  const detail = publishedDependencyResolution.stderr.trim();
   fail(
-    `SSI remote dependency resolution failed${
+    `published dependency resolution failed${
       detail.length === 0 ? "" : `: ${detail}`
     }`,
   );

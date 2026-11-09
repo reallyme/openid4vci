@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -243,6 +243,7 @@ fn metadata_aware_request_rejects_plaintext_downgrade() -> WalletResult<()> {
         credential_identifier: None,
         proofs: None,
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let issuance = validated_authorization_code_offer(&metadata)?;
     let result =
@@ -280,6 +281,7 @@ fn metadata_aware_request_enforces_required_request_encryption() -> WalletResult
         credential_identifier: None,
         proofs: None,
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let issuance = validated_authorization_code_offer(&metadata)?;
     let request =
@@ -305,6 +307,7 @@ fn request_encryption_metadata_is_bound_to_exact_issuer_generation() -> WalletRe
         credential_identifier: None,
         proofs: None,
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
 
     assert_eq!(
@@ -351,6 +354,7 @@ fn optional_to_required_request_encryption_transition_requires_metadata_refresh(
         credential_identifier: None,
         proofs: None,
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     assert_eq!(
         WalletCredentialRequest::new_with_issuer_metadata(
@@ -405,6 +409,7 @@ fn conflicting_selector_state_is_rejected() -> WalletResult<()> {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let issuance = validated_authorization_code_offer(&issuer_metadata()?)?;
     let result = WalletCredentialRequest::new(&issuance, request, None);

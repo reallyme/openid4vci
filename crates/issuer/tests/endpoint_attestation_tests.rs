@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -74,6 +74,7 @@ fn endpoint_enforces_batch_ceiling_after_verified_key_expansion() -> IssuerResul
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = CredentialEndpointConfig {
         credential_issuer: "https://issuer.example".to_owned(),

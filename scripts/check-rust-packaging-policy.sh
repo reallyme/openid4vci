@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -38,14 +38,19 @@ require_manifest_text "crates/openid4vci/Cargo.toml" 'publish = true'
 require_manifest_text "Cargo.toml" 'license = "MIT OR Apache-2.0"'
 require_manifest_text "Cargo.toml" 'package = "reallyme-openid4vci-types"'
 require_manifest_text "Cargo.toml" 'package = "reallyme-openid4vci-proto"'
-require_manifest_text "Cargo.toml" 'reallyme-jose = { version = "=0.4.2", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-ssi-proto = { version = "=0.3.4", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-openid-oauth = { version = "=0.3.4", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-openid4vc-profiles = { version = "=0.3.4", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-trust-core = { version = "=0.3.4", default-features = false }'
-require_manifest_text "Cargo.toml" 'envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.3.4", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-mdoc = { version = "=0.3.4", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-revocation = { version = "=0.3.4", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-jose = { version = "=0.4.6", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-crypto = { version = "=0.3.17", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-credential = { version = "=0.5.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-credential-status = { version = "=0.5.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-ssi-proto = { version = "=0.5.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-openid-oauth = { version = "=0.5.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-openid4vc-profiles = { version = "=0.5.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-trust-core = { version = "=0.5.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.5.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-mdoc = { version = "=0.5.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-revocation = { version = "=0.5.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-zk-api = { version = "=0.2.1", default-features = false }'
+require_manifest_text "crates/http/Cargo.toml" 'reallyme-sd-jwt = { version = "=0.5.1", default-features = false, features = ["native"] }'
 
 if awk '
   index($0, "path = \"../ssi/") { invalid = 1 }
@@ -53,6 +58,15 @@ if awk '
   END { exit invalid ? 0 : 1 }
 ' Cargo.toml; then
   printf '%s\n' "error: SSI dependencies must resolve from crates.io" >&2
+  status=1
+fi
+
+if awk '
+  index($0, "path = \"../zk/") { invalid = 1 }
+  index($0, "git =") && index($0, "reallyme/zk") { invalid = 1 }
+  END { exit invalid ? 0 : 1 }
+' Cargo.toml; then
+  printf '%s\n' "error: ZK API dependencies must resolve from crates.io" >&2
   status=1
 fi
 
@@ -69,18 +83,22 @@ is_allowed_registry_reallyme_package() {
       [[ "${package_version}" == 0.3.* ]]
       ;;
     reallyme-codec | reallyme-codec-*)
-      [[ "${package_version}" == 0.2.* ]]
+      [[ "${package_version}" == 0.3.* ]]
       ;;
     reallyme-jose | reallyme-jose-*)
-      [[ "${package_version}" == "0.4.2" ]]
+      [[ "${package_version}" == "0.4.6" ]]
       ;;
     reallyme-cose | reallyme-cose-*)
       [[ "${package_version}" == 0.2.* ]]
       ;;
-    reallyme-credential-status | reallyme-mdoc | reallyme-openid-oauth | \
+    reallyme-zk-api)
+      [[ "${package_version}" == "0.2.1" ]]
+      ;;
+    reallyme-credential | reallyme-credential-audit | reallyme-credential-claims | reallyme-credential-status | \
+      reallyme-mdoc | reallyme-sd-jwt | reallyme-openid-oauth | \
       reallyme-openid4vc-profiles | reallyme-revocation | reallyme-ssi-proto | \
       reallyme-trust-core | reallyme-trust-x509)
-      [[ "${package_version}" == "0.3.4" ]]
+      [[ "${package_version}" == "0.5.1" ]]
       ;;
     *)
       return 1

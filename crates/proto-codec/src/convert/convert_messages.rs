@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -11,8 +11,9 @@
 use std::collections::{btree_map::Entry, BTreeMap};
 use std::mem;
 
-use buffa::{EnumValue, MessageField, ProtoBox};
+use buffa::{DecodeOptions, EnumValue, Message, MessageField, ProtoBox};
 use openid4vci_types as types;
+use reallyme_codec::base64url::{base64url_to_bytes, bytes_to_base64url};
 use serde::Serialize;
 use serde_json::Value;
 use thiserror::Error;
@@ -80,6 +81,12 @@ pub fn credential_request_to_proto(
             .map(credential_response_encryption_to_proto)
             .transpose()?
             .into(),
+        reallyme_zk_v1_issuance: value
+            .reallyme_zk_v1_issuance
+            .as_ref()
+            .map(reallyme_zk_v1_issuance_request_to_proto)
+            .transpose()?
+            .into(),
         ..Default::default()
     })
 }
@@ -109,9 +116,42 @@ pub fn credential_request_from_proto(
         )
         .map(credential_response_encryption_from_proto)
         .transpose()?,
+        reallyme_zk_v1_issuance: option_from_message_field(value.reallyme_zk_v1_issuance)
+            .map(reallyme_zk_v1_issuance_request_from_proto)
+            .transpose()?,
     };
     map_wire(request.validate())?;
     Ok(request)
+}
+
+fn reallyme_zk_v1_issuance_request_to_proto(
+    value: &types::ReallyMeZkV1IssuanceRequest,
+) -> ProtoResult<pb::ReallyMeZkV1IssuanceRequest> {
+    let bytes = base64url_to_bytes(value.compact()).map_err(|_| ProtoError::InvalidWireValue)?;
+    let canonical = bytes_to_base64url(&bytes);
+    if canonical != value.compact() {
+        return Err(ProtoError::InvalidWireValue);
+    }
+    DecodeOptions::new()
+        .with_recursion_limit(8)
+        .with_max_message_size(types::MAX_REALLYME_ZK_V1_ISSUANCE_REQUEST_BYTES)
+        .with_unknown_field_limit(0)
+        .decode_from_slice::<pb::ReallyMeZkV1IssuanceRequest>(&bytes)
+        .map_err(|_| ProtoError::InvalidWireValue)
+        .and_then(|wire| {
+            if wire.encode_to_vec().as_slice() == bytes.as_slice() {
+                Ok(wire)
+            } else {
+                Err(ProtoError::InvalidWireValue)
+            }
+        })
+}
+
+fn reallyme_zk_v1_issuance_request_from_proto(
+    value: pb::ReallyMeZkV1IssuanceRequest,
+) -> ProtoResult<types::ReallyMeZkV1IssuanceRequest> {
+    types::ReallyMeZkV1IssuanceRequest::new(bytes_to_base64url(&value.encode_to_vec()))
+        .map_err(|_| ProtoError::InvalidWireValue)
 }
 
 /// Converts an OpenID4VCI Credential Response into protobuf.

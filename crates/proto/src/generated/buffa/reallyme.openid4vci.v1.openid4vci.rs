@@ -2135,6 +2135,7 @@ pub enum CredentialFormat {
     CREDENTIAL_FORMAT_MSO_MDOC = 3i32,
     CREDENTIAL_FORMAT_LDP_VC = 4i32,
     CREDENTIAL_FORMAT_JWT_VC_JSON_LD = 5i32,
+    CREDENTIAL_FORMAT_REALLYME_ZK_V1 = 6i32,
 }
 impl CredentialFormat {
     ///Idiomatic alias for [`Self::CREDENTIAL_FORMAT_UNSPECIFIED`]; `Debug` prints the variant name.
@@ -2155,6 +2156,9 @@ impl CredentialFormat {
     ///Idiomatic alias for [`Self::CREDENTIAL_FORMAT_JWT_VC_JSON_LD`]; `Debug` prints the variant name.
     #[allow(non_upper_case_globals)]
     pub const JwtVcJsonLd: Self = Self::CREDENTIAL_FORMAT_JWT_VC_JSON_LD;
+    ///Idiomatic alias for [`Self::CREDENTIAL_FORMAT_REALLYME_ZK_V1`]; `Debug` prints the variant name.
+    #[allow(non_upper_case_globals)]
+    pub const ReallymeZkV1: Self = Self::CREDENTIAL_FORMAT_REALLYME_ZK_V1;
 }
 impl ::core::default::Default for CredentialFormat {
     fn default() -> Self {
@@ -2233,6 +2237,7 @@ impl ::buffa::Enumeration for CredentialFormat {
             3i32 => ::core::option::Option::Some(Self::CREDENTIAL_FORMAT_MSO_MDOC),
             4i32 => ::core::option::Option::Some(Self::CREDENTIAL_FORMAT_LDP_VC),
             5i32 => ::core::option::Option::Some(Self::CREDENTIAL_FORMAT_JWT_VC_JSON_LD),
+            6i32 => ::core::option::Option::Some(Self::CREDENTIAL_FORMAT_REALLYME_ZK_V1),
             _ => ::core::option::Option::None,
         }
     }
@@ -2247,6 +2252,7 @@ impl ::buffa::Enumeration for CredentialFormat {
             Self::CREDENTIAL_FORMAT_MSO_MDOC => "CREDENTIAL_FORMAT_MSO_MDOC",
             Self::CREDENTIAL_FORMAT_LDP_VC => "CREDENTIAL_FORMAT_LDP_VC",
             Self::CREDENTIAL_FORMAT_JWT_VC_JSON_LD => "CREDENTIAL_FORMAT_JWT_VC_JSON_LD",
+            Self::CREDENTIAL_FORMAT_REALLYME_ZK_V1 => "CREDENTIAL_FORMAT_REALLYME_ZK_V1",
         }
     }
     fn from_proto_name(name: &str) -> ::core::option::Option<Self> {
@@ -2269,6 +2275,9 @@ impl ::buffa::Enumeration for CredentialFormat {
             "CREDENTIAL_FORMAT_JWT_VC_JSON_LD" => {
                 ::core::option::Option::Some(Self::CREDENTIAL_FORMAT_JWT_VC_JSON_LD)
             }
+            "CREDENTIAL_FORMAT_REALLYME_ZK_V1" => {
+                ::core::option::Option::Some(Self::CREDENTIAL_FORMAT_REALLYME_ZK_V1)
+            }
             _ => ::core::option::Option::None,
         }
     }
@@ -2280,6 +2289,7 @@ impl ::buffa::Enumeration for CredentialFormat {
             Self::CREDENTIAL_FORMAT_MSO_MDOC,
             Self::CREDENTIAL_FORMAT_LDP_VC,
             Self::CREDENTIAL_FORMAT_JWT_VC_JSON_LD,
+            Self::CREDENTIAL_FORMAT_REALLYME_ZK_V1,
         ]
     }
 }
@@ -5105,6 +5115,16 @@ pub struct CredentialRequest {
         CredentialResponseEncryption,
         ::buffa::Inline<CredentialResponseEncryption>,
     >,
+    /// Field 4: `reallyme_zk_v1_issuance`
+    #[serde(
+        rename = "reallymeZkV1Issuance",
+        alias = "reallyme_zk_v1_issuance",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_unset_message_field"
+    )]
+    pub reallyme_zk_v1_issuance: ::buffa::MessageField<
+        ReallyMeZkV1IssuanceRequest,
+        ::buffa::Inline<ReallyMeZkV1IssuanceRequest>,
+    >,
     #[serde(skip)]
     #[doc(hidden)]
     pub __buffa_unknown_fields: ::buffa::UnknownFields,
@@ -5118,6 +5138,7 @@ impl ::core::fmt::Debug for CredentialRequest {
                 "credential_response_encryption",
                 &self.credential_response_encryption,
             )
+            .field("reallyme_zk_v1_issuance", &self.reallyme_zk_v1_issuance)
             .finish()
     }
 }
@@ -5170,6 +5191,13 @@ impl ::buffa::Message for CredentialRequest {
             size +=
                 1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
         }
+        if self.reallyme_zk_v1_issuance.is_set() {
+            let __slot = __cache.reserve();
+            let inner_size = self.reallyme_zk_v1_issuance.compute_size(__cache);
+            __cache.set(__slot, inner_size);
+            size +=
+                1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
+        }
         size += self.__buffa_unknown_fields.encoded_len() as u64;
         ::buffa::saturate_size(size)
     }
@@ -5187,6 +5215,10 @@ impl ::buffa::Message for CredentialRequest {
         if self.credential_response_encryption.is_set() {
             ::buffa::types::put_len_delimited_header(3u32, u64::from(__cache.consume_next()), buf);
             self.credential_response_encryption.write_to(__cache, buf);
+        }
+        if self.reallyme_zk_v1_issuance.is_set() {
+            ::buffa::types::put_len_delimited_header(4u32, u64::from(__cache.consume_next()), buf);
+            self.reallyme_zk_v1_issuance.write_to(__cache, buf);
         }
         self.__buffa_unknown_fields.write_to(buf);
     }
@@ -5234,6 +5266,17 @@ impl ::buffa::Message for CredentialRequest {
                     ctx,
                 )?;
             }
+            4u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::Message::merge_length_delimited(
+                    self.reallyme_zk_v1_issuance.get_or_insert_default(),
+                    buf,
+                    ctx,
+                )?;
+            }
             _ => {
                 self.__buffa_unknown_fields
                     .push(::buffa::encoding::decode_unknown_field(tag, buf, ctx)?);
@@ -5245,6 +5288,7 @@ impl ::buffa::Message for CredentialRequest {
         self.selector = ::buffa::MessageField::none();
         self.proofs = ::buffa::MessageField::none();
         self.credential_response_encryption = ::buffa::MessageField::none();
+        self.reallyme_zk_v1_issuance = ::buffa::MessageField::none();
         __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
     }
 }
@@ -5619,6 +5663,1265 @@ pub mod credential_envelope {
     #[allow(unused_imports)]
     use super::*;
 }
+/// The custom reallyme_zk_v1 OpenID4VCI credential string is unpadded base64url
+/// of this message. Its version, fixed-width proof fields, and request
+/// reconciliation fields must be checked before any embedded SSI message is
+/// trusted or stored.
+#[derive(Clone, PartialEq, Default, ::serde::Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ReallyMeZkV1Credential {
+    /// Field 1: `version`
+    #[serde(
+        rename = "version",
+        with = "::buffa::json_helpers::uint32",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_zero_u32"
+    )]
+    pub version: u32,
+    /// reallyme:sensitive
+    ///
+    /// Field 2: `credential_envelope_pb`
+    #[serde(
+        rename = "credentialEnvelopePb",
+        alias = "credential_envelope_pb",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub credential_envelope_pb: ::buffa::alloc::vec::Vec<u8>,
+    /// reallyme:sensitive
+    ///
+    /// Field 3: `status_list_pb`
+    #[serde(
+        rename = "statusListPb",
+        alias = "status_list_pb",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub status_list_pb: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 4: `proof_binding`
+    #[serde(
+        rename = "proofBinding",
+        alias = "proof_binding",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_unset_message_field"
+    )]
+    pub proof_binding:
+        ::buffa::MessageField<ReallyMeZkV1ProofBinding, ::buffa::Inline<ReallyMeZkV1ProofBinding>>,
+    /// reallyme:sensitive
+    ///
+    /// Field 5: `verified_holder_public_key`
+    #[serde(
+        rename = "verifiedHolderPublicKey",
+        alias = "verified_holder_public_key",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub verified_holder_public_key: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 6: `lineage_tag_commitment`
+    #[serde(
+        rename = "lineageTagCommitment",
+        alias = "lineage_tag_commitment",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub lineage_tag_commitment: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 7: `wallet_opening_commitment`
+    #[serde(
+        rename = "walletOpeningCommitment",
+        alias = "wallet_opening_commitment",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub wallet_opening_commitment: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 8: `opaque_lineage_leaf`
+    #[serde(
+        rename = "opaqueLineageLeaf",
+        alias = "opaque_lineage_leaf",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub opaque_lineage_leaf: ::buffa::alloc::vec::Vec<u8>,
+    #[serde(skip)]
+    #[doc(hidden)]
+    pub __buffa_unknown_fields: ::buffa::UnknownFields,
+}
+impl ::core::fmt::Debug for ReallyMeZkV1Credential {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        f.debug_struct("ReallyMeZkV1Credential")
+            .field("version", &self.version)
+            .field("credential_envelope_pb", &"<redacted>")
+            .field("status_list_pb", &"<redacted>")
+            .field("proof_binding", &self.proof_binding)
+            .field("verified_holder_public_key", &"<redacted>")
+            .field("lineage_tag_commitment", &"<redacted>")
+            .field("wallet_opening_commitment", &"<redacted>")
+            .field("opaque_lineage_leaf", &"<redacted>")
+            .finish()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ReallyMeZkV1Credential {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        fn deserialize_zeroizing_bytes<'de, D>(
+            deserializer: D,
+        ) -> ::core::result::Result<::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>, D::Error>
+        where
+            D: ::serde::Deserializer<'de>,
+        {
+            ::buffa::json_helpers::bytes::deserialize(deserializer).map(::zeroize::Zeroizing::new)
+        }
+
+        #[derive(Default, ::serde::Deserialize)]
+        #[serde(default, deny_unknown_fields)]
+        struct Wire {
+            #[serde(
+                rename = "version",
+                with = "::buffa::json_helpers::uint32",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_zero_u32"
+            )]
+            version: u32,
+            #[serde(
+                rename = "credentialEnvelopePb",
+                alias = "credential_envelope_pb",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            credential_envelope_pb: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "statusListPb",
+                alias = "status_list_pb",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            status_list_pb: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "proofBinding",
+                alias = "proof_binding",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_unset_message_field"
+            )]
+            proof_binding: ::buffa::MessageField<
+                ReallyMeZkV1ProofBinding,
+                ::buffa::Inline<ReallyMeZkV1ProofBinding>,
+            >,
+            #[serde(
+                rename = "verifiedHolderPublicKey",
+                alias = "verified_holder_public_key",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            verified_holder_public_key: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "lineageTagCommitment",
+                alias = "lineage_tag_commitment",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            lineage_tag_commitment: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "walletOpeningCommitment",
+                alias = "wallet_opening_commitment",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            wallet_opening_commitment: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "opaqueLineageLeaf",
+                alias = "opaque_lineage_leaf",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            opaque_lineage_leaf: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+        }
+
+        let mut wire = Wire::deserialize(deserializer)?;
+        Ok(Self {
+            version: wire.version,
+            credential_envelope_pb: ::core::mem::take(&mut *wire.credential_envelope_pb),
+            status_list_pb: ::core::mem::take(&mut *wire.status_list_pb),
+            proof_binding: wire.proof_binding,
+            verified_holder_public_key: ::core::mem::take(&mut *wire.verified_holder_public_key),
+            lineage_tag_commitment: ::core::mem::take(&mut *wire.lineage_tag_commitment),
+            wallet_opening_commitment: ::core::mem::take(&mut *wire.wallet_opening_commitment),
+            opaque_lineage_leaf: ::core::mem::take(&mut *wire.opaque_lineage_leaf),
+            __buffa_unknown_fields: Default::default(),
+        })
+    }
+}
+impl ::core::ops::Drop for ReallyMeZkV1Credential {
+    fn drop(&mut self) {
+        ::zeroize::Zeroize::zeroize(&mut self.credential_envelope_pb);
+        ::zeroize::Zeroize::zeroize(&mut self.status_list_pb);
+        ::zeroize::Zeroize::zeroize(&mut self.verified_holder_public_key);
+        ::zeroize::Zeroize::zeroize(&mut self.lineage_tag_commitment);
+        ::zeroize::Zeroize::zeroize(&mut self.wallet_opening_commitment);
+        ::zeroize::Zeroize::zeroize(&mut self.opaque_lineage_leaf);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl ReallyMeZkV1Credential {
+    /// Protobuf type URL for this message, for use with `Any::pack` and
+    /// `Any::unpack_if`.
+    ///
+    /// Format: `type.googleapis.com/<fully.qualified.TypeName>`
+    pub const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1Credential";
+}
+::buffa::impl_default_instance!(ReallyMeZkV1Credential);
+impl ::buffa::MessageName for ReallyMeZkV1Credential {
+    const PACKAGE: &'static str = "reallyme.openid4vci.v1";
+    const NAME: &'static str = "ReallyMeZkV1Credential";
+    const FULL_NAME: &'static str = "reallyme.openid4vci.v1.ReallyMeZkV1Credential";
+    const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1Credential";
+}
+impl ::buffa::Message for ReallyMeZkV1Credential {
+    /// Returns the total encoded size in bytes.
+    ///
+    /// Accumulates in `u64` (which cannot overflow for in-memory
+    /// data) and saturates to `u32` at return, so a message whose
+    /// encoded size exceeds the 2 GiB protobuf limit yields a value
+    /// above [`::buffa::MAX_MESSAGE_BYTES`] that the encode entry
+    /// points reject, never a silently wrapped size.
+    #[allow(clippy::let_and_return)]
+    fn compute_size(&self, __cache: &mut ::buffa::SizeCache) -> u32 {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        let mut size = 0u64;
+        if self.version != 0u32 {
+            size += 1u64 + ::buffa::types::uint32_encoded_len(self.version) as u64;
+        }
+        if !self.credential_envelope_pb.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.credential_envelope_pb) as u64;
+        }
+        if !self.status_list_pb.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.status_list_pb) as u64;
+        }
+        if self.proof_binding.is_set() {
+            let __slot = __cache.reserve();
+            let inner_size = self.proof_binding.compute_size(__cache);
+            __cache.set(__slot, inner_size);
+            size +=
+                1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
+        }
+        if !self.verified_holder_public_key.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.verified_holder_public_key) as u64;
+        }
+        if !self.lineage_tag_commitment.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.lineage_tag_commitment) as u64;
+        }
+        if !self.wallet_opening_commitment.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.wallet_opening_commitment) as u64;
+        }
+        if !self.opaque_lineage_leaf.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.opaque_lineage_leaf) as u64;
+        }
+        size += self.__buffa_unknown_fields.encoded_len() as u64;
+        ::buffa::saturate_size(size)
+    }
+    fn write_to(&self, __cache: &mut ::buffa::SizeCache, buf: &mut impl ::buffa::EncodeSink) {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        if self.version != 0u32 {
+            ::buffa::types::put_uint32_field(1u32, self.version, buf);
+        }
+        if !self.credential_envelope_pb.is_empty() {
+            ::buffa::types::put_shared_bytes_field(2u32, &self.credential_envelope_pb, buf);
+        }
+        if !self.status_list_pb.is_empty() {
+            ::buffa::types::put_shared_bytes_field(3u32, &self.status_list_pb, buf);
+        }
+        if self.proof_binding.is_set() {
+            ::buffa::types::put_len_delimited_header(4u32, u64::from(__cache.consume_next()), buf);
+            self.proof_binding.write_to(__cache, buf);
+        }
+        if !self.verified_holder_public_key.is_empty() {
+            ::buffa::types::put_shared_bytes_field(5u32, &self.verified_holder_public_key, buf);
+        }
+        if !self.lineage_tag_commitment.is_empty() {
+            ::buffa::types::put_shared_bytes_field(6u32, &self.lineage_tag_commitment, buf);
+        }
+        if !self.wallet_opening_commitment.is_empty() {
+            ::buffa::types::put_shared_bytes_field(7u32, &self.wallet_opening_commitment, buf);
+        }
+        if !self.opaque_lineage_leaf.is_empty() {
+            ::buffa::types::put_shared_bytes_field(8u32, &self.opaque_lineage_leaf, buf);
+        }
+        self.__buffa_unknown_fields.write_to(buf);
+    }
+    fn merge_field(
+        &mut self,
+        tag: ::buffa::encoding::Tag,
+        buf: &mut impl ::buffa::bytes::Buf,
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<(), ::buffa::DecodeError> {
+        #[allow(unused_imports)]
+        use ::buffa::bytes::Buf as _;
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        match tag.field_number() {
+            1u32 => {
+                ::buffa::encoding::check_wire_type(tag, ::buffa::encoding::WireType::Varint)?;
+                self.version = ::buffa::types::decode_uint32(buf)?;
+            }
+            2u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.credential_envelope_pb, buf)?;
+            }
+            3u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.status_list_pb, buf)?;
+            }
+            4u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::Message::merge_length_delimited(
+                    self.proof_binding.get_or_insert_default(),
+                    buf,
+                    ctx,
+                )?;
+            }
+            5u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.verified_holder_public_key, buf)?;
+            }
+            6u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.lineage_tag_commitment, buf)?;
+            }
+            7u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.wallet_opening_commitment, buf)?;
+            }
+            8u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.opaque_lineage_leaf, buf)?;
+            }
+            _ => {
+                self.__buffa_unknown_fields
+                    .push(::buffa::encoding::decode_unknown_field(tag, buf, ctx)?);
+            }
+        }
+        ::core::result::Result::Ok(())
+    }
+    fn clear(&mut self) {
+        self.version = 0u32;
+        ::zeroize::Zeroize::zeroize(&mut self.credential_envelope_pb);
+        ::zeroize::Zeroize::zeroize(&mut self.status_list_pb);
+        self.proof_binding = ::buffa::MessageField::none();
+        ::zeroize::Zeroize::zeroize(&mut self.verified_holder_public_key);
+        ::zeroize::Zeroize::zeroize(&mut self.lineage_tag_commitment);
+        ::zeroize::Zeroize::zeroize(&mut self.wallet_opening_commitment);
+        ::zeroize::Zeroize::zeroize(&mut self.opaque_lineage_leaf);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl ::buffa::ExtensionSet for ReallyMeZkV1Credential {
+    const PROTO_FQN: &'static str = "reallyme.openid4vci.v1.ReallyMeZkV1Credential";
+    fn unknown_fields(&self) -> &::buffa::UnknownFields {
+        &self.__buffa_unknown_fields
+    }
+    fn unknown_fields_mut(&mut self) -> &mut ::buffa::UnknownFields {
+        &mut self.__buffa_unknown_fields
+    }
+}
+impl ::buffa::json_helpers::ProtoElemJson for ReallyMeZkV1Credential {
+    fn serialize_proto_json<S: ::serde::Serializer>(
+        v: &Self,
+        s: S,
+    ) -> ::core::result::Result<S::Ok, S::Error> {
+        ::serde::Serialize::serialize(v, s)
+    }
+    fn deserialize_proto_json<'de, D: ::serde::Deserializer<'de>>(
+        d: D,
+    ) -> ::core::result::Result<Self, D::Error> {
+        <Self as ::serde::Deserialize>::deserialize(d)
+    }
+}
+#[doc(hidden)]
+pub const __REALLY_ME_ZK_V1CREDENTIAL_JSON_ANY: ::buffa::type_registry::JsonAnyEntry =
+    ::buffa::type_registry::JsonAnyEntry {
+        type_url: "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1Credential",
+        to_json: ::buffa::type_registry::any_to_json::<ReallyMeZkV1Credential>,
+        from_json: ::buffa::type_registry::any_from_json::<ReallyMeZkV1Credential>,
+        is_wkt: false,
+    };
+#[derive(Clone, PartialEq, Default, ::serde::Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ReallyMeZkV1ProofBinding {
+    /// Field 1: `version`
+    #[serde(
+        rename = "version",
+        with = "::buffa::json_helpers::uint32",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_zero_u32"
+    )]
+    pub version: u32,
+    /// Field 2: `envelope_hash`
+    #[serde(
+        rename = "envelopeHash",
+        alias = "envelope_hash",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub envelope_hash: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 3: `claims_root`
+    #[serde(
+        rename = "claimsRoot",
+        alias = "claims_root",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub claims_root: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 4: `issuer_public_key_x`
+    #[serde(
+        rename = "issuerPublicKeyX",
+        alias = "issuer_public_key_x",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub issuer_public_key_x: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 5: `issuer_public_key_y`
+    #[serde(
+        rename = "issuerPublicKeyY",
+        alias = "issuer_public_key_y",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub issuer_public_key_y: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 6: `subject_public_key_x`
+    #[serde(
+        rename = "subjectPublicKeyX",
+        alias = "subject_public_key_x",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub subject_public_key_x: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 7: `subject_public_key_y`
+    #[serde(
+        rename = "subjectPublicKeyY",
+        alias = "subject_public_key_y",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub subject_public_key_y: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 8: `issuer_envelope_signature`
+    #[serde(
+        rename = "issuerEnvelopeSignature",
+        alias = "issuer_envelope_signature",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub issuer_envelope_signature: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 9: `issuer_root_binding_signature`
+    #[serde(
+        rename = "issuerRootBindingSignature",
+        alias = "issuer_root_binding_signature",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub issuer_root_binding_signature: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 10: `issuer_subject_binding_signature`
+    #[serde(
+        rename = "issuerSubjectBindingSignature",
+        alias = "issuer_subject_binding_signature",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub issuer_subject_binding_signature: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 11: `issuance_binding`
+    #[serde(
+        rename = "issuanceBinding",
+        alias = "issuance_binding",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub issuance_binding: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 12: `issuer_validity_status_signature`
+    #[serde(
+        rename = "issuerValidityStatusSignature",
+        alias = "issuer_validity_status_signature",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub issuer_validity_status_signature: ::buffa::alloc::vec::Vec<u8>,
+    #[serde(skip)]
+    #[doc(hidden)]
+    pub __buffa_unknown_fields: ::buffa::UnknownFields,
+}
+impl ::core::fmt::Debug for ReallyMeZkV1ProofBinding {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        f.debug_struct("ReallyMeZkV1ProofBinding")
+            .field("version", &self.version)
+            .field("envelope_hash", &"<redacted>")
+            .field("claims_root", &"<redacted>")
+            .field("issuer_public_key_x", &"<redacted>")
+            .field("issuer_public_key_y", &"<redacted>")
+            .field("subject_public_key_x", &"<redacted>")
+            .field("subject_public_key_y", &"<redacted>")
+            .field("issuer_envelope_signature", &"<redacted>")
+            .field("issuer_root_binding_signature", &"<redacted>")
+            .field("issuer_subject_binding_signature", &"<redacted>")
+            .field("issuance_binding", &"<redacted>")
+            .field("issuer_validity_status_signature", &"<redacted>")
+            .finish()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ReallyMeZkV1ProofBinding {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        fn deserialize_zeroizing_bytes<'de, D>(
+            deserializer: D,
+        ) -> ::core::result::Result<::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>, D::Error>
+        where
+            D: ::serde::Deserializer<'de>,
+        {
+            ::buffa::json_helpers::bytes::deserialize(deserializer).map(::zeroize::Zeroizing::new)
+        }
+
+        #[derive(Default, ::serde::Deserialize)]
+        #[serde(default, deny_unknown_fields)]
+        struct Wire {
+            #[serde(
+                rename = "version",
+                with = "::buffa::json_helpers::uint32",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_zero_u32"
+            )]
+            version: u32,
+            #[serde(
+                rename = "envelopeHash",
+                alias = "envelope_hash",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            envelope_hash: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "claimsRoot",
+                alias = "claims_root",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            claims_root: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "issuerPublicKeyX",
+                alias = "issuer_public_key_x",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            issuer_public_key_x: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "issuerPublicKeyY",
+                alias = "issuer_public_key_y",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            issuer_public_key_y: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "subjectPublicKeyX",
+                alias = "subject_public_key_x",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            subject_public_key_x: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "subjectPublicKeyY",
+                alias = "subject_public_key_y",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            subject_public_key_y: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "issuerEnvelopeSignature",
+                alias = "issuer_envelope_signature",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            issuer_envelope_signature: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "issuerRootBindingSignature",
+                alias = "issuer_root_binding_signature",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            issuer_root_binding_signature: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "issuerSubjectBindingSignature",
+                alias = "issuer_subject_binding_signature",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            issuer_subject_binding_signature: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "issuanceBinding",
+                alias = "issuance_binding",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            issuance_binding: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "issuerValidityStatusSignature",
+                alias = "issuer_validity_status_signature",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            issuer_validity_status_signature: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+        }
+
+        let mut wire = Wire::deserialize(deserializer)?;
+        Ok(Self {
+            version: wire.version,
+            envelope_hash: ::core::mem::take(&mut *wire.envelope_hash),
+            claims_root: ::core::mem::take(&mut *wire.claims_root),
+            issuer_public_key_x: ::core::mem::take(&mut *wire.issuer_public_key_x),
+            issuer_public_key_y: ::core::mem::take(&mut *wire.issuer_public_key_y),
+            subject_public_key_x: ::core::mem::take(&mut *wire.subject_public_key_x),
+            subject_public_key_y: ::core::mem::take(&mut *wire.subject_public_key_y),
+            issuer_envelope_signature: ::core::mem::take(&mut *wire.issuer_envelope_signature),
+            issuer_root_binding_signature: ::core::mem::take(
+                &mut *wire.issuer_root_binding_signature,
+            ),
+            issuer_subject_binding_signature: ::core::mem::take(
+                &mut *wire.issuer_subject_binding_signature,
+            ),
+            issuance_binding: ::core::mem::take(&mut *wire.issuance_binding),
+            issuer_validity_status_signature: ::core::mem::take(
+                &mut *wire.issuer_validity_status_signature,
+            ),
+            __buffa_unknown_fields: Default::default(),
+        })
+    }
+}
+impl ::core::ops::Drop for ReallyMeZkV1ProofBinding {
+    fn drop(&mut self) {
+        ::zeroize::Zeroize::zeroize(&mut self.envelope_hash);
+        ::zeroize::Zeroize::zeroize(&mut self.claims_root);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_public_key_x);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_public_key_y);
+        ::zeroize::Zeroize::zeroize(&mut self.subject_public_key_x);
+        ::zeroize::Zeroize::zeroize(&mut self.subject_public_key_y);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_envelope_signature);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_root_binding_signature);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_subject_binding_signature);
+        ::zeroize::Zeroize::zeroize(&mut self.issuance_binding);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_validity_status_signature);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl ReallyMeZkV1ProofBinding {
+    /// Protobuf type URL for this message, for use with `Any::pack` and
+    /// `Any::unpack_if`.
+    ///
+    /// Format: `type.googleapis.com/<fully.qualified.TypeName>`
+    pub const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1ProofBinding";
+}
+::buffa::impl_default_instance!(ReallyMeZkV1ProofBinding);
+impl ::buffa::MessageName for ReallyMeZkV1ProofBinding {
+    const PACKAGE: &'static str = "reallyme.openid4vci.v1";
+    const NAME: &'static str = "ReallyMeZkV1ProofBinding";
+    const FULL_NAME: &'static str = "reallyme.openid4vci.v1.ReallyMeZkV1ProofBinding";
+    const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1ProofBinding";
+}
+impl ::buffa::Message for ReallyMeZkV1ProofBinding {
+    /// Returns the total encoded size in bytes.
+    ///
+    /// Accumulates in `u64` (which cannot overflow for in-memory
+    /// data) and saturates to `u32` at return, so a message whose
+    /// encoded size exceeds the 2 GiB protobuf limit yields a value
+    /// above [`::buffa::MAX_MESSAGE_BYTES`] that the encode entry
+    /// points reject, never a silently wrapped size.
+    #[allow(clippy::let_and_return)]
+    fn compute_size(&self, _cache: &mut ::buffa::SizeCache) -> u32 {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        let mut size = 0u64;
+        if self.version != 0u32 {
+            size += 1u64 + ::buffa::types::uint32_encoded_len(self.version) as u64;
+        }
+        if !self.envelope_hash.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.envelope_hash) as u64;
+        }
+        if !self.claims_root.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.claims_root) as u64;
+        }
+        if !self.issuer_public_key_x.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.issuer_public_key_x) as u64;
+        }
+        if !self.issuer_public_key_y.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.issuer_public_key_y) as u64;
+        }
+        if !self.subject_public_key_x.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.subject_public_key_x) as u64;
+        }
+        if !self.subject_public_key_y.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.subject_public_key_y) as u64;
+        }
+        if !self.issuer_envelope_signature.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.issuer_envelope_signature) as u64;
+        }
+        if !self.issuer_root_binding_signature.is_empty() {
+            size += 1u64
+                + ::buffa::types::bytes_encoded_len(&self.issuer_root_binding_signature) as u64;
+        }
+        if !self.issuer_subject_binding_signature.is_empty() {
+            size += 1u64
+                + ::buffa::types::bytes_encoded_len(&self.issuer_subject_binding_signature) as u64;
+        }
+        if !self.issuance_binding.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.issuance_binding) as u64;
+        }
+        if !self.issuer_validity_status_signature.is_empty() {
+            size += 1u64
+                + ::buffa::types::bytes_encoded_len(&self.issuer_validity_status_signature) as u64;
+        }
+        size += self.__buffa_unknown_fields.encoded_len() as u64;
+        ::buffa::saturate_size(size)
+    }
+    fn write_to(&self, _cache: &mut ::buffa::SizeCache, buf: &mut impl ::buffa::EncodeSink) {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        if self.version != 0u32 {
+            ::buffa::types::put_uint32_field(1u32, self.version, buf);
+        }
+        if !self.envelope_hash.is_empty() {
+            ::buffa::types::put_shared_bytes_field(2u32, &self.envelope_hash, buf);
+        }
+        if !self.claims_root.is_empty() {
+            ::buffa::types::put_shared_bytes_field(3u32, &self.claims_root, buf);
+        }
+        if !self.issuer_public_key_x.is_empty() {
+            ::buffa::types::put_shared_bytes_field(4u32, &self.issuer_public_key_x, buf);
+        }
+        if !self.issuer_public_key_y.is_empty() {
+            ::buffa::types::put_shared_bytes_field(5u32, &self.issuer_public_key_y, buf);
+        }
+        if !self.subject_public_key_x.is_empty() {
+            ::buffa::types::put_shared_bytes_field(6u32, &self.subject_public_key_x, buf);
+        }
+        if !self.subject_public_key_y.is_empty() {
+            ::buffa::types::put_shared_bytes_field(7u32, &self.subject_public_key_y, buf);
+        }
+        if !self.issuer_envelope_signature.is_empty() {
+            ::buffa::types::put_shared_bytes_field(8u32, &self.issuer_envelope_signature, buf);
+        }
+        if !self.issuer_root_binding_signature.is_empty() {
+            ::buffa::types::put_shared_bytes_field(9u32, &self.issuer_root_binding_signature, buf);
+        }
+        if !self.issuer_subject_binding_signature.is_empty() {
+            ::buffa::types::put_shared_bytes_field(
+                10u32,
+                &self.issuer_subject_binding_signature,
+                buf,
+            );
+        }
+        if !self.issuance_binding.is_empty() {
+            ::buffa::types::put_shared_bytes_field(11u32, &self.issuance_binding, buf);
+        }
+        if !self.issuer_validity_status_signature.is_empty() {
+            ::buffa::types::put_shared_bytes_field(
+                12u32,
+                &self.issuer_validity_status_signature,
+                buf,
+            );
+        }
+        self.__buffa_unknown_fields.write_to(buf);
+    }
+    fn merge_field(
+        &mut self,
+        tag: ::buffa::encoding::Tag,
+        buf: &mut impl ::buffa::bytes::Buf,
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<(), ::buffa::DecodeError> {
+        #[allow(unused_imports)]
+        use ::buffa::bytes::Buf as _;
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        match tag.field_number() {
+            1u32 => {
+                ::buffa::encoding::check_wire_type(tag, ::buffa::encoding::WireType::Varint)?;
+                self.version = ::buffa::types::decode_uint32(buf)?;
+            }
+            2u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.envelope_hash, buf)?;
+            }
+            3u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.claims_root, buf)?;
+            }
+            4u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.issuer_public_key_x, buf)?;
+            }
+            5u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.issuer_public_key_y, buf)?;
+            }
+            6u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.subject_public_key_x, buf)?;
+            }
+            7u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.subject_public_key_y, buf)?;
+            }
+            8u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.issuer_envelope_signature, buf)?;
+            }
+            9u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.issuer_root_binding_signature, buf)?;
+            }
+            10u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.issuer_subject_binding_signature, buf)?;
+            }
+            11u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.issuance_binding, buf)?;
+            }
+            12u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.issuer_validity_status_signature, buf)?;
+            }
+            _ => {
+                self.__buffa_unknown_fields
+                    .push(::buffa::encoding::decode_unknown_field(tag, buf, ctx)?);
+            }
+        }
+        ::core::result::Result::Ok(())
+    }
+    fn clear(&mut self) {
+        self.version = 0u32;
+        ::zeroize::Zeroize::zeroize(&mut self.envelope_hash);
+        ::zeroize::Zeroize::zeroize(&mut self.claims_root);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_public_key_x);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_public_key_y);
+        ::zeroize::Zeroize::zeroize(&mut self.subject_public_key_x);
+        ::zeroize::Zeroize::zeroize(&mut self.subject_public_key_y);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_envelope_signature);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_root_binding_signature);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_subject_binding_signature);
+        ::zeroize::Zeroize::zeroize(&mut self.issuance_binding);
+        ::zeroize::Zeroize::zeroize(&mut self.issuer_validity_status_signature);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl ::buffa::ExtensionSet for ReallyMeZkV1ProofBinding {
+    const PROTO_FQN: &'static str = "reallyme.openid4vci.v1.ReallyMeZkV1ProofBinding";
+    fn unknown_fields(&self) -> &::buffa::UnknownFields {
+        &self.__buffa_unknown_fields
+    }
+    fn unknown_fields_mut(&mut self) -> &mut ::buffa::UnknownFields {
+        &mut self.__buffa_unknown_fields
+    }
+}
+impl ::buffa::json_helpers::ProtoElemJson for ReallyMeZkV1ProofBinding {
+    fn serialize_proto_json<S: ::serde::Serializer>(
+        v: &Self,
+        s: S,
+    ) -> ::core::result::Result<S::Ok, S::Error> {
+        ::serde::Serialize::serialize(v, s)
+    }
+    fn deserialize_proto_json<'de, D: ::serde::Deserializer<'de>>(
+        d: D,
+    ) -> ::core::result::Result<Self, D::Error> {
+        <Self as ::serde::Deserialize>::deserialize(d)
+    }
+}
+#[doc(hidden)]
+pub const __REALLY_ME_ZK_V1PROOF_BINDING_JSON_ANY: ::buffa::type_registry::JsonAnyEntry =
+    ::buffa::type_registry::JsonAnyEntry {
+        type_url: "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1ProofBinding",
+        to_json: ::buffa::type_registry::any_to_json::<ReallyMeZkV1ProofBinding>,
+        from_json: ::buffa::type_registry::any_from_json::<ReallyMeZkV1ProofBinding>,
+        is_wkt: false,
+    };
+/// Wallet-prepared issuance intent for reallyme_zk_v1 credentials. The wallet
+/// keeps salted private openings locally and sends only the public root plus
+/// non-secret reconciliation commitments. The issuer compares every field with
+/// the response container it returns; the wallet independently derives the
+/// commitments from its private openings before accepting the response.
+#[derive(Clone, PartialEq, Default, ::serde::Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ReallyMeZkV1IssuanceRequest {
+    /// Field 1: `version`
+    #[serde(
+        rename = "version",
+        with = "::buffa::json_helpers::uint32",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_zero_u32"
+    )]
+    pub version: u32,
+    /// Field 2: `claims_root`
+    #[serde(
+        rename = "claimsRoot",
+        alias = "claims_root",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub claims_root: ::buffa::alloc::vec::Vec<u8>,
+    /// reallyme:sensitive
+    ///
+    /// Field 3: `verified_holder_public_key`
+    #[serde(
+        rename = "verifiedHolderPublicKey",
+        alias = "verified_holder_public_key",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub verified_holder_public_key: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 4: `lineage_tag_commitment`
+    #[serde(
+        rename = "lineageTagCommitment",
+        alias = "lineage_tag_commitment",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub lineage_tag_commitment: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 5: `wallet_opening_commitment`
+    #[serde(
+        rename = "walletOpeningCommitment",
+        alias = "wallet_opening_commitment",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub wallet_opening_commitment: ::buffa::alloc::vec::Vec<u8>,
+    /// Field 6: `opaque_lineage_leaf`
+    #[serde(
+        rename = "opaqueLineageLeaf",
+        alias = "opaque_lineage_leaf",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub opaque_lineage_leaf: ::buffa::alloc::vec::Vec<u8>,
+    #[serde(skip)]
+    #[doc(hidden)]
+    pub __buffa_unknown_fields: ::buffa::UnknownFields,
+}
+impl ::core::fmt::Debug for ReallyMeZkV1IssuanceRequest {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        f.debug_struct("ReallyMeZkV1IssuanceRequest")
+            .field("version", &self.version)
+            .field("claims_root", &"<redacted>")
+            .field("verified_holder_public_key", &"<redacted>")
+            .field("lineage_tag_commitment", &"<redacted>")
+            .field("wallet_opening_commitment", &"<redacted>")
+            .field("opaque_lineage_leaf", &"<redacted>")
+            .finish()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ReallyMeZkV1IssuanceRequest {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        fn deserialize_zeroizing_bytes<'de, D>(
+            deserializer: D,
+        ) -> ::core::result::Result<::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>, D::Error>
+        where
+            D: ::serde::Deserializer<'de>,
+        {
+            ::buffa::json_helpers::bytes::deserialize(deserializer).map(::zeroize::Zeroizing::new)
+        }
+
+        #[derive(Default, ::serde::Deserialize)]
+        #[serde(default, deny_unknown_fields)]
+        struct Wire {
+            #[serde(
+                rename = "version",
+                with = "::buffa::json_helpers::uint32",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_zero_u32"
+            )]
+            version: u32,
+            #[serde(
+                rename = "claimsRoot",
+                alias = "claims_root",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            claims_root: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "verifiedHolderPublicKey",
+                alias = "verified_holder_public_key",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            verified_holder_public_key: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "lineageTagCommitment",
+                alias = "lineage_tag_commitment",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            lineage_tag_commitment: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "walletOpeningCommitment",
+                alias = "wallet_opening_commitment",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            wallet_opening_commitment: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+            #[serde(
+                rename = "opaqueLineageLeaf",
+                alias = "opaque_lineage_leaf",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            opaque_lineage_leaf: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+        }
+
+        let mut wire = Wire::deserialize(deserializer)?;
+        Ok(Self {
+            version: wire.version,
+            claims_root: ::core::mem::take(&mut *wire.claims_root),
+            verified_holder_public_key: ::core::mem::take(&mut *wire.verified_holder_public_key),
+            lineage_tag_commitment: ::core::mem::take(&mut *wire.lineage_tag_commitment),
+            wallet_opening_commitment: ::core::mem::take(&mut *wire.wallet_opening_commitment),
+            opaque_lineage_leaf: ::core::mem::take(&mut *wire.opaque_lineage_leaf),
+            __buffa_unknown_fields: Default::default(),
+        })
+    }
+}
+impl ::core::ops::Drop for ReallyMeZkV1IssuanceRequest {
+    fn drop(&mut self) {
+        ::zeroize::Zeroize::zeroize(&mut self.claims_root);
+        ::zeroize::Zeroize::zeroize(&mut self.verified_holder_public_key);
+        ::zeroize::Zeroize::zeroize(&mut self.lineage_tag_commitment);
+        ::zeroize::Zeroize::zeroize(&mut self.wallet_opening_commitment);
+        ::zeroize::Zeroize::zeroize(&mut self.opaque_lineage_leaf);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl ReallyMeZkV1IssuanceRequest {
+    /// Protobuf type URL for this message, for use with `Any::pack` and
+    /// `Any::unpack_if`.
+    ///
+    /// Format: `type.googleapis.com/<fully.qualified.TypeName>`
+    pub const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1IssuanceRequest";
+}
+::buffa::impl_default_instance!(ReallyMeZkV1IssuanceRequest);
+impl ::buffa::MessageName for ReallyMeZkV1IssuanceRequest {
+    const PACKAGE: &'static str = "reallyme.openid4vci.v1";
+    const NAME: &'static str = "ReallyMeZkV1IssuanceRequest";
+    const FULL_NAME: &'static str = "reallyme.openid4vci.v1.ReallyMeZkV1IssuanceRequest";
+    const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1IssuanceRequest";
+}
+impl ::buffa::Message for ReallyMeZkV1IssuanceRequest {
+    /// Returns the total encoded size in bytes.
+    ///
+    /// Accumulates in `u64` (which cannot overflow for in-memory
+    /// data) and saturates to `u32` at return, so a message whose
+    /// encoded size exceeds the 2 GiB protobuf limit yields a value
+    /// above [`::buffa::MAX_MESSAGE_BYTES`] that the encode entry
+    /// points reject, never a silently wrapped size.
+    #[allow(clippy::let_and_return)]
+    fn compute_size(&self, _cache: &mut ::buffa::SizeCache) -> u32 {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        let mut size = 0u64;
+        if self.version != 0u32 {
+            size += 1u64 + ::buffa::types::uint32_encoded_len(self.version) as u64;
+        }
+        if !self.claims_root.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.claims_root) as u64;
+        }
+        if !self.verified_holder_public_key.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.verified_holder_public_key) as u64;
+        }
+        if !self.lineage_tag_commitment.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.lineage_tag_commitment) as u64;
+        }
+        if !self.wallet_opening_commitment.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.wallet_opening_commitment) as u64;
+        }
+        if !self.opaque_lineage_leaf.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.opaque_lineage_leaf) as u64;
+        }
+        size += self.__buffa_unknown_fields.encoded_len() as u64;
+        ::buffa::saturate_size(size)
+    }
+    fn write_to(&self, _cache: &mut ::buffa::SizeCache, buf: &mut impl ::buffa::EncodeSink) {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        if self.version != 0u32 {
+            ::buffa::types::put_uint32_field(1u32, self.version, buf);
+        }
+        if !self.claims_root.is_empty() {
+            ::buffa::types::put_shared_bytes_field(2u32, &self.claims_root, buf);
+        }
+        if !self.verified_holder_public_key.is_empty() {
+            ::buffa::types::put_shared_bytes_field(3u32, &self.verified_holder_public_key, buf);
+        }
+        if !self.lineage_tag_commitment.is_empty() {
+            ::buffa::types::put_shared_bytes_field(4u32, &self.lineage_tag_commitment, buf);
+        }
+        if !self.wallet_opening_commitment.is_empty() {
+            ::buffa::types::put_shared_bytes_field(5u32, &self.wallet_opening_commitment, buf);
+        }
+        if !self.opaque_lineage_leaf.is_empty() {
+            ::buffa::types::put_shared_bytes_field(6u32, &self.opaque_lineage_leaf, buf);
+        }
+        self.__buffa_unknown_fields.write_to(buf);
+    }
+    fn merge_field(
+        &mut self,
+        tag: ::buffa::encoding::Tag,
+        buf: &mut impl ::buffa::bytes::Buf,
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<(), ::buffa::DecodeError> {
+        #[allow(unused_imports)]
+        use ::buffa::bytes::Buf as _;
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        match tag.field_number() {
+            1u32 => {
+                ::buffa::encoding::check_wire_type(tag, ::buffa::encoding::WireType::Varint)?;
+                self.version = ::buffa::types::decode_uint32(buf)?;
+            }
+            2u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.claims_root, buf)?;
+            }
+            3u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.verified_holder_public_key, buf)?;
+            }
+            4u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.lineage_tag_commitment, buf)?;
+            }
+            5u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.wallet_opening_commitment, buf)?;
+            }
+            6u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.opaque_lineage_leaf, buf)?;
+            }
+            _ => {
+                self.__buffa_unknown_fields
+                    .push(::buffa::encoding::decode_unknown_field(tag, buf, ctx)?);
+            }
+        }
+        ::core::result::Result::Ok(())
+    }
+    fn clear(&mut self) {
+        self.version = 0u32;
+        ::zeroize::Zeroize::zeroize(&mut self.claims_root);
+        ::zeroize::Zeroize::zeroize(&mut self.verified_holder_public_key);
+        ::zeroize::Zeroize::zeroize(&mut self.lineage_tag_commitment);
+        ::zeroize::Zeroize::zeroize(&mut self.wallet_opening_commitment);
+        ::zeroize::Zeroize::zeroize(&mut self.opaque_lineage_leaf);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl ::buffa::ExtensionSet for ReallyMeZkV1IssuanceRequest {
+    const PROTO_FQN: &'static str = "reallyme.openid4vci.v1.ReallyMeZkV1IssuanceRequest";
+    fn unknown_fields(&self) -> &::buffa::UnknownFields {
+        &self.__buffa_unknown_fields
+    }
+    fn unknown_fields_mut(&mut self) -> &mut ::buffa::UnknownFields {
+        &mut self.__buffa_unknown_fields
+    }
+}
+impl ::buffa::json_helpers::ProtoElemJson for ReallyMeZkV1IssuanceRequest {
+    fn serialize_proto_json<S: ::serde::Serializer>(
+        v: &Self,
+        s: S,
+    ) -> ::core::result::Result<S::Ok, S::Error> {
+        ::serde::Serialize::serialize(v, s)
+    }
+    fn deserialize_proto_json<'de, D: ::serde::Deserializer<'de>>(
+        d: D,
+    ) -> ::core::result::Result<Self, D::Error> {
+        <Self as ::serde::Deserialize>::deserialize(d)
+    }
+}
+#[doc(hidden)]
+pub const __REALLY_ME_ZK_V1ISSUANCE_REQUEST_JSON_ANY: ::buffa::type_registry::JsonAnyEntry =
+    ::buffa::type_registry::JsonAnyEntry {
+        type_url: "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1IssuanceRequest",
+        to_json: ::buffa::type_registry::any_to_json::<ReallyMeZkV1IssuanceRequest>,
+        from_json: ::buffa::type_registry::any_from_json::<ReallyMeZkV1IssuanceRequest>,
+        is_wkt: false,
+    };
 #[derive(Clone, PartialEq, Default, ::serde::Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct ImmediateCredentialResponse {

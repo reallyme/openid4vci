@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -181,6 +181,7 @@ fn batch_mdoc_credentials_bind_to_corresponding_verified_keys() -> IssuerResult<
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let authorization = openid4vci_issuer::IssuanceAuthorization::new(
         PID_MDOC_CONFIGURATION_ID.to_owned(),
@@ -264,11 +265,17 @@ fn extract_device_key(credential: &CredentialPayload) -> IssuerResult<Vec<u8>> {
     let fields = issuer_auth
         .as_array()
         .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
-    let unprotected = fields
-        .get(1)
-        .and_then(CborValue::as_map)
+    let protected = fields
+        .first()
+        .and_then(CborValue::as_bytes)
         .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
-    if !unprotected.iter().any(|(label, value)| {
+    let protected = decode_cbor(protected)?;
+    let protected = protected
+        .as_map()
+        .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
+    // The signer authenticates the certificate path in the protected COSE
+    // header; checking only the unprotected map would reject a valid issuer.
+    if !protected.iter().any(|(label, value)| {
         label.as_integer().map(i128::from) == Some(33) && value.as_bytes().is_some()
     }) {
         return Err(IssuerError::new(IssuerStatus::EncodingFailed));

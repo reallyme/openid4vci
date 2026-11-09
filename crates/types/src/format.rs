@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -23,4 +23,7 @@ pub enum CredentialFormat {
     /// W3C Verifiable Credential Data Model secured with Data Integrity.
     #[serde(rename = "ldp_vc")]
     LdpVc,
+    /// ReallyMe issuer-signed common-root credential envelope.
+    #[serde(rename = "reallyme_zk_v1")]
+    ReallyMeZkV1,
 }

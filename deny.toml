@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -62,8 +62,14 @@ skip = [
     { name = "getrandom", version = "=0.2.17" },
     { name = "hashbrown", version = "=0.15.5" },
     { name = "keccak", version = "=0.1.6" },
+    # Arkworks' rand 0.8 still requires rand_core 0.6 while the current
+    # crypto suites use newer major versions.
+    { name = "rand_core", version = "=0.6.4" },
     { name = "sha3", version = "=0.10.9" },
     { name = "syn", version = "=2.0.119" },
+    # X.509's asn1-rs derive graph still uses synstructure 0.13 while the
+    # Unicode/ICU graph uses 0.14; neither is selected by this repository.
+    { name = "synstructure", version = "=0.13.2" },
 ]
 skip-tree = []
 

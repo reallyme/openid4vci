@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
 [package]
 name = "openid4vci-issuer"
-version = "0.1.1"
+version = "0.2.0"
 description = "Transport-agnostic OpenID4VCI issuer endpoint engine."
 edition.workspace = true
 rust-version.workspace = true
@@ -30,14 +30,22 @@ native = [
     "dep:p521",
     "openid4vci-attestation/native",
     "openid4vci-types/native",
+    "reallyme-credential/native",
     "reallyme-crypto/native",
+    "reallyme-crypto/dispatch",
+    "reallyme-crypto/p256",
     "reallyme-jose?/native",
+    "reallyme-zk-api/native",
 ]
 wasm = [
     "openid4vci-attestation/wasm",
     "openid4vci-types/wasm",
+    "reallyme-credential/wasm",
     "reallyme-crypto/wasm",
+    "reallyme-crypto/dispatch",
+    "reallyme-crypto/p256",
     "reallyme-jose?/wasm",
+    "reallyme-zk-api/wasm",
 ]
 identity-jose = [
     "dep:reallyme-jose",
@@ -45,14 +53,20 @@ identity-jose = [
 ]
 
 [dependencies]
+buffa = { workspace = true }
 openid4vci-attestation = { workspace = true }
 reallyme-codec = { workspace = true, features = ["base64url", "jcs"] }
 openid4vci-types = { workspace = true }
+openid4vci-proto = { workspace = true, features = ["generated"] }
 p256 = { workspace = true }
 p384 = { workspace = true, optional = true }
 p521 = { workspace = true, optional = true }
+reallyme-credential = { workspace = true, features = ["proto"] }
+reallyme-credential-status = { workspace = true, features = ["proto"] }
 reallyme-crypto = { workspace = true, features = ["csprng", "hmac"] }
 reallyme-jose = { workspace = true, optional = true }
+reallyme-ssi-proto = { workspace = true, features = ["generated"] }
+reallyme-zk-api = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

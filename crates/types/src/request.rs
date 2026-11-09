@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -16,6 +16,9 @@ use crate::validation::{
     is_optional_non_empty, parse_json, to_json, validate_non_empty_asciiish, zeroize_json_strings,
     EXTENSIBLE_DOCUMENT_JSON,
 };
+
+/// Maximum compact base64url length accepted for a ZK issuance intent.
+pub const MAX_REALLYME_ZK_V1_ISSUANCE_REQUEST_BYTES: usize = 2048;
 
 /// Credential selection in a Credential Request.
 #[derive(Clone, PartialEq, Eq)]
@@ -164,6 +167,52 @@ impl Proofs {
     }
 }
 
+/// Compact Buffa `ReallyMeZkV1IssuanceRequest` carried in a Credential Request.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct ReallyMeZkV1IssuanceRequest {
+    compact: String,
+}
+
+impl Debug for ReallyMeZkV1IssuanceRequest {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> core::fmt::Result {
+        formatter
+            .debug_struct("ReallyMeZkV1IssuanceRequest")
+            .field("compact", &"<redacted>")
+            .finish()
+    }
+}
+
+impl Drop for ReallyMeZkV1IssuanceRequest {
+    fn drop(&mut self) {
+        self.compact.zeroize();
+    }
+}
+
+impl ReallyMeZkV1IssuanceRequest {
+    /// Creates a bounded compact Buffa ZK issuance request.
+    pub fn new(compact: String) -> OpenId4VciResult<Self> {
+        let request = Self { compact };
+        request.validate()?;
+        Ok(request)
+    }
+
+    /// Returns the compact base64url Buffa request value.
+    #[must_use]
+    pub fn compact(&self) -> &str {
+        &self.compact
+    }
+
+    /// Validates the transport wrapper before generated-message decoding.
+    pub fn validate(&self) -> OpenId4VciResult<()> {
+        validate_non_empty_asciiish(&self.compact)?;
+        if self.compact.len() > MAX_REALLYME_ZK_V1_ISSUANCE_REQUEST_BYTES {
+            return Err(OpenId4VciError::new(Reason::PayloadTooLarge));
+        }
+        Ok(())
+    }
+}
+
 /// OpenID4VCI Credential Request.
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct CredentialRequest {
@@ -179,6 +228,12 @@ pub struct CredentialRequest {
     /// Wallet-provided response encryption parameters.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub credential_response_encryption: Option<CredentialResponseEncryption>,
+    /// Wallet-prepared ZK private-claim issuance intent.
+    #[serde(
+        rename = "reallyme_zk_v1_issuance",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub reallyme_zk_v1_issuance: Option<ReallyMeZkV1IssuanceRequest>,
 }
 
 impl Debug for CredentialRequest {
@@ -201,6 +256,7 @@ impl Debug for CredentialRequest {
                 "credential_response_encryption",
                 &self.credential_response_encryption,
             )
+            .field("reallyme_zk_v1_issuance", &self.reallyme_zk_v1_issuance)
             .finish()
     }
 }
@@ -257,6 +313,9 @@ impl CredentialRequest {
         }
         if let Some(encryption) = &self.credential_response_encryption {
             encryption.validate()?;
+        }
+        if let Some(issuance) = &self.reallyme_zk_v1_issuance {
+            issuance.validate()?;
         }
         Ok(())
     }

@@ -8,7 +8,7 @@
 [![HAIP 1.0 Final](https://img.shields.io/badge/HAIP-1.0%20Final-0f766e)](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0-final.html)
 [![crates.io](https://img.shields.io/crates/v/reallyme-openid4vci.svg)](https://crates.io/crates/reallyme-openid4vci)
 [![docs.rs](https://docs.rs/reallyme-openid4vci/badge.svg)](https://docs.rs/reallyme-openid4vci)
-[![MSRV](https://img.shields.io/badge/MSRV-1.96-475569)](https://github.com/reallyme/openid4vci/blob/main/Cargo.toml)
+[![MSRV](https://img.shields.io/badge/MSRV-1.99-475569)](https://github.com/reallyme/openid4vci/blob/main/Cargo.toml)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](https://github.com/reallyme/openid4vci#license)
 
 [Identity](https://github.com/reallyme/identity) · [SSI](https://github.com/reallyme/ssi) · **OpenID4VCI** · [OpenID4VP](https://github.com/reallyme/openid4vp) · [Wallet](https://github.com/reallyme/wallet) · [ZK](https://github.com/reallyme/zk)
@@ -28,7 +28,7 @@ only one layer can depend on the corresponding focused crate directly.
 
 ```toml
 [dependencies]
-reallyme-openid4vci = "0.1"
+reallyme-openid4vci = "0.2"
 ```
 
 The default feature set enables the native issuer and wallet surfaces, profile
@@ -64,7 +64,7 @@ composition:
 
 ```toml
 [dependencies]
-reallyme-openid4vci = { version = "0.1", default-features = false, features = ["native", "profiles"] }
+reallyme-openid4vci = { version = "0.2.0", default-features = false, features = ["native", "profiles"] }
 ```
 
 ## Ownership boundary

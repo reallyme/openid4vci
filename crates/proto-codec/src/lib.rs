@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -18,6 +18,7 @@ mod json;
 mod limits;
 mod operation;
 mod proto_json;
+mod zk_credential;
 
 /// Public error/status to protobuf reason-code mappings.
 pub mod map_error_reason;
@@ -37,3 +38,4 @@ pub use operation::{
     MAX_OPENID4VCI_OPERATION_RESPONSE_OVERHEAD_BYTES,
 };
 pub use proto_json::OpenId4VciProtoJson;
+pub use zk_credential::{decode_reallyme_zk_v1_credential, CanonicalReallyMeZkV1Credential};

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -26,6 +26,10 @@ function requirePath(options, name) {
     fail(`${name} must be a non-empty path`);
   }
   return value;
+}
+
+function escapeRegExpLiteral(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
 
 function findMatchingBrace(source, openIndex) {
@@ -435,6 +439,14 @@ function redactMessageDebug(source, messageName, descriptors, searchFrom) {
   for (const descriptor of descriptors) {
     implementation = implementation.replaceAll(
       `.field("${descriptor.name}", &self.${descriptor.name})`,
+      `.field("${descriptor.name}", &"<redacted>")`,
+    );
+    const escapedName = escapeRegExpLiteral(descriptor.name);
+    implementation = implementation.replace(
+      new RegExp(
+        `\\.field\\(\\s*"${escapedName}",\\s*&self\\.${escapedName},\\s*\\)`,
+        "gu",
+      ),
       `.field("${descriptor.name}", &"<redacted>")`,
     );
   }

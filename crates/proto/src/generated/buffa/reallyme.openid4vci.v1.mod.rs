@@ -44,6 +44,9 @@ pub mod __buffa {
         reg.register_json_any(super::__CREDENTIAL_RESPONSE_ENCRYPTION_JSON_ANY);
         reg.register_json_any(super::__CREDENTIAL_REQUEST_JSON_ANY);
         reg.register_json_any(super::__CREDENTIAL_ENVELOPE_JSON_ANY);
+        reg.register_json_any(super::__REALLY_ME_ZK_V1CREDENTIAL_JSON_ANY);
+        reg.register_json_any(super::__REALLY_ME_ZK_V1PROOF_BINDING_JSON_ANY);
+        reg.register_json_any(super::__REALLY_ME_ZK_V1ISSUANCE_REQUEST_JSON_ANY);
         reg.register_json_any(super::__IMMEDIATE_CREDENTIAL_RESPONSE_JSON_ANY);
         reg.register_json_any(super::__DEFERRED_CREDENTIAL_RESPONSE_JSON_ANY);
         reg.register_json_any(super::__CREDENTIAL_RESPONSE_JSON_ANY);
@@ -252,6 +255,18 @@ pub use self::__buffa::view::ProofTypeMetadataView;
 pub use self::__buffa::view::ProofsOwnedView;
 #[doc(inline)]
 pub use self::__buffa::view::ProofsView;
+#[doc(inline)]
+pub use self::__buffa::view::ReallyMeZkV1CredentialOwnedView;
+#[doc(inline)]
+pub use self::__buffa::view::ReallyMeZkV1CredentialView;
+#[doc(inline)]
+pub use self::__buffa::view::ReallyMeZkV1IssuanceRequestOwnedView;
+#[doc(inline)]
+pub use self::__buffa::view::ReallyMeZkV1IssuanceRequestView;
+#[doc(inline)]
+pub use self::__buffa::view::ReallyMeZkV1ProofBindingOwnedView;
+#[doc(inline)]
+pub use self::__buffa::view::ReallyMeZkV1ProofBindingView;
 #[doc(inline)]
 pub use self::__buffa::view::TxCodeOwnedView;
 #[doc(inline)]

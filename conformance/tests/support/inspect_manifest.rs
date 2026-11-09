@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -152,7 +152,7 @@ pub(super) fn test_anchor_exists(test_name: &str) -> bool {
         .any(|source| source.contains(&["fn ", test_name].concat()))
 }
 
-pub(super) fn test_sources() -> [&'static str; 28] {
+pub(super) fn test_sources() -> [&'static str; 32] {
     [
         include_str!("../manifest_tests.rs"),
         include_str!("../vectors_tests.rs"),
@@ -168,6 +168,10 @@ pub(super) fn test_sources() -> [&'static str; 28] {
         include_str!("../../../crates/issuer/tests/attestation_proof_tests.rs"),
         include_str!("../../../crates/issuer/tests/endpoint_attestation_tests.rs"),
         include_str!("../../../crates/issuer/tests/encode_tests.rs"),
+        include_str!("../../../crates/issuer/tests/encode_tests/common_root_issuance.rs"),
+        include_str!("../../../crates/issuer/tests/encode_tests/common_root_wire.rs"),
+        include_str!("../../../crates/issuer/tests/encode_tests/pass_through.rs"),
+        include_str!("../../../crates/issuer/tests/encode_tests/support.rs"),
         include_str!("../../../crates/issuer/tests/endpoint_encryption_tests.rs"),
         include_str!("../../../crates/issuer/tests/endpoint_tests.rs"),
         include_str!("../../../crates/issuer/tests/jose_jwe_tests.rs"),

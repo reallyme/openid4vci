@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -43,7 +43,10 @@ pub use offer::{
     MAX_CREDENTIAL_OFFER_URI_BYTES,
 };
 pub use problem::{IssuerProblemStatus, ProblemDetails, ProblemType};
-pub use request::{CredentialRequest, CredentialResponseEncryption, CredentialSelector, Proofs};
+pub use request::{
+    CredentialRequest, CredentialResponseEncryption, CredentialSelector, Proofs,
+    ReallyMeZkV1IssuanceRequest, MAX_REALLYME_ZK_V1_ISSUANCE_REQUEST_BYTES,
+};
 pub use response::{
     CredentialEnvelope, CredentialPayload, CredentialResponse, DeferredCredentialRequest,
     MAX_CREDENTIAL_RESPONSE_JSON_BYTES,

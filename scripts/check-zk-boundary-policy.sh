@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -48,11 +48,26 @@ run_rg_allow_no_matches "${policy_tmp_dir}/source-matches" -n \
 while IFS= read -r match; do
   case "${match}" in
     *reallyme_zk_api*) ;;
+    *reallyme_zk_v1*) ;;
     *)
       printf '%s\n' "error: forbidden concrete ZK backend in Rust source: ${match}" >&2
       status=1
       ;;
   esac
 done <"${policy_tmp_dir}/source-matches"
+
+# The 0.2.1 API keeps deprecated aliases for downstream migration, but this
+# repository must use the canonical Rust terminology. Generated protobuf names
+# are wire contracts and remain intentionally outside this source-only check.
+run_rg_allow_no_matches "${policy_tmp_dir}/deprecated-rust-names" -n \
+  '\bZkPrepared[A-Za-z0-9_]*\b' \
+  crates conformance \
+  --glob '*.rs' \
+  --glob '!crates/proto/src/generated/**'
+
+while IFS= read -r match; do
+  printf '%s\n' "error: deprecated ZK Rust API name: ${match}" >&2
+  status=1
+done <"${policy_tmp_dir}/deprecated-rust-names"
 
 exit "${status}"

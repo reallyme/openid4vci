@@ -3293,6 +3293,9 @@ pub struct CredentialRequestView<'a> {
     pub credential_response_encryption: ::buffa::MessageFieldView<
         super::super::__buffa::view::CredentialResponseEncryptionView<'a>,
     >,
+    /// Field 4: `reallyme_zk_v1_issuance`
+    pub reallyme_zk_v1_issuance:
+        ::buffa::MessageFieldView<super::super::__buffa::view::ReallyMeZkV1IssuanceRequestView<'a>>,
     pub __buffa_unknown_fields: ::buffa::UnknownFieldsView<'a>,
 }
 impl<'a> ::buffa::MessageView<'a> for CredentialRequestView<'a> {
@@ -3388,6 +3391,27 @@ impl<'a> ::buffa::MessageView<'a> for CredentialRequestView<'a> {
                     }
                 }
             }
+            4u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                let __sub_ctx = ctx.descend()?;
+                let sub = ::buffa::types::borrow_bytes(&mut cur)?;
+                match view.reallyme_zk_v1_issuance.as_mut() {
+                    Some(existing) => {
+                        ::buffa::MessageView::merge_into_view(existing, sub, __sub_ctx)?
+                    }
+                    None => {
+                        view.reallyme_zk_v1_issuance = ::buffa::MessageFieldView::set(
+                            <super::super::__buffa::view::ReallyMeZkV1IssuanceRequestView as ::buffa::MessageView>::decode_view_ctx(
+                                sub,
+                                __sub_ctx,
+                            )?,
+                        );
+                    }
+                }
+            }
             _ => {
                 ::buffa::encoding::skip_field_depth(tag, &mut cur, ctx.depth())?;
                 let span_len = before_tag.len() - cur.len();
@@ -3432,6 +3456,13 @@ impl<'a> ::buffa::MessageView<'a> for CredentialRequestView<'a> {
                 >::some(v.to_owned_from_source(__buffa_src)?),
                 None => ::buffa::MessageField::none(),
             },
+            reallyme_zk_v1_issuance: match self.reallyme_zk_v1_issuance.as_option() {
+                Some(v) => ::buffa::MessageField::<
+                    super::super::ReallyMeZkV1IssuanceRequest,
+                    ::buffa::Inline<super::super::ReallyMeZkV1IssuanceRequest>,
+                >::some(v.to_owned_from_source(__buffa_src)?),
+                None => ::buffa::MessageField::none(),
+            },
             __buffa_unknown_fields: self.__buffa_unknown_fields.to_owned()?.into(),
             ..::core::default::Default::default()
         })
@@ -3464,6 +3495,13 @@ impl<'a> ::buffa::ViewEncode<'a> for CredentialRequestView<'a> {
             size +=
                 1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
         }
+        if self.reallyme_zk_v1_issuance.is_set() {
+            let __slot = __cache.reserve();
+            let inner_size = self.reallyme_zk_v1_issuance.compute_size(__cache);
+            __cache.set(__slot, inner_size);
+            size +=
+                1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
+        }
         size += self.__buffa_unknown_fields.encoded_len() as u64;
         ::buffa::saturate_size(size)
     }
@@ -3482,6 +3520,10 @@ impl<'a> ::buffa::ViewEncode<'a> for CredentialRequestView<'a> {
         if self.credential_response_encryption.is_set() {
             ::buffa::types::put_len_delimited_header(3u32, u64::from(__cache.consume_next()), buf);
             self.credential_response_encryption.write_to(__cache, buf);
+        }
+        if self.reallyme_zk_v1_issuance.is_set() {
+            ::buffa::types::put_len_delimited_header(4u32, u64::from(__cache.consume_next()), buf);
+            self.reallyme_zk_v1_issuance.write_to(__cache, buf);
         }
         self.__buffa_unknown_fields.write_to(buf);
     }
@@ -3519,6 +3561,11 @@ impl<'__a> ::serde::Serialize for CredentialRequestView<'__a> {
                 self.credential_response_encryption.as_option()
             {
                 __map.serialize_entry("credentialResponseEncryption", __v)?;
+            }
+        }
+        {
+            if let ::core::option::Option::Some(__v) = self.reallyme_zk_v1_issuance.as_option() {
+                __map.serialize_entry("reallymeZkV1Issuance", __v)?;
             }
         }
         __map.end()
@@ -3633,6 +3680,14 @@ impl CredentialRequestOwnedView {
     ) -> &::buffa::MessageFieldView<super::super::__buffa::view::CredentialResponseEncryptionView<'_>>
     {
         &self.0.reborrow().credential_response_encryption
+    }
+    /// Field 4: `reallyme_zk_v1_issuance`
+    #[must_use]
+    pub fn reallyme_zk_v1_issuance(
+        &self,
+    ) -> &::buffa::MessageFieldView<super::super::__buffa::view::ReallyMeZkV1IssuanceRequestView<'_>>
+    {
+        &self.0.reborrow().reallyme_zk_v1_issuance
     }
 }
 impl ::core::convert::From<::buffa::OwnedView<CredentialRequestView<'static>>>
@@ -3993,6 +4048,1461 @@ impl ::buffa::HasMessageView for super::super::CredentialEnvelope {
     type ViewHandle = CredentialEnvelopeOwnedView;
 }
 impl ::serde::Serialize for CredentialEnvelopeOwnedView {
+    fn serialize<__S: ::serde::Serializer>(
+        &self,
+        __s: __S,
+    ) -> ::core::result::Result<__S::Ok, __S::Error> {
+        ::serde::Serialize::serialize(&self.0, __s)
+    }
+}
+/// The custom reallyme_zk_v1 OpenID4VCI credential string is unpadded base64url
+/// of this message. Its version, fixed-width proof fields, and request
+/// reconciliation fields must be checked before any embedded SSI message is
+/// trusted or stored.
+#[derive(Clone, Default)]
+pub struct ReallyMeZkV1CredentialView<'a> {
+    /// Field 1: `version`
+    pub version: u32,
+    /// reallyme:sensitive
+    ///
+    /// Field 2: `credential_envelope_pb`
+    pub credential_envelope_pb: &'a [u8],
+    /// reallyme:sensitive
+    ///
+    /// Field 3: `status_list_pb`
+    pub status_list_pb: &'a [u8],
+    /// Field 4: `proof_binding`
+    pub proof_binding:
+        ::buffa::MessageFieldView<super::super::__buffa::view::ReallyMeZkV1ProofBindingView<'a>>,
+    /// reallyme:sensitive
+    ///
+    /// Field 5: `verified_holder_public_key`
+    pub verified_holder_public_key: &'a [u8],
+    /// Field 6: `lineage_tag_commitment`
+    pub lineage_tag_commitment: &'a [u8],
+    /// Field 7: `wallet_opening_commitment`
+    pub wallet_opening_commitment: &'a [u8],
+    /// Field 8: `opaque_lineage_leaf`
+    pub opaque_lineage_leaf: &'a [u8],
+    pub __buffa_unknown_fields: ::buffa::UnknownFieldsView<'a>,
+}
+impl<'a> ::core::fmt::Debug for ReallyMeZkV1CredentialView<'a> {
+    fn fmt(&self, formatter: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        formatter.write_str("ReallyMeZkV1CredentialView(<redacted>)")
+    }
+}
+impl<'a> ::buffa::MessageView<'a> for ReallyMeZkV1CredentialView<'a> {
+    type Owned = super::super::ReallyMeZkV1Credential;
+    fn decode_view(buf: &'a [u8]) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        let __limit = ::core::cell::Cell::new(::buffa::DEFAULT_UNKNOWN_FIELD_LIMIT);
+        let __elem = ::core::cell::Cell::new(::buffa::DEFAULT_ELEMENT_MEMORY_LIMIT);
+        <Self as ::buffa::MessageView>::decode_view_ctx(
+            buf,
+            ::buffa::DecodeContext::new(::buffa::RECURSION_LIMIT, &__limit)
+                .with_element_memory(&__elem),
+        )
+    }
+    fn decode_view_with_ctx(
+        buf: &'a [u8],
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        <Self as ::buffa::MessageView>::decode_view_ctx(buf, ctx)
+    }
+    #[inline]
+    fn merge_view_field(
+        &mut self,
+        tag: ::buffa::encoding::Tag,
+        cur: &'a [u8],
+        before_tag: &'a [u8],
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<&'a [u8], ::buffa::DecodeError> {
+        let _ = ctx;
+        #[allow(unused_variables)]
+        let view = self;
+        let mut cur = cur;
+        match tag.field_number() {
+            1u32 => {
+                ::buffa::encoding::check_wire_type(tag, ::buffa::encoding::WireType::Varint)?;
+                view.version = ::buffa::types::decode_uint32(&mut cur)?;
+            }
+            2u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.credential_envelope_pb = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            3u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.status_list_pb = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            4u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                let __sub_ctx = ctx.descend()?;
+                let sub = ::buffa::types::borrow_bytes(&mut cur)?;
+                match view.proof_binding.as_mut() {
+                    Some(existing) => {
+                        ::buffa::MessageView::merge_into_view(existing, sub, __sub_ctx)?
+                    }
+                    None => {
+                        view.proof_binding = ::buffa::MessageFieldView::set(
+                            <super::super::__buffa::view::ReallyMeZkV1ProofBindingView as ::buffa::MessageView>::decode_view_ctx(
+                                sub,
+                                __sub_ctx,
+                            )?,
+                        );
+                    }
+                }
+            }
+            5u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.verified_holder_public_key = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            6u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.lineage_tag_commitment = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            7u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.wallet_opening_commitment = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            8u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.opaque_lineage_leaf = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            _ => {
+                ::buffa::encoding::skip_field_depth(tag, &mut cur, ctx.depth())?;
+                let span_len = before_tag.len() - cur.len();
+                view.__buffa_unknown_fields
+                    .push_record(before_tag, span_len, ctx)?;
+            }
+        }
+        ::core::result::Result::Ok(cur)
+    }
+    fn to_owned_message(
+        &self,
+    ) -> ::core::result::Result<super::super::ReallyMeZkV1Credential, ::buffa::DecodeError> {
+        self.to_owned_from_source(None)
+    }
+    #[allow(clippy::useless_conversion, clippy::needless_update)]
+    fn to_owned_from_source(
+        &self,
+        __buffa_src: ::core::option::Option<&::buffa::bytes::Bytes>,
+    ) -> ::core::result::Result<super::super::ReallyMeZkV1Credential, ::buffa::DecodeError> {
+        #[allow(unused_imports)]
+        use ::buffa::alloc::string::ToString as _;
+        let _ = __buffa_src;
+        ::core::result::Result::Ok(super::super::ReallyMeZkV1Credential {
+            version: self.version,
+            credential_envelope_pb: (self.credential_envelope_pb).to_vec(),
+            status_list_pb: (self.status_list_pb).to_vec(),
+            proof_binding: match self.proof_binding.as_option() {
+                Some(v) => ::buffa::MessageField::<
+                    super::super::ReallyMeZkV1ProofBinding,
+                    ::buffa::Inline<super::super::ReallyMeZkV1ProofBinding>,
+                >::some(v.to_owned_from_source(__buffa_src)?),
+                None => ::buffa::MessageField::none(),
+            },
+            verified_holder_public_key: (self.verified_holder_public_key).to_vec(),
+            lineage_tag_commitment: (self.lineage_tag_commitment).to_vec(),
+            wallet_opening_commitment: (self.wallet_opening_commitment).to_vec(),
+            opaque_lineage_leaf: (self.opaque_lineage_leaf).to_vec(),
+            __buffa_unknown_fields: self.__buffa_unknown_fields.to_owned()?.into(),
+            ..::core::default::Default::default()
+        })
+    }
+}
+impl<'a> ::buffa::ViewEncode<'a> for ReallyMeZkV1CredentialView<'a> {
+    #[allow(clippy::needless_borrow, clippy::let_and_return)]
+    fn compute_size(&self, __cache: &mut ::buffa::SizeCache) -> u32 {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        let mut size = 0u64;
+        if self.version != 0u32 {
+            size += 1u64 + ::buffa::types::uint32_encoded_len(self.version) as u64;
+        }
+        if !self.credential_envelope_pb.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.credential_envelope_pb) as u64;
+        }
+        if !self.status_list_pb.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.status_list_pb) as u64;
+        }
+        if self.proof_binding.is_set() {
+            let __slot = __cache.reserve();
+            let inner_size = self.proof_binding.compute_size(__cache);
+            __cache.set(__slot, inner_size);
+            size +=
+                1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
+        }
+        if !self.verified_holder_public_key.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.verified_holder_public_key) as u64;
+        }
+        if !self.lineage_tag_commitment.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.lineage_tag_commitment) as u64;
+        }
+        if !self.wallet_opening_commitment.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.wallet_opening_commitment) as u64;
+        }
+        if !self.opaque_lineage_leaf.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.opaque_lineage_leaf) as u64;
+        }
+        size += self.__buffa_unknown_fields.encoded_len() as u64;
+        ::buffa::saturate_size(size)
+    }
+    #[allow(clippy::needless_borrow)]
+    fn write_to(&self, __cache: &mut ::buffa::SizeCache, buf: &mut impl ::buffa::EncodeSink) {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        if self.version != 0u32 {
+            ::buffa::types::put_uint32_field(1u32, self.version, buf);
+        }
+        if !self.credential_envelope_pb.is_empty() {
+            ::buffa::types::put_shared_bytes_field(2u32, &self.credential_envelope_pb, buf);
+        }
+        if !self.status_list_pb.is_empty() {
+            ::buffa::types::put_shared_bytes_field(3u32, &self.status_list_pb, buf);
+        }
+        if self.proof_binding.is_set() {
+            ::buffa::types::put_len_delimited_header(4u32, u64::from(__cache.consume_next()), buf);
+            self.proof_binding.write_to(__cache, buf);
+        }
+        if !self.verified_holder_public_key.is_empty() {
+            ::buffa::types::put_shared_bytes_field(5u32, &self.verified_holder_public_key, buf);
+        }
+        if !self.lineage_tag_commitment.is_empty() {
+            ::buffa::types::put_shared_bytes_field(6u32, &self.lineage_tag_commitment, buf);
+        }
+        if !self.wallet_opening_commitment.is_empty() {
+            ::buffa::types::put_shared_bytes_field(7u32, &self.wallet_opening_commitment, buf);
+        }
+        if !self.opaque_lineage_leaf.is_empty() {
+            ::buffa::types::put_shared_bytes_field(8u32, &self.opaque_lineage_leaf, buf);
+        }
+        self.__buffa_unknown_fields.write_to(buf);
+    }
+}
+/// Serializes this view as protobuf JSON.
+///
+/// Implicit-presence fields with default values are omitted, `required`
+/// fields are always emitted, explicit-presence (`optional`) fields are
+/// emitted only when set, bytes fields are base64-encoded, and enum
+/// values are their proto name strings.
+///
+/// This impl uses `serialize_map(None)` because the number of emitted
+/// fields depends on default-omission rules; serializers that require
+/// known map lengths (e.g. `bincode`) will return a runtime error.
+/// Use the owned message type for those formats.
+impl<'__a> ::serde::Serialize for ReallyMeZkV1CredentialView<'__a> {
+    fn serialize<__S: ::serde::Serializer>(
+        &self,
+        __s: __S,
+    ) -> ::core::result::Result<__S::Ok, __S::Error> {
+        use ::serde::ser::SerializeMap as _;
+        let mut __map = __s.serialize_map(::core::option::Option::None)?;
+        if !::buffa::json_helpers::skip_if::is_zero_u32(&self.version) {
+            __map.serialize_entry("version", &::buffa::json_helpers::ProtoJson(&self.version))?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.credential_envelope_pb) {
+            __map.serialize_entry(
+                "credentialEnvelopePb",
+                &::buffa::json_helpers::BytesJson(self.credential_envelope_pb),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.status_list_pb) {
+            __map.serialize_entry(
+                "statusListPb",
+                &::buffa::json_helpers::BytesJson(self.status_list_pb),
+            )?;
+        }
+        {
+            if let ::core::option::Option::Some(__v) = self.proof_binding.as_option() {
+                __map.serialize_entry("proofBinding", __v)?;
+            }
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.verified_holder_public_key) {
+            __map.serialize_entry(
+                "verifiedHolderPublicKey",
+                &::buffa::json_helpers::BytesJson(self.verified_holder_public_key),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.lineage_tag_commitment) {
+            __map.serialize_entry(
+                "lineageTagCommitment",
+                &::buffa::json_helpers::BytesJson(self.lineage_tag_commitment),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.wallet_opening_commitment) {
+            __map.serialize_entry(
+                "walletOpeningCommitment",
+                &::buffa::json_helpers::BytesJson(self.wallet_opening_commitment),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.opaque_lineage_leaf) {
+            __map.serialize_entry(
+                "opaqueLineageLeaf",
+                &::buffa::json_helpers::BytesJson(self.opaque_lineage_leaf),
+            )?;
+        }
+        __map.end()
+    }
+}
+impl<'a> ::buffa::MessageName for ReallyMeZkV1CredentialView<'a> {
+    const PACKAGE: &'static str = "reallyme.openid4vci.v1";
+    const NAME: &'static str = "ReallyMeZkV1Credential";
+    const FULL_NAME: &'static str = "reallyme.openid4vci.v1.ReallyMeZkV1Credential";
+    const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1Credential";
+}
+::buffa::impl_default_view_instance!(ReallyMeZkV1CredentialView);
+::buffa::impl_view_reborrow!(ReallyMeZkV1CredentialView);
+/** Self-contained, `'static` owned view of a `ReallyMeZkV1Credential` message.
+
+Wraps [`::buffa::OwnedView`]`<`[`ReallyMeZkV1CredentialView`]`<'static>>`: the decoded view and the [`::buffa::bytes::Bytes`] buffer it borrows from travel together, so the handle is `'static` and `Send + Sync` — suitable for async handlers, spawned tasks, and anywhere a `'static` bound is required.
+
+Field accessors return borrows tied to `&self`. Use [`Self::view`] to get the full [`ReallyMeZkV1CredentialView`] when you need struct patterns, iteration helpers, or to pass the view to lifetime-parameterised code.*/
+#[derive(Clone)]
+pub struct ReallyMeZkV1CredentialOwnedView(::buffa::OwnedView<ReallyMeZkV1CredentialView<'static>>);
+impl ::core::fmt::Debug for ReallyMeZkV1CredentialOwnedView {
+    fn fmt(&self, formatter: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        formatter.write_str("ReallyMeZkV1CredentialOwnedView(<redacted>)")
+    }
+}
+impl ReallyMeZkV1CredentialOwnedView {
+    /// Decode an owned view from a [`::buffa::bytes::Bytes`] buffer.
+    ///
+    /// The view borrows directly from the buffer's data; the buffer is
+    /// retained inside the returned handle.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`::buffa::DecodeError`] if the buffer contains invalid
+    /// protobuf data.
+    pub fn decode(
+        bytes: ::buffa::bytes::Bytes,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        ::core::result::Result::Ok(ReallyMeZkV1CredentialOwnedView(::buffa::OwnedView::decode(
+            bytes,
+        )?))
+    }
+    /// Decode with custom [`::buffa::DecodeOptions`] (recursion limit,
+    /// max message size).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`::buffa::DecodeError`] if the buffer is invalid or
+    /// exceeds the configured limits.
+    pub fn decode_with_options(
+        bytes: ::buffa::bytes::Bytes,
+        opts: &::buffa::DecodeOptions,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        ::core::result::Result::Ok(ReallyMeZkV1CredentialOwnedView(
+            ::buffa::OwnedView::decode_with_options(bytes, opts)?,
+        ))
+    }
+    /// Build from an owned message via an encode → decode round-trip.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`::buffa::DecodeError::MessageTooLarge`] if the
+    /// message's encoded size exceeds the 2 GiB protobuf limit, or
+    /// another [`::buffa::DecodeError`] if the re-encoded bytes are
+    /// somehow invalid (should not happen for well-formed messages).
+    pub fn from_owned(
+        msg: &super::super::ReallyMeZkV1Credential,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        ::core::result::Result::Ok(ReallyMeZkV1CredentialOwnedView(
+            ::buffa::OwnedView::from_owned(msg)?,
+        ))
+    }
+    /// Borrow the full [`ReallyMeZkV1CredentialView`] with its lifetime tied to `&self`.
+    #[must_use]
+    pub fn view(&self) -> &ReallyMeZkV1CredentialView<'_> {
+        self.0.reborrow()
+    }
+    /// Convert to the owned message type.
+    ///
+    /// Infallible: this type's constructors wire-decode their
+    /// buffer, and a view produced by wire decoding always
+    /// converts. Delegates to [`::buffa::OwnedView::to_owned_message`],
+    /// whose contract also governs handles converted from a raw
+    /// [`::buffa::OwnedView`].
+    #[must_use]
+    pub fn to_owned_message(&self) -> super::super::ReallyMeZkV1Credential {
+        self.0.to_owned_message()
+    }
+    /// The underlying bytes buffer.
+    #[must_use]
+    pub fn bytes(&self) -> &::buffa::bytes::Bytes {
+        self.0.bytes()
+    }
+    /// Consume the handle, returning the underlying bytes buffer.
+    #[must_use]
+    pub fn into_bytes(self) -> ::buffa::bytes::Bytes {
+        self.0.into_bytes()
+    }
+    /// Field 1: `version`
+    #[must_use]
+    pub fn version(&self) -> u32 {
+        self.0.reborrow().version
+    }
+    /// reallyme:sensitive
+    ///
+    /// Field 2: `credential_envelope_pb`
+    #[must_use]
+    pub fn credential_envelope_pb(&self) -> &'_ [u8] {
+        self.0.reborrow().credential_envelope_pb
+    }
+    /// reallyme:sensitive
+    ///
+    /// Field 3: `status_list_pb`
+    #[must_use]
+    pub fn status_list_pb(&self) -> &'_ [u8] {
+        self.0.reborrow().status_list_pb
+    }
+    /// Field 4: `proof_binding`
+    #[must_use]
+    pub fn proof_binding(
+        &self,
+    ) -> &::buffa::MessageFieldView<super::super::__buffa::view::ReallyMeZkV1ProofBindingView<'_>>
+    {
+        &self.0.reborrow().proof_binding
+    }
+    /// reallyme:sensitive
+    ///
+    /// Field 5: `verified_holder_public_key`
+    #[must_use]
+    pub fn verified_holder_public_key(&self) -> &'_ [u8] {
+        self.0.reborrow().verified_holder_public_key
+    }
+    /// Field 6: `lineage_tag_commitment`
+    #[must_use]
+    pub fn lineage_tag_commitment(&self) -> &'_ [u8] {
+        self.0.reborrow().lineage_tag_commitment
+    }
+    /// Field 7: `wallet_opening_commitment`
+    #[must_use]
+    pub fn wallet_opening_commitment(&self) -> &'_ [u8] {
+        self.0.reborrow().wallet_opening_commitment
+    }
+    /// Field 8: `opaque_lineage_leaf`
+    #[must_use]
+    pub fn opaque_lineage_leaf(&self) -> &'_ [u8] {
+        self.0.reborrow().opaque_lineage_leaf
+    }
+}
+impl ::core::convert::From<::buffa::OwnedView<ReallyMeZkV1CredentialView<'static>>>
+    for ReallyMeZkV1CredentialOwnedView
+{
+    fn from(inner: ::buffa::OwnedView<ReallyMeZkV1CredentialView<'static>>) -> Self {
+        ReallyMeZkV1CredentialOwnedView(inner)
+    }
+}
+impl ::core::convert::From<ReallyMeZkV1CredentialOwnedView>
+    for ::buffa::OwnedView<ReallyMeZkV1CredentialView<'static>>
+{
+    fn from(wrapper: ReallyMeZkV1CredentialOwnedView) -> Self {
+        wrapper.0
+    }
+}
+impl ::core::convert::AsRef<::buffa::OwnedView<ReallyMeZkV1CredentialView<'static>>>
+    for ReallyMeZkV1CredentialOwnedView
+{
+    fn as_ref(&self) -> &::buffa::OwnedView<ReallyMeZkV1CredentialView<'static>> {
+        &self.0
+    }
+}
+impl ::buffa::HasMessageView for super::super::ReallyMeZkV1Credential {
+    type View<'a> = ReallyMeZkV1CredentialView<'a>;
+    type ViewHandle = ReallyMeZkV1CredentialOwnedView;
+}
+impl ::serde::Serialize for ReallyMeZkV1CredentialOwnedView {
+    fn serialize<__S: ::serde::Serializer>(
+        &self,
+        __s: __S,
+    ) -> ::core::result::Result<__S::Ok, __S::Error> {
+        ::serde::Serialize::serialize(&self.0, __s)
+    }
+}
+#[derive(Clone, Default)]
+pub struct ReallyMeZkV1ProofBindingView<'a> {
+    /// Field 1: `version`
+    pub version: u32,
+    /// Field 2: `envelope_hash`
+    pub envelope_hash: &'a [u8],
+    /// Field 3: `claims_root`
+    pub claims_root: &'a [u8],
+    /// Field 4: `issuer_public_key_x`
+    pub issuer_public_key_x: &'a [u8],
+    /// Field 5: `issuer_public_key_y`
+    pub issuer_public_key_y: &'a [u8],
+    /// Field 6: `subject_public_key_x`
+    pub subject_public_key_x: &'a [u8],
+    /// Field 7: `subject_public_key_y`
+    pub subject_public_key_y: &'a [u8],
+    /// Field 8: `issuer_envelope_signature`
+    pub issuer_envelope_signature: &'a [u8],
+    /// Field 9: `issuer_root_binding_signature`
+    pub issuer_root_binding_signature: &'a [u8],
+    /// Field 10: `issuer_subject_binding_signature`
+    pub issuer_subject_binding_signature: &'a [u8],
+    /// Field 11: `issuance_binding`
+    pub issuance_binding: &'a [u8],
+    /// Field 12: `issuer_validity_status_signature`
+    pub issuer_validity_status_signature: &'a [u8],
+    pub __buffa_unknown_fields: ::buffa::UnknownFieldsView<'a>,
+}
+impl<'a> ::core::fmt::Debug for ReallyMeZkV1ProofBindingView<'a> {
+    fn fmt(&self, formatter: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        formatter.write_str("ReallyMeZkV1ProofBindingView(<redacted>)")
+    }
+}
+impl<'a> ::buffa::MessageView<'a> for ReallyMeZkV1ProofBindingView<'a> {
+    type Owned = super::super::ReallyMeZkV1ProofBinding;
+    fn decode_view(buf: &'a [u8]) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        let __limit = ::core::cell::Cell::new(::buffa::DEFAULT_UNKNOWN_FIELD_LIMIT);
+        let __elem = ::core::cell::Cell::new(::buffa::DEFAULT_ELEMENT_MEMORY_LIMIT);
+        <Self as ::buffa::MessageView>::decode_view_ctx(
+            buf,
+            ::buffa::DecodeContext::new(::buffa::RECURSION_LIMIT, &__limit)
+                .with_element_memory(&__elem),
+        )
+    }
+    fn decode_view_with_ctx(
+        buf: &'a [u8],
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        <Self as ::buffa::MessageView>::decode_view_ctx(buf, ctx)
+    }
+    #[inline]
+    fn merge_view_field(
+        &mut self,
+        tag: ::buffa::encoding::Tag,
+        cur: &'a [u8],
+        before_tag: &'a [u8],
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<&'a [u8], ::buffa::DecodeError> {
+        let _ = ctx;
+        #[allow(unused_variables)]
+        let view = self;
+        let mut cur = cur;
+        match tag.field_number() {
+            1u32 => {
+                ::buffa::encoding::check_wire_type(tag, ::buffa::encoding::WireType::Varint)?;
+                view.version = ::buffa::types::decode_uint32(&mut cur)?;
+            }
+            2u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.envelope_hash = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            3u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.claims_root = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            4u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.issuer_public_key_x = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            5u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.issuer_public_key_y = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            6u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.subject_public_key_x = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            7u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.subject_public_key_y = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            8u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.issuer_envelope_signature = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            9u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.issuer_root_binding_signature = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            10u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.issuer_subject_binding_signature = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            11u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.issuance_binding = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            12u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.issuer_validity_status_signature = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            _ => {
+                ::buffa::encoding::skip_field_depth(tag, &mut cur, ctx.depth())?;
+                let span_len = before_tag.len() - cur.len();
+                view.__buffa_unknown_fields
+                    .push_record(before_tag, span_len, ctx)?;
+            }
+        }
+        ::core::result::Result::Ok(cur)
+    }
+    fn to_owned_message(
+        &self,
+    ) -> ::core::result::Result<super::super::ReallyMeZkV1ProofBinding, ::buffa::DecodeError> {
+        self.to_owned_from_source(None)
+    }
+    #[allow(clippy::useless_conversion, clippy::needless_update)]
+    fn to_owned_from_source(
+        &self,
+        __buffa_src: ::core::option::Option<&::buffa::bytes::Bytes>,
+    ) -> ::core::result::Result<super::super::ReallyMeZkV1ProofBinding, ::buffa::DecodeError> {
+        #[allow(unused_imports)]
+        use ::buffa::alloc::string::ToString as _;
+        let _ = __buffa_src;
+        ::core::result::Result::Ok(super::super::ReallyMeZkV1ProofBinding {
+            version: self.version,
+            envelope_hash: (self.envelope_hash).to_vec(),
+            claims_root: (self.claims_root).to_vec(),
+            issuer_public_key_x: (self.issuer_public_key_x).to_vec(),
+            issuer_public_key_y: (self.issuer_public_key_y).to_vec(),
+            subject_public_key_x: (self.subject_public_key_x).to_vec(),
+            subject_public_key_y: (self.subject_public_key_y).to_vec(),
+            issuer_envelope_signature: (self.issuer_envelope_signature).to_vec(),
+            issuer_root_binding_signature: (self.issuer_root_binding_signature).to_vec(),
+            issuer_subject_binding_signature: (self.issuer_subject_binding_signature).to_vec(),
+            issuance_binding: (self.issuance_binding).to_vec(),
+            issuer_validity_status_signature: (self.issuer_validity_status_signature).to_vec(),
+            __buffa_unknown_fields: self.__buffa_unknown_fields.to_owned()?.into(),
+            ..::core::default::Default::default()
+        })
+    }
+}
+impl<'a> ::buffa::ViewEncode<'a> for ReallyMeZkV1ProofBindingView<'a> {
+    #[allow(clippy::needless_borrow, clippy::let_and_return)]
+    fn compute_size(&self, _cache: &mut ::buffa::SizeCache) -> u32 {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        let mut size = 0u64;
+        if self.version != 0u32 {
+            size += 1u64 + ::buffa::types::uint32_encoded_len(self.version) as u64;
+        }
+        if !self.envelope_hash.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.envelope_hash) as u64;
+        }
+        if !self.claims_root.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.claims_root) as u64;
+        }
+        if !self.issuer_public_key_x.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.issuer_public_key_x) as u64;
+        }
+        if !self.issuer_public_key_y.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.issuer_public_key_y) as u64;
+        }
+        if !self.subject_public_key_x.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.subject_public_key_x) as u64;
+        }
+        if !self.subject_public_key_y.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.subject_public_key_y) as u64;
+        }
+        if !self.issuer_envelope_signature.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.issuer_envelope_signature) as u64;
+        }
+        if !self.issuer_root_binding_signature.is_empty() {
+            size += 1u64
+                + ::buffa::types::bytes_encoded_len(&self.issuer_root_binding_signature) as u64;
+        }
+        if !self.issuer_subject_binding_signature.is_empty() {
+            size += 1u64
+                + ::buffa::types::bytes_encoded_len(&self.issuer_subject_binding_signature) as u64;
+        }
+        if !self.issuance_binding.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.issuance_binding) as u64;
+        }
+        if !self.issuer_validity_status_signature.is_empty() {
+            size += 1u64
+                + ::buffa::types::bytes_encoded_len(&self.issuer_validity_status_signature) as u64;
+        }
+        size += self.__buffa_unknown_fields.encoded_len() as u64;
+        ::buffa::saturate_size(size)
+    }
+    #[allow(clippy::needless_borrow)]
+    fn write_to(&self, _cache: &mut ::buffa::SizeCache, buf: &mut impl ::buffa::EncodeSink) {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        if self.version != 0u32 {
+            ::buffa::types::put_uint32_field(1u32, self.version, buf);
+        }
+        if !self.envelope_hash.is_empty() {
+            ::buffa::types::put_shared_bytes_field(2u32, &self.envelope_hash, buf);
+        }
+        if !self.claims_root.is_empty() {
+            ::buffa::types::put_shared_bytes_field(3u32, &self.claims_root, buf);
+        }
+        if !self.issuer_public_key_x.is_empty() {
+            ::buffa::types::put_shared_bytes_field(4u32, &self.issuer_public_key_x, buf);
+        }
+        if !self.issuer_public_key_y.is_empty() {
+            ::buffa::types::put_shared_bytes_field(5u32, &self.issuer_public_key_y, buf);
+        }
+        if !self.subject_public_key_x.is_empty() {
+            ::buffa::types::put_shared_bytes_field(6u32, &self.subject_public_key_x, buf);
+        }
+        if !self.subject_public_key_y.is_empty() {
+            ::buffa::types::put_shared_bytes_field(7u32, &self.subject_public_key_y, buf);
+        }
+        if !self.issuer_envelope_signature.is_empty() {
+            ::buffa::types::put_shared_bytes_field(8u32, &self.issuer_envelope_signature, buf);
+        }
+        if !self.issuer_root_binding_signature.is_empty() {
+            ::buffa::types::put_shared_bytes_field(9u32, &self.issuer_root_binding_signature, buf);
+        }
+        if !self.issuer_subject_binding_signature.is_empty() {
+            ::buffa::types::put_shared_bytes_field(
+                10u32,
+                &self.issuer_subject_binding_signature,
+                buf,
+            );
+        }
+        if !self.issuance_binding.is_empty() {
+            ::buffa::types::put_shared_bytes_field(11u32, &self.issuance_binding, buf);
+        }
+        if !self.issuer_validity_status_signature.is_empty() {
+            ::buffa::types::put_shared_bytes_field(
+                12u32,
+                &self.issuer_validity_status_signature,
+                buf,
+            );
+        }
+        self.__buffa_unknown_fields.write_to(buf);
+    }
+}
+/// Serializes this view as protobuf JSON.
+///
+/// Implicit-presence fields with default values are omitted, `required`
+/// fields are always emitted, explicit-presence (`optional`) fields are
+/// emitted only when set, bytes fields are base64-encoded, and enum
+/// values are their proto name strings.
+///
+/// This impl uses `serialize_map(None)` because the number of emitted
+/// fields depends on default-omission rules; serializers that require
+/// known map lengths (e.g. `bincode`) will return a runtime error.
+/// Use the owned message type for those formats.
+impl<'__a> ::serde::Serialize for ReallyMeZkV1ProofBindingView<'__a> {
+    fn serialize<__S: ::serde::Serializer>(
+        &self,
+        __s: __S,
+    ) -> ::core::result::Result<__S::Ok, __S::Error> {
+        use ::serde::ser::SerializeMap as _;
+        let mut __map = __s.serialize_map(::core::option::Option::None)?;
+        if !::buffa::json_helpers::skip_if::is_zero_u32(&self.version) {
+            __map.serialize_entry("version", &::buffa::json_helpers::ProtoJson(&self.version))?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.envelope_hash) {
+            __map.serialize_entry(
+                "envelopeHash",
+                &::buffa::json_helpers::BytesJson(self.envelope_hash),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.claims_root) {
+            __map.serialize_entry(
+                "claimsRoot",
+                &::buffa::json_helpers::BytesJson(self.claims_root),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.issuer_public_key_x) {
+            __map.serialize_entry(
+                "issuerPublicKeyX",
+                &::buffa::json_helpers::BytesJson(self.issuer_public_key_x),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.issuer_public_key_y) {
+            __map.serialize_entry(
+                "issuerPublicKeyY",
+                &::buffa::json_helpers::BytesJson(self.issuer_public_key_y),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.subject_public_key_x) {
+            __map.serialize_entry(
+                "subjectPublicKeyX",
+                &::buffa::json_helpers::BytesJson(self.subject_public_key_x),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.subject_public_key_y) {
+            __map.serialize_entry(
+                "subjectPublicKeyY",
+                &::buffa::json_helpers::BytesJson(self.subject_public_key_y),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.issuer_envelope_signature) {
+            __map.serialize_entry(
+                "issuerEnvelopeSignature",
+                &::buffa::json_helpers::BytesJson(self.issuer_envelope_signature),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.issuer_root_binding_signature) {
+            __map.serialize_entry(
+                "issuerRootBindingSignature",
+                &::buffa::json_helpers::BytesJson(self.issuer_root_binding_signature),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.issuer_subject_binding_signature) {
+            __map.serialize_entry(
+                "issuerSubjectBindingSignature",
+                &::buffa::json_helpers::BytesJson(self.issuer_subject_binding_signature),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.issuance_binding) {
+            __map.serialize_entry(
+                "issuanceBinding",
+                &::buffa::json_helpers::BytesJson(self.issuance_binding),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.issuer_validity_status_signature) {
+            __map.serialize_entry(
+                "issuerValidityStatusSignature",
+                &::buffa::json_helpers::BytesJson(self.issuer_validity_status_signature),
+            )?;
+        }
+        __map.end()
+    }
+}
+impl<'a> ::buffa::MessageName for ReallyMeZkV1ProofBindingView<'a> {
+    const PACKAGE: &'static str = "reallyme.openid4vci.v1";
+    const NAME: &'static str = "ReallyMeZkV1ProofBinding";
+    const FULL_NAME: &'static str = "reallyme.openid4vci.v1.ReallyMeZkV1ProofBinding";
+    const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1ProofBinding";
+}
+::buffa::impl_default_view_instance!(ReallyMeZkV1ProofBindingView);
+::buffa::impl_view_reborrow!(ReallyMeZkV1ProofBindingView);
+/** Self-contained, `'static` owned view of a `ReallyMeZkV1ProofBinding` message.
+
+Wraps [`::buffa::OwnedView`]`<`[`ReallyMeZkV1ProofBindingView`]`<'static>>`: the decoded view and the [`::buffa::bytes::Bytes`] buffer it borrows from travel together, so the handle is `'static` and `Send + Sync` — suitable for async handlers, spawned tasks, and anywhere a `'static` bound is required.
+
+Field accessors return borrows tied to `&self`. Use [`Self::view`] to get the full [`ReallyMeZkV1ProofBindingView`] when you need struct patterns, iteration helpers, or to pass the view to lifetime-parameterised code.*/
+#[derive(Clone)]
+pub struct ReallyMeZkV1ProofBindingOwnedView(
+    ::buffa::OwnedView<ReallyMeZkV1ProofBindingView<'static>>,
+);
+impl ::core::fmt::Debug for ReallyMeZkV1ProofBindingOwnedView {
+    fn fmt(&self, formatter: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        formatter.write_str("ReallyMeZkV1ProofBindingOwnedView(<redacted>)")
+    }
+}
+impl ReallyMeZkV1ProofBindingOwnedView {
+    /// Decode an owned view from a [`::buffa::bytes::Bytes`] buffer.
+    ///
+    /// The view borrows directly from the buffer's data; the buffer is
+    /// retained inside the returned handle.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`::buffa::DecodeError`] if the buffer contains invalid
+    /// protobuf data.
+    pub fn decode(
+        bytes: ::buffa::bytes::Bytes,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        ::core::result::Result::Ok(ReallyMeZkV1ProofBindingOwnedView(
+            ::buffa::OwnedView::decode(bytes)?,
+        ))
+    }
+    /// Decode with custom [`::buffa::DecodeOptions`] (recursion limit,
+    /// max message size).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`::buffa::DecodeError`] if the buffer is invalid or
+    /// exceeds the configured limits.
+    pub fn decode_with_options(
+        bytes: ::buffa::bytes::Bytes,
+        opts: &::buffa::DecodeOptions,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        ::core::result::Result::Ok(ReallyMeZkV1ProofBindingOwnedView(
+            ::buffa::OwnedView::decode_with_options(bytes, opts)?,
+        ))
+    }
+    /// Build from an owned message via an encode → decode round-trip.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`::buffa::DecodeError::MessageTooLarge`] if the
+    /// message's encoded size exceeds the 2 GiB protobuf limit, or
+    /// another [`::buffa::DecodeError`] if the re-encoded bytes are
+    /// somehow invalid (should not happen for well-formed messages).
+    pub fn from_owned(
+        msg: &super::super::ReallyMeZkV1ProofBinding,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        ::core::result::Result::Ok(ReallyMeZkV1ProofBindingOwnedView(
+            ::buffa::OwnedView::from_owned(msg)?,
+        ))
+    }
+    /// Borrow the full [`ReallyMeZkV1ProofBindingView`] with its lifetime tied to `&self`.
+    #[must_use]
+    pub fn view(&self) -> &ReallyMeZkV1ProofBindingView<'_> {
+        self.0.reborrow()
+    }
+    /// Convert to the owned message type.
+    ///
+    /// Infallible: this type's constructors wire-decode their
+    /// buffer, and a view produced by wire decoding always
+    /// converts. Delegates to [`::buffa::OwnedView::to_owned_message`],
+    /// whose contract also governs handles converted from a raw
+    /// [`::buffa::OwnedView`].
+    #[must_use]
+    pub fn to_owned_message(&self) -> super::super::ReallyMeZkV1ProofBinding {
+        self.0.to_owned_message()
+    }
+    /// The underlying bytes buffer.
+    #[must_use]
+    pub fn bytes(&self) -> &::buffa::bytes::Bytes {
+        self.0.bytes()
+    }
+    /// Consume the handle, returning the underlying bytes buffer.
+    #[must_use]
+    pub fn into_bytes(self) -> ::buffa::bytes::Bytes {
+        self.0.into_bytes()
+    }
+    /// Field 1: `version`
+    #[must_use]
+    pub fn version(&self) -> u32 {
+        self.0.reborrow().version
+    }
+    /// Field 2: `envelope_hash`
+    #[must_use]
+    pub fn envelope_hash(&self) -> &'_ [u8] {
+        self.0.reborrow().envelope_hash
+    }
+    /// Field 3: `claims_root`
+    #[must_use]
+    pub fn claims_root(&self) -> &'_ [u8] {
+        self.0.reborrow().claims_root
+    }
+    /// Field 4: `issuer_public_key_x`
+    #[must_use]
+    pub fn issuer_public_key_x(&self) -> &'_ [u8] {
+        self.0.reborrow().issuer_public_key_x
+    }
+    /// Field 5: `issuer_public_key_y`
+    #[must_use]
+    pub fn issuer_public_key_y(&self) -> &'_ [u8] {
+        self.0.reborrow().issuer_public_key_y
+    }
+    /// Field 6: `subject_public_key_x`
+    #[must_use]
+    pub fn subject_public_key_x(&self) -> &'_ [u8] {
+        self.0.reborrow().subject_public_key_x
+    }
+    /// Field 7: `subject_public_key_y`
+    #[must_use]
+    pub fn subject_public_key_y(&self) -> &'_ [u8] {
+        self.0.reborrow().subject_public_key_y
+    }
+    /// Field 8: `issuer_envelope_signature`
+    #[must_use]
+    pub fn issuer_envelope_signature(&self) -> &'_ [u8] {
+        self.0.reborrow().issuer_envelope_signature
+    }
+    /// Field 9: `issuer_root_binding_signature`
+    #[must_use]
+    pub fn issuer_root_binding_signature(&self) -> &'_ [u8] {
+        self.0.reborrow().issuer_root_binding_signature
+    }
+    /// Field 10: `issuer_subject_binding_signature`
+    #[must_use]
+    pub fn issuer_subject_binding_signature(&self) -> &'_ [u8] {
+        self.0.reborrow().issuer_subject_binding_signature
+    }
+    /// Field 11: `issuance_binding`
+    #[must_use]
+    pub fn issuance_binding(&self) -> &'_ [u8] {
+        self.0.reborrow().issuance_binding
+    }
+    /// Field 12: `issuer_validity_status_signature`
+    #[must_use]
+    pub fn issuer_validity_status_signature(&self) -> &'_ [u8] {
+        self.0.reborrow().issuer_validity_status_signature
+    }
+}
+impl ::core::convert::From<::buffa::OwnedView<ReallyMeZkV1ProofBindingView<'static>>>
+    for ReallyMeZkV1ProofBindingOwnedView
+{
+    fn from(inner: ::buffa::OwnedView<ReallyMeZkV1ProofBindingView<'static>>) -> Self {
+        ReallyMeZkV1ProofBindingOwnedView(inner)
+    }
+}
+impl ::core::convert::From<ReallyMeZkV1ProofBindingOwnedView>
+    for ::buffa::OwnedView<ReallyMeZkV1ProofBindingView<'static>>
+{
+    fn from(wrapper: ReallyMeZkV1ProofBindingOwnedView) -> Self {
+        wrapper.0
+    }
+}
+impl ::core::convert::AsRef<::buffa::OwnedView<ReallyMeZkV1ProofBindingView<'static>>>
+    for ReallyMeZkV1ProofBindingOwnedView
+{
+    fn as_ref(&self) -> &::buffa::OwnedView<ReallyMeZkV1ProofBindingView<'static>> {
+        &self.0
+    }
+}
+impl ::buffa::HasMessageView for super::super::ReallyMeZkV1ProofBinding {
+    type View<'a> = ReallyMeZkV1ProofBindingView<'a>;
+    type ViewHandle = ReallyMeZkV1ProofBindingOwnedView;
+}
+impl ::serde::Serialize for ReallyMeZkV1ProofBindingOwnedView {
+    fn serialize<__S: ::serde::Serializer>(
+        &self,
+        __s: __S,
+    ) -> ::core::result::Result<__S::Ok, __S::Error> {
+        ::serde::Serialize::serialize(&self.0, __s)
+    }
+}
+/// Wallet-prepared issuance intent for reallyme_zk_v1 credentials. The wallet
+/// keeps salted private openings locally and sends only the public root plus
+/// non-secret reconciliation commitments. The issuer compares every field with
+/// the response container it returns; the wallet independently derives the
+/// commitments from its private openings before accepting the response.
+#[derive(Clone, Default)]
+pub struct ReallyMeZkV1IssuanceRequestView<'a> {
+    /// Field 1: `version`
+    pub version: u32,
+    /// Field 2: `claims_root`
+    pub claims_root: &'a [u8],
+    /// reallyme:sensitive
+    ///
+    /// Field 3: `verified_holder_public_key`
+    pub verified_holder_public_key: &'a [u8],
+    /// Field 4: `lineage_tag_commitment`
+    pub lineage_tag_commitment: &'a [u8],
+    /// Field 5: `wallet_opening_commitment`
+    pub wallet_opening_commitment: &'a [u8],
+    /// Field 6: `opaque_lineage_leaf`
+    pub opaque_lineage_leaf: &'a [u8],
+    pub __buffa_unknown_fields: ::buffa::UnknownFieldsView<'a>,
+}
+impl<'a> ::core::fmt::Debug for ReallyMeZkV1IssuanceRequestView<'a> {
+    fn fmt(&self, formatter: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        formatter.write_str("ReallyMeZkV1IssuanceRequestView(<redacted>)")
+    }
+}
+impl<'a> ::buffa::MessageView<'a> for ReallyMeZkV1IssuanceRequestView<'a> {
+    type Owned = super::super::ReallyMeZkV1IssuanceRequest;
+    fn decode_view(buf: &'a [u8]) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        let __limit = ::core::cell::Cell::new(::buffa::DEFAULT_UNKNOWN_FIELD_LIMIT);
+        let __elem = ::core::cell::Cell::new(::buffa::DEFAULT_ELEMENT_MEMORY_LIMIT);
+        <Self as ::buffa::MessageView>::decode_view_ctx(
+            buf,
+            ::buffa::DecodeContext::new(::buffa::RECURSION_LIMIT, &__limit)
+                .with_element_memory(&__elem),
+        )
+    }
+    fn decode_view_with_ctx(
+        buf: &'a [u8],
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        <Self as ::buffa::MessageView>::decode_view_ctx(buf, ctx)
+    }
+    #[inline]
+    fn merge_view_field(
+        &mut self,
+        tag: ::buffa::encoding::Tag,
+        cur: &'a [u8],
+        before_tag: &'a [u8],
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<&'a [u8], ::buffa::DecodeError> {
+        let _ = ctx;
+        #[allow(unused_variables)]
+        let view = self;
+        let mut cur = cur;
+        match tag.field_number() {
+            1u32 => {
+                ::buffa::encoding::check_wire_type(tag, ::buffa::encoding::WireType::Varint)?;
+                view.version = ::buffa::types::decode_uint32(&mut cur)?;
+            }
+            2u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.claims_root = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            3u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.verified_holder_public_key = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            4u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.lineage_tag_commitment = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            5u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.wallet_opening_commitment = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            6u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                view.opaque_lineage_leaf = ::buffa::types::borrow_bytes(&mut cur)?;
+            }
+            _ => {
+                ::buffa::encoding::skip_field_depth(tag, &mut cur, ctx.depth())?;
+                let span_len = before_tag.len() - cur.len();
+                view.__buffa_unknown_fields
+                    .push_record(before_tag, span_len, ctx)?;
+            }
+        }
+        ::core::result::Result::Ok(cur)
+    }
+    fn to_owned_message(
+        &self,
+    ) -> ::core::result::Result<super::super::ReallyMeZkV1IssuanceRequest, ::buffa::DecodeError>
+    {
+        self.to_owned_from_source(None)
+    }
+    #[allow(clippy::useless_conversion, clippy::needless_update)]
+    fn to_owned_from_source(
+        &self,
+        __buffa_src: ::core::option::Option<&::buffa::bytes::Bytes>,
+    ) -> ::core::result::Result<super::super::ReallyMeZkV1IssuanceRequest, ::buffa::DecodeError>
+    {
+        #[allow(unused_imports)]
+        use ::buffa::alloc::string::ToString as _;
+        let _ = __buffa_src;
+        ::core::result::Result::Ok(super::super::ReallyMeZkV1IssuanceRequest {
+            version: self.version,
+            claims_root: (self.claims_root).to_vec(),
+            verified_holder_public_key: (self.verified_holder_public_key).to_vec(),
+            lineage_tag_commitment: (self.lineage_tag_commitment).to_vec(),
+            wallet_opening_commitment: (self.wallet_opening_commitment).to_vec(),
+            opaque_lineage_leaf: (self.opaque_lineage_leaf).to_vec(),
+            __buffa_unknown_fields: self.__buffa_unknown_fields.to_owned()?.into(),
+            ..::core::default::Default::default()
+        })
+    }
+}
+impl<'a> ::buffa::ViewEncode<'a> for ReallyMeZkV1IssuanceRequestView<'a> {
+    #[allow(clippy::needless_borrow, clippy::let_and_return)]
+    fn compute_size(&self, _cache: &mut ::buffa::SizeCache) -> u32 {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        let mut size = 0u64;
+        if self.version != 0u32 {
+            size += 1u64 + ::buffa::types::uint32_encoded_len(self.version) as u64;
+        }
+        if !self.claims_root.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.claims_root) as u64;
+        }
+        if !self.verified_holder_public_key.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.verified_holder_public_key) as u64;
+        }
+        if !self.lineage_tag_commitment.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.lineage_tag_commitment) as u64;
+        }
+        if !self.wallet_opening_commitment.is_empty() {
+            size +=
+                1u64 + ::buffa::types::bytes_encoded_len(&self.wallet_opening_commitment) as u64;
+        }
+        if !self.opaque_lineage_leaf.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.opaque_lineage_leaf) as u64;
+        }
+        size += self.__buffa_unknown_fields.encoded_len() as u64;
+        ::buffa::saturate_size(size)
+    }
+    #[allow(clippy::needless_borrow)]
+    fn write_to(&self, _cache: &mut ::buffa::SizeCache, buf: &mut impl ::buffa::EncodeSink) {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        if self.version != 0u32 {
+            ::buffa::types::put_uint32_field(1u32, self.version, buf);
+        }
+        if !self.claims_root.is_empty() {
+            ::buffa::types::put_shared_bytes_field(2u32, &self.claims_root, buf);
+        }
+        if !self.verified_holder_public_key.is_empty() {
+            ::buffa::types::put_shared_bytes_field(3u32, &self.verified_holder_public_key, buf);
+        }
+        if !self.lineage_tag_commitment.is_empty() {
+            ::buffa::types::put_shared_bytes_field(4u32, &self.lineage_tag_commitment, buf);
+        }
+        if !self.wallet_opening_commitment.is_empty() {
+            ::buffa::types::put_shared_bytes_field(5u32, &self.wallet_opening_commitment, buf);
+        }
+        if !self.opaque_lineage_leaf.is_empty() {
+            ::buffa::types::put_shared_bytes_field(6u32, &self.opaque_lineage_leaf, buf);
+        }
+        self.__buffa_unknown_fields.write_to(buf);
+    }
+}
+/// Serializes this view as protobuf JSON.
+///
+/// Implicit-presence fields with default values are omitted, `required`
+/// fields are always emitted, explicit-presence (`optional`) fields are
+/// emitted only when set, bytes fields are base64-encoded, and enum
+/// values are their proto name strings.
+///
+/// This impl uses `serialize_map(None)` because the number of emitted
+/// fields depends on default-omission rules; serializers that require
+/// known map lengths (e.g. `bincode`) will return a runtime error.
+/// Use the owned message type for those formats.
+impl<'__a> ::serde::Serialize for ReallyMeZkV1IssuanceRequestView<'__a> {
+    fn serialize<__S: ::serde::Serializer>(
+        &self,
+        __s: __S,
+    ) -> ::core::result::Result<__S::Ok, __S::Error> {
+        use ::serde::ser::SerializeMap as _;
+        let mut __map = __s.serialize_map(::core::option::Option::None)?;
+        if !::buffa::json_helpers::skip_if::is_zero_u32(&self.version) {
+            __map.serialize_entry("version", &::buffa::json_helpers::ProtoJson(&self.version))?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.claims_root) {
+            __map.serialize_entry(
+                "claimsRoot",
+                &::buffa::json_helpers::BytesJson(self.claims_root),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.verified_holder_public_key) {
+            __map.serialize_entry(
+                "verifiedHolderPublicKey",
+                &::buffa::json_helpers::BytesJson(self.verified_holder_public_key),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.lineage_tag_commitment) {
+            __map.serialize_entry(
+                "lineageTagCommitment",
+                &::buffa::json_helpers::BytesJson(self.lineage_tag_commitment),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.wallet_opening_commitment) {
+            __map.serialize_entry(
+                "walletOpeningCommitment",
+                &::buffa::json_helpers::BytesJson(self.wallet_opening_commitment),
+            )?;
+        }
+        if !::buffa::json_helpers::skip_if::is_empty_bytes(self.opaque_lineage_leaf) {
+            __map.serialize_entry(
+                "opaqueLineageLeaf",
+                &::buffa::json_helpers::BytesJson(self.opaque_lineage_leaf),
+            )?;
+        }
+        __map.end()
+    }
+}
+impl<'a> ::buffa::MessageName for ReallyMeZkV1IssuanceRequestView<'a> {
+    const PACKAGE: &'static str = "reallyme.openid4vci.v1";
+    const NAME: &'static str = "ReallyMeZkV1IssuanceRequest";
+    const FULL_NAME: &'static str = "reallyme.openid4vci.v1.ReallyMeZkV1IssuanceRequest";
+    const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.ReallyMeZkV1IssuanceRequest";
+}
+::buffa::impl_default_view_instance!(ReallyMeZkV1IssuanceRequestView);
+::buffa::impl_view_reborrow!(ReallyMeZkV1IssuanceRequestView);
+/** Self-contained, `'static` owned view of a `ReallyMeZkV1IssuanceRequest` message.
+
+Wraps [`::buffa::OwnedView`]`<`[`ReallyMeZkV1IssuanceRequestView`]`<'static>>`: the decoded view and the [`::buffa::bytes::Bytes`] buffer it borrows from travel together, so the handle is `'static` and `Send + Sync` — suitable for async handlers, spawned tasks, and anywhere a `'static` bound is required.
+
+Field accessors return borrows tied to `&self`. Use [`Self::view`] to get the full [`ReallyMeZkV1IssuanceRequestView`] when you need struct patterns, iteration helpers, or to pass the view to lifetime-parameterised code.*/
+#[derive(Clone)]
+pub struct ReallyMeZkV1IssuanceRequestOwnedView(
+    ::buffa::OwnedView<ReallyMeZkV1IssuanceRequestView<'static>>,
+);
+impl ::core::fmt::Debug for ReallyMeZkV1IssuanceRequestOwnedView {
+    fn fmt(&self, formatter: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        formatter.write_str("ReallyMeZkV1IssuanceRequestOwnedView(<redacted>)")
+    }
+}
+impl ReallyMeZkV1IssuanceRequestOwnedView {
+    /// Decode an owned view from a [`::buffa::bytes::Bytes`] buffer.
+    ///
+    /// The view borrows directly from the buffer's data; the buffer is
+    /// retained inside the returned handle.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`::buffa::DecodeError`] if the buffer contains invalid
+    /// protobuf data.
+    pub fn decode(
+        bytes: ::buffa::bytes::Bytes,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        ::core::result::Result::Ok(ReallyMeZkV1IssuanceRequestOwnedView(
+            ::buffa::OwnedView::decode(bytes)?,
+        ))
+    }
+    /// Decode with custom [`::buffa::DecodeOptions`] (recursion limit,
+    /// max message size).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`::buffa::DecodeError`] if the buffer is invalid or
+    /// exceeds the configured limits.
+    pub fn decode_with_options(
+        bytes: ::buffa::bytes::Bytes,
+        opts: &::buffa::DecodeOptions,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        ::core::result::Result::Ok(ReallyMeZkV1IssuanceRequestOwnedView(
+            ::buffa::OwnedView::decode_with_options(bytes, opts)?,
+        ))
+    }
+    /// Build from an owned message via an encode → decode round-trip.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`::buffa::DecodeError::MessageTooLarge`] if the
+    /// message's encoded size exceeds the 2 GiB protobuf limit, or
+    /// another [`::buffa::DecodeError`] if the re-encoded bytes are
+    /// somehow invalid (should not happen for well-formed messages).
+    pub fn from_owned(
+        msg: &super::super::ReallyMeZkV1IssuanceRequest,
+    ) -> ::core::result::Result<Self, ::buffa::DecodeError> {
+        ::core::result::Result::Ok(ReallyMeZkV1IssuanceRequestOwnedView(
+            ::buffa::OwnedView::from_owned(msg)?,
+        ))
+    }
+    /// Borrow the full [`ReallyMeZkV1IssuanceRequestView`] with its lifetime tied to `&self`.
+    #[must_use]
+    pub fn view(&self) -> &ReallyMeZkV1IssuanceRequestView<'_> {
+        self.0.reborrow()
+    }
+    /// Convert to the owned message type.
+    ///
+    /// Infallible: this type's constructors wire-decode their
+    /// buffer, and a view produced by wire decoding always
+    /// converts. Delegates to [`::buffa::OwnedView::to_owned_message`],
+    /// whose contract also governs handles converted from a raw
+    /// [`::buffa::OwnedView`].
+    #[must_use]
+    pub fn to_owned_message(&self) -> super::super::ReallyMeZkV1IssuanceRequest {
+        self.0.to_owned_message()
+    }
+    /// The underlying bytes buffer.
+    #[must_use]
+    pub fn bytes(&self) -> &::buffa::bytes::Bytes {
+        self.0.bytes()
+    }
+    /// Consume the handle, returning the underlying bytes buffer.
+    #[must_use]
+    pub fn into_bytes(self) -> ::buffa::bytes::Bytes {
+        self.0.into_bytes()
+    }
+    /// Field 1: `version`
+    #[must_use]
+    pub fn version(&self) -> u32 {
+        self.0.reborrow().version
+    }
+    /// Field 2: `claims_root`
+    #[must_use]
+    pub fn claims_root(&self) -> &'_ [u8] {
+        self.0.reborrow().claims_root
+    }
+    /// reallyme:sensitive
+    ///
+    /// Field 3: `verified_holder_public_key`
+    #[must_use]
+    pub fn verified_holder_public_key(&self) -> &'_ [u8] {
+        self.0.reborrow().verified_holder_public_key
+    }
+    /// Field 4: `lineage_tag_commitment`
+    #[must_use]
+    pub fn lineage_tag_commitment(&self) -> &'_ [u8] {
+        self.0.reborrow().lineage_tag_commitment
+    }
+    /// Field 5: `wallet_opening_commitment`
+    #[must_use]
+    pub fn wallet_opening_commitment(&self) -> &'_ [u8] {
+        self.0.reborrow().wallet_opening_commitment
+    }
+    /// Field 6: `opaque_lineage_leaf`
+    #[must_use]
+    pub fn opaque_lineage_leaf(&self) -> &'_ [u8] {
+        self.0.reborrow().opaque_lineage_leaf
+    }
+}
+impl ::core::convert::From<::buffa::OwnedView<ReallyMeZkV1IssuanceRequestView<'static>>>
+    for ReallyMeZkV1IssuanceRequestOwnedView
+{
+    fn from(inner: ::buffa::OwnedView<ReallyMeZkV1IssuanceRequestView<'static>>) -> Self {
+        ReallyMeZkV1IssuanceRequestOwnedView(inner)
+    }
+}
+impl ::core::convert::From<ReallyMeZkV1IssuanceRequestOwnedView>
+    for ::buffa::OwnedView<ReallyMeZkV1IssuanceRequestView<'static>>
+{
+    fn from(wrapper: ReallyMeZkV1IssuanceRequestOwnedView) -> Self {
+        wrapper.0
+    }
+}
+impl ::core::convert::AsRef<::buffa::OwnedView<ReallyMeZkV1IssuanceRequestView<'static>>>
+    for ReallyMeZkV1IssuanceRequestOwnedView
+{
+    fn as_ref(&self) -> &::buffa::OwnedView<ReallyMeZkV1IssuanceRequestView<'static>> {
+        &self.0
+    }
+}
+impl ::buffa::HasMessageView for super::super::ReallyMeZkV1IssuanceRequest {
+    type View<'a> = ReallyMeZkV1IssuanceRequestView<'a>;
+    type ViewHandle = ReallyMeZkV1IssuanceRequestOwnedView;
+}
+impl ::serde::Serialize for ReallyMeZkV1IssuanceRequestOwnedView {
     fn serialize<__S: ::serde::Serializer>(
         &self,
         __s: __S,

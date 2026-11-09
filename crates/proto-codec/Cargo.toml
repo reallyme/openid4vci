@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
 [package]
 name = "openid4vci-proto-codec"
-version = "0.1.1"
+version = "0.2.0"
 description = "Bounded protobuf codecs and typed OpenID4VCI domain conversions."
 edition.workspace = true
 rust-version.workspace = true
@@ -49,6 +49,7 @@ openid4vci-issuer = { workspace = true }
 openid4vci-profiles = { workspace = true }
 openid4vci-proto = { workspace = true, features = ["generated"] }
 openid4vci-types = { workspace = true }
+reallyme-codec = { workspace = true, features = ["base64url"] }
 reallyme-ssi-proto = { workspace = true, features = ["generated"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

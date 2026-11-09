@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -226,6 +226,7 @@ fn deferred_record_retains_verified_multi_key_count() -> IssuerResult<()> {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let verified = VerifiedProofSet::new(
         vec![verified_test_proof(1)?, verified_test_proof(2)?],
@@ -270,6 +271,7 @@ fn deferred_request() -> CredentialRequest {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     }
 }
 
@@ -293,5 +295,6 @@ fn deferred_request_with_two_proofs() -> CredentialRequest {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     }
 }

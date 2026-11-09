@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -8,30 +8,81 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const manifest = readFileSync(resolve(root, "Cargo.toml"), "utf8");
-const requiredVersion = "0.3.4";
 const cratesIoSource = "registry+https://github.com/rust-lang/crates.io-index";
-const requiredDependencies = [
-  { dependencyName: "reallyme-mdoc", packageName: "reallyme-mdoc" },
+const manifestDependencies = [
+  { manifest: "Cargo.toml", name: "reallyme-jose", version: "0.4.6" },
+  { manifest: "Cargo.toml", name: "reallyme-codec", version: "0.3.2" },
+  { manifest: "Cargo.toml", name: "reallyme-crypto", version: "0.3.17" },
+  { manifest: "Cargo.toml", name: "reallyme-credential", version: "0.5.1" },
   {
-    dependencyName: "reallyme-openid-oauth",
-    packageName: "reallyme-openid-oauth",
+    manifest: "Cargo.toml",
+    name: "reallyme-credential-status",
+    version: "0.5.1",
+  },
+  { manifest: "Cargo.toml", name: "reallyme-ssi-proto", version: "0.5.1" },
+  {
+    manifest: "Cargo.toml",
+    name: "reallyme-openid-oauth",
+    version: "0.5.1",
   },
   {
-    dependencyName: "reallyme-openid4vc-profiles",
-    packageName: "reallyme-openid4vc-profiles",
+    manifest: "Cargo.toml",
+    name: "reallyme-openid4vc-profiles",
+    version: "0.5.1",
   },
-  { dependencyName: "reallyme-ssi-proto", packageName: "reallyme-ssi-proto" },
   {
-    dependencyName: "reallyme-trust-core",
-    packageName: "reallyme-trust-core",
+    manifest: "Cargo.toml",
+    name: "reallyme-trust-core",
+    version: "0.5.1",
   },
-  { dependencyName: "envelopes-x509", packageName: "reallyme-trust-x509" },
-  { dependencyName: "reallyme-revocation", packageName: "reallyme-revocation" },
+  {
+    manifest: "Cargo.toml",
+    name: "envelopes-x509",
+    packageName: "reallyme-trust-x509",
+    version: "0.5.1",
+  },
+  { manifest: "Cargo.toml", name: "reallyme-mdoc", version: "0.5.1" },
+  {
+    manifest: "Cargo.toml",
+    name: "reallyme-revocation",
+    version: "0.5.1",
+  },
+  { manifest: "Cargo.toml", name: "reallyme-cose", version: "0.2.9" },
+  { manifest: "Cargo.toml", name: "reallyme-zk-api", version: "0.2.1" },
+  {
+    manifest: "crates/http/Cargo.toml",
+    name: "reallyme-sd-jwt",
+    version: "0.5.1",
+  },
+  {
+    manifest: "fuzz/Cargo.toml",
+    name: "reallyme-crypto",
+    version: "0.3.17",
+  },
 ];
+const rootLockedDependencies = [
+  { name: "reallyme-jose", version: "0.4.6" },
+  { name: "reallyme-codec", version: "0.3.2" },
+  { name: "reallyme-crypto", version: "0.3.17" },
+  { name: "reallyme-credential", version: "0.5.1" },
+  { name: "reallyme-credential-status", version: "0.5.1" },
+  { name: "reallyme-ssi-proto", version: "0.5.1" },
+  { name: "reallyme-openid-oauth", version: "0.5.1" },
+  { name: "reallyme-openid4vc-profiles", version: "0.5.1" },
+  { name: "reallyme-trust-core", version: "0.5.1" },
+  { name: "reallyme-trust-x509", version: "0.5.1" },
+  { name: "reallyme-mdoc", version: "0.5.1" },
+  { name: "reallyme-revocation", version: "0.5.1" },
+  { name: "reallyme-cose", version: "0.2.9" },
+  { name: "reallyme-zk-api", version: "0.2.1" },
+  { name: "reallyme-sd-jwt", version: "0.5.1" },
+];
+const fuzzLockedDependencies = rootLockedDependencies.filter(
+  ({ name }) => name !== "reallyme-mdoc" && name !== "reallyme-sd-jwt",
+);
 
 function fail(message) {
-  console.error(`SSI remote resolution check failed: ${message}`);
+  console.error(`published dependency resolution check failed: ${message}`);
   process.exit(1);
 }
 
@@ -39,37 +90,36 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
 
-for (const { dependencyName, packageName } of requiredDependencies) {
+for (const { manifest, name, packageName = name, version } of manifestDependencies) {
+  const manifestContents = readFileSync(resolve(root, manifest), "utf8");
   const dependencyPattern = new RegExp(
-    `^${escapeRegExp(dependencyName)}\\s*=\\s*\\{([^}]+)\\}$`,
+    `^${escapeRegExp(name)}\\s*=\\s*\\{([^}]+)\\}$`,
     "gmu",
   );
-  const matches = [...manifest.matchAll(dependencyPattern)];
+  const matches = [...manifestContents.matchAll(dependencyPattern)];
   if (matches.length !== 1 || matches[0][1] === undefined) {
-    fail(`Cargo.toml must declare ${dependencyName} exactly once`);
+    fail(`${manifest} must declare ${name} exactly once`);
   }
 
   const declaration = matches[0][1];
-  const escapedVersion = requiredVersion.replaceAll(".", "\\.");
-  if (
-    !new RegExp(
-      `version\\s*=\\s*"=${escapedVersion}"`,
-      "u",
-    ).test(declaration)
-  ) {
-    fail(`${dependencyName} must use exact version =${requiredVersion}`);
+  const exactVersion = new RegExp(
+    `version\\s*=\\s*"=${escapeRegExp(version)}"`,
+    "u",
+  );
+  if (!exactVersion.test(declaration)) {
+    fail(`${manifest} ${name} must use exact version =${version}`);
   }
   if (/\b(?:git|path)\s*=/u.test(declaration)) {
-    fail(`${dependencyName} must resolve from crates.io`);
+    fail(`${manifest} ${name} must resolve from crates.io`);
   }
   if (
-    dependencyName !== packageName &&
+    packageName !== name &&
     !new RegExp(
       `package\\s*=\\s*"${escapeRegExp(packageName)}"`,
       "u",
     ).test(declaration)
   ) {
-    fail(`${dependencyName} must select package ${packageName}`);
+    fail(`${manifest} ${name} must select package ${packageName}`);
   }
 }
 
@@ -85,59 +135,36 @@ function readLockedPackages(lockfile) {
     }));
 }
 
-function validateLockedPackage(lockfile, packages, packageName, source) {
-  const matches = packages.filter(
-    (cargoPackage) => cargoPackage.name === packageName,
-  );
+function validateLockedPackage(lockfile, packages, expected) {
+  const matches = packages.filter(({ name }) => name === expected.name);
   if (matches.length !== 1) {
-    fail(`${lockfile} must contain exactly one ${packageName} package`);
+    fail(`${lockfile} must contain exactly one ${expected.name} package`);
   }
 
   const [cargoPackage] = matches;
   if (
-    cargoPackage.version !== requiredVersion ||
-    cargoPackage.source !== source
+    cargoPackage.version !== expected.version ||
+    cargoPackage.source !== cratesIoSource
   ) {
     fail(
-      `${lockfile} must resolve ${packageName} ${requiredVersion} from ${source}`,
+      `${lockfile} must resolve ${expected.name} ${expected.version} from crates.io`,
     );
   }
-  if (source === cratesIoSource && cargoPackage.checksum === undefined) {
-    fail(`${lockfile} must lock the crates.io checksum for ${packageName}`);
+  if (cargoPackage.checksum === undefined) {
+    fail(`${lockfile} must lock the crates.io checksum for ${expected.name}`);
   }
 }
 
 const rootPackages = readLockedPackages("Cargo.lock");
-for (const { packageName } of requiredDependencies) {
-  validateLockedPackage(
-    "Cargo.lock",
-    rootPackages,
-    packageName,
-    cratesIoSource,
-  );
-}
-for (const packageName of ["reallyme-credential-status"]) {
-  validateLockedPackage("Cargo.lock", rootPackages, packageName, cratesIoSource);
+for (const expected of rootLockedDependencies) {
+  validateLockedPackage("Cargo.lock", rootPackages, expected);
 }
 
 const fuzzPackages = readLockedPackages("fuzz/Cargo.lock");
-for (const packageName of [
-  "reallyme-credential-status",
-  "reallyme-openid-oauth",
-  "reallyme-openid4vc-profiles",
-  "reallyme-revocation",
-  "reallyme-ssi-proto",
-  "reallyme-trust-core",
-  "reallyme-trust-x509",
-]) {
-  validateLockedPackage(
-    "fuzz/Cargo.lock",
-    fuzzPackages,
-    packageName,
-    cratesIoSource,
-  );
+for (const expected of fuzzLockedDependencies) {
+  validateLockedPackage("fuzz/Cargo.lock", fuzzPackages, expected);
 }
 
 console.log(
-  `SSI remote resolution check passed for ${requiredDependencies.length} crates at ${requiredVersion}`,
+  `published dependency resolution check passed for ${rootLockedDependencies.length} locked crates`,
 );

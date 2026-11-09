@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -184,6 +184,7 @@ fn mixed_proof_policy_is_selected_by_submitted_type_independent_of_map_order() -
                 attestation: Vec::new(),
             }),
             credential_response_encryption: None,
+            reallyme_zk_v1_issuance: None,
         };
         assert!(handle_credential_request(
             &authorization(),
@@ -205,6 +206,7 @@ fn mixed_proof_policy_is_selected_by_submitted_type_independent_of_map_order() -
                 attestation: vec!["a.b.c".to_owned()],
             }),
             credential_response_encryption: None,
+            reallyme_zk_v1_issuance: None,
         };
         assert_eq!(
             handle_credential_request(
@@ -279,6 +281,7 @@ fn endpoint_rejects_verified_proof_type_substitution_before_issuance() -> Issuer
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
 
     let result = handle_credential_request(
@@ -309,6 +312,7 @@ fn endpoint_consumes_c_nonce_single_use() -> IssuerResult<()> {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = default_config();
     let verifier = FixedNonceProofVerifier { nonce: "c-nonce-1" };
@@ -355,6 +359,7 @@ fn endpoint_rejects_missing_key_attestation_when_required() {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let mut config = default_config();
     config.key_attestation_required = true;
@@ -384,6 +389,7 @@ fn endpoint_rejects_untrusted_attestation_coverage_claim() {
             attestation: vec!["a.b.c".to_owned()],
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let mut config = default_config();
     config.key_attestation_required = true;
@@ -413,6 +419,7 @@ fn endpoint_rejects_unknown_c_nonce() {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = default_config();
     // The proof carries a nonce the issuer never issued (empty store).
@@ -506,6 +513,7 @@ fn endpoint_rejects_proofs_over_batch_size() {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = default_config();
     let result = handle_credential_request(
@@ -536,6 +544,7 @@ fn endpoint_reports_unknown_credential_identifier_for_identifier_selector() {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = default_config();
     let result = handle_credential_request(
@@ -595,6 +604,7 @@ fn immediate_response_body_is_not_marked_deferred() -> IssuerResult<()> {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = default_config();
     let body = handle_credential_request_body(
@@ -624,6 +634,7 @@ fn pending_deferred_response_body_is_marked_deferred() -> IssuerResult<()> {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = default_config();
     let body = handle_credential_request_body(
@@ -663,6 +674,7 @@ fn endpoint_requires_proof_when_configured() {
         credential_identifier: None,
         proofs: None,
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = default_config();
     let result = handle_credential_request(
@@ -691,6 +703,7 @@ fn endpoint_issues_immediate_response_with_verified_proof() -> IssuerResult<()> 
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = default_config();
     let response = handle_credential_request(
@@ -717,6 +730,7 @@ fn endpoint_rejects_direct_immediate_response_with_mismatched_proof_count() {
             attestation: Vec::new(),
         }),
         credential_response_encryption: None,
+        reallyme_zk_v1_issuance: None,
     };
     let config = CredentialEndpointConfig {
         // Batch of 2 is within the ceiling, so the request reaches issuance and

@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
 [package]
 name = "openid4vci-http"
-version = "0.1.1"
+version = "0.2.0"
 description = "Feature-gated HTTP adapter boundary for OpenID4VCI."
 edition.workspace = true
 rust-version.workspace = true
@@ -30,6 +30,7 @@ stack-errors = [
     "dep:openid4vci-proto-codec",
     "dep:openid4vci-proto",
     "dep:reallyme-ssi-proto",
+    "openid4vci-proto-codec/native",
     "reallyme-ssi-proto/generated",
 ]
 issuer-service = [
@@ -126,6 +127,7 @@ zeroize = { workspace = true, optional = true }
 buffa = { workspace = true }
 envelopes-x509 = { workspace = true }
 reallyme-revocation = { workspace = true }
+reallyme-sd-jwt = { version = "=0.5.1", default-features = false, features = ["native"] }
 reallyme-trust-core = { workspace = true }
 serde_json = { workspace = true }
 time = { workspace = true }

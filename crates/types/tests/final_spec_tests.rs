@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -13,8 +13,9 @@ use reallyme_openid4vci_types::{
     DeferredCredentialErrorResponse, DeferredCredentialRequest, IssuerMetadata,
     KeyAttestationsRequired, NonceResponse, NotificationErrorCode, NotificationErrorResponse,
     NotificationEvent, NotificationRequest, OpenId4VciError, ParsedCredentialOffer,
-    ProofTypeMetadata, Proofs, Reason, TxCode, TxCodeInputMode, MAX_CREDENTIAL_OFFER_URI_BYTES,
-    MAX_CREDENTIAL_RESPONSE_JSON_BYTES,
+    ProofTypeMetadata, Proofs, ReallyMeZkV1IssuanceRequest, Reason, TxCode, TxCodeInputMode,
+    MAX_CREDENTIAL_OFFER_URI_BYTES, MAX_CREDENTIAL_RESPONSE_JSON_BYTES,
+    MAX_REALLYME_ZK_V1_ISSUANCE_REQUEST_BYTES,
 };
 use serde_json::{json, Value};
 
@@ -38,6 +39,22 @@ fn oversized_json_body_is_rejected_before_shape_validation() {
     let oversized = " ".repeat((64 * 1024) + 1);
     assert_reason(
         CredentialRequest::parse_json(&oversized),
+        Reason::PayloadTooLarge,
+    );
+}
+
+#[test]
+fn credential_request_accepts_bounded_compact_zk_issuance_intent() {
+    let request = json!({
+        "credential_configuration_id": "pid",
+        "reallyme_zk_v1_issuance": "AQID"
+    });
+    let parsed = CredentialRequest::parse_json(&request.to_string());
+    assert!(parsed.is_ok());
+
+    let oversized = "A".repeat(MAX_REALLYME_ZK_V1_ISSUANCE_REQUEST_BYTES + 1);
+    assert_reason(
+        ReallyMeZkV1IssuanceRequest::new(oversized),
         Reason::PayloadTooLarge,
     );
 }

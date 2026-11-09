@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -50,7 +50,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
-          toolchain: 1.98.1
+          toolchain: 1.99.0
 
       - name: Cache Cargo
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -82,14 +82,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: reallyme/release-readiness
-          ref: bdedc88f3f25fcc14242730d4dec6ce6a0c75531
+          ref: v0.6.9
           path: openid4vci/.release-readiness
           persist-credentials: false
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
-          toolchain: 1.98.1
+          toolchain: 1.99.0
           components: rustfmt, clippy
           targets: wasm32-unknown-unknown
 
@@ -130,7 +130,7 @@ jobs:
         working-directory: openid4vci
         run: node .release-readiness/scripts/run-consumer-check.mjs --policy-only
 
-      - name: Verify SSI remote dependency graph
+      - name: Verify published dependency graph
         working-directory: openid4vci
         run: node scripts/check-ssi-remote-resolution.mjs
 
@@ -207,7 +207,7 @@ jobs:
         run: scripts/audit_committed_lockfiles.sh
 
   msrv:
-    name: published crates on Rust 1.96
+    name: published crates on Rust 1.99
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -220,12 +220,12 @@ jobs:
       - name: Install minimum supported Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
-          toolchain: 1.96.0
+          toolchain: 1.99.0
 
       - name: Check published crates at the declared MSRV
         working-directory: openid4vci
         run: >-
-          cargo +1.96.0 check --locked
+          cargo +1.99.0 check --locked
           -p reallyme-openid4vci-proto
           -p reallyme-openid4vci-types
           -p openid4vci-attestation

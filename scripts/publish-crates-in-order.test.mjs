@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -276,9 +276,9 @@ test("zero-major caret requirements match Cargo compatibility boundaries", () =>
   for (const [requirement, version, accepted] of [
     ["^0.0.1", "0.0.1", true],
     ["^0.0.1", "0.0.2", false],
-    ["^0.2.1", "0.2.2", true],
+    ["^0.2.0", "0.2.2", true],
     ["^0.2.2", "0.3.0", false],
-    ["^0.2.1junk", "0.2.2", false],
+    ["^0.2.0junk", "0.2.2", false],
   ]) {
     const result = runFixture({ mode: "order", requirement, version });
     assert.equal(result.status === 0, accepted, `${requirement} / ${version}`);

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -14,12 +14,18 @@ use openid4vci_issuer::{
 use openid4vci_types::{
     CredentialEnvelope, CredentialRequest, CredentialResponse, CredentialSelector,
 };
-use reallyme_crypto::core::Algorithm;
+use reallyme_crypto::core::{Algorithm, RngOutputKind};
+use reallyme_crypto::csprng::{generate_bytes, OsSecureRandom};
 use reallyme_crypto::dispatch::verify;
 use reallyme_crypto::jwk::Jwk;
 use reallyme_crypto::p256::p256_ecdsa_jose_signature_to_der;
 use reallyme_openid_oauth::{DpopVerifier, OauthError, Reason};
+use reallyme_sd_jwt::{
+    create_object_property_disclosure, digest_disclosure, serialize_sd_jwt_compact,
+    SdJwtHashAlgorithm,
+};
 use serde_json::{json, Value};
+use zeroize::Zeroizing;
 
 use super::credential_authorization::{CredentialAuthorization, CredentialSelectorResolutionError};
 use super::mdoc::issue_pid_mdoc;
@@ -31,6 +37,7 @@ use super::sign::sign_es256_jws;
 
 const MAX_DPOP_REPLAY_ENTRIES: usize = 65_536;
 const DPOP_REPLAY_RETENTION_SECONDS: i64 = 600;
+const SD_JWT_DISCLOSURE_SALT_BYTES: usize = 16;
 
 pub(super) struct ExampleDpopVerifier {
     replay: Mutex<DpopReplayState>,
@@ -176,6 +183,28 @@ fn build_sd_jwt_credential(credential_issuer: &str, proof_jwk: &Value) -> Issuer
         "kid": "ct_client_attester_key",
         "x5c": [CONFORMANCE_ISSUER_X5C_LEAF]
     });
+    let mut rng = OsSecureRandom;
+    let attributes = [
+        ("given_name", json!("Erika")),
+        ("family_name", json!("Mustermann")),
+        ("birthdate", json!("1970-01-01")),
+    ];
+    let mut disclosures = Zeroizing::new(Vec::with_capacity(attributes.len()));
+    let mut digests = Vec::with_capacity(attributes.len());
+    for (name, value) in attributes {
+        let salt = generate_bytes::<SD_JWT_DISCLOSURE_SALT_BYTES>(&mut rng, RngOutputKind::Generic)
+            .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
+        let salt = reallyme_codec::base64url::bytes_to_base64url(salt.as_bytes());
+        let disclosure = create_object_property_disclosure(&salt, name, value)
+            .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
+        let encoded = disclosure.encoded().to_owned();
+        let digest = digest_disclosure(&encoded, SdJwtHashAlgorithm::Sha256)
+            .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?;
+        disclosures.push(encoded);
+        digests.push(digest);
+    }
+    // The signed digest array must not disclose the source claim order.
+    digests.sort_unstable();
     let claims = json!({
         "iss": credential_issuer,
         "iat": now,
@@ -183,11 +212,10 @@ fn build_sd_jwt_credential(credential_issuer: &str, proof_jwk: &Value) -> Issuer
         "exp": expires_at,
         "vct": PID_VCT,
         "cnf": { "jwk": proof_jwk },
-        "given_name": "Erika",
-        "family_name": "Mustermann",
-        "birthdate": "1970-01-01"
+        "_sd_alg": "sha-256",
+        "_sd": digests,
     });
-    let mut signed = sign_es256_jws(&header, &claims)?;
-    signed.push('~');
-    Ok(signed)
+    let signed = sign_es256_jws(&header, &claims)?;
+    serialize_sd_jwt_compact(&signed, &disclosures)
+        .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))
 }

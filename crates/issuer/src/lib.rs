@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -32,8 +32,11 @@ pub use encode::{
     encode_immediate_response, encode_immediate_response_with_verified_proofs,
     expected_credential_count, validate_issued_credential_count,
     validate_issued_credential_count_with_verified_proofs, validate_response_credential_count,
-    validate_response_credential_count_with_verified_proofs, CredentialEncoder, IssuedCredential,
-    PassThroughCredentialEncoder,
+    validate_response_credential_count_with_verified_proofs, CommonRootCredentialEncoder,
+    CommonRootIssuanceRequestBinding, CommonRootIssuedCredential, CommonRootProofBinding,
+    CredentialEncoder, IssuanceStatusEvidence, IssuedCredential, PassThroughCredentialEncoder,
+    COMMON_ROOT_POSEIDON2_HASH_SUITE, COMMON_ROOT_PROFILE, COMMON_ROOT_SHA256_HASH_SUITE,
+    REALLYME_ZK_V1_FORMAT,
 };
 pub use encrypt::{
     decrypt_credential_request_json, require_encrypted_request_for_response_encryption,

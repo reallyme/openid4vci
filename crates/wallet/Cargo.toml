@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
 [package]
 name = "reallyme-openid4vci-wallet"
-version = "0.1.1"
+version = "0.2.0"
 description = "Wallet-side OpenID4VCI request builders and validation helpers."
 edition.workspace = true
 rust-version.workspace = true

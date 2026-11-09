@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -53,6 +53,7 @@ fn request_debug_redacts_proofs_jwk_and_identifiers() -> Result<(), OpenId4VciEr
             enc: "A256GCM".to_owned(),
             zip: None,
         }),
+        reallyme_zk_v1_issuance: None,
     };
 
     let debug = format!("{request:?}");

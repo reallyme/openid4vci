@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -7,10 +7,11 @@
 use buffa::{EnumValue, Message};
 use openid4vci_proto::generated::proto::reallyme::openid4vci::v1 as pb;
 use openid4vci_proto_codec::convert::{
-    credential_envelope_from_proto, credential_envelope_to_proto, credential_offer_from_proto,
-    credential_offer_to_proto, credential_request_from_proto, credential_request_to_proto,
-    credential_response_from_proto, credential_response_to_proto, issuer_metadata_from_proto,
-    issuer_metadata_to_proto, notification_request_from_proto, parsed_credential_offer_from_proto,
+    credential_envelope_from_proto, credential_envelope_to_proto, credential_format_from_proto,
+    credential_format_to_proto, credential_offer_from_proto, credential_offer_to_proto,
+    credential_request_from_proto, credential_request_to_proto, credential_response_from_proto,
+    credential_response_to_proto, issuer_metadata_from_proto, issuer_metadata_to_proto,
+    notification_request_from_proto, parsed_credential_offer_from_proto,
     parsed_credential_offer_to_proto, problem_details_from_proto, problem_details_to_proto,
     ProtoError,
 };
@@ -26,10 +27,28 @@ use openid4vci_types::{
     CredentialResponse, CredentialResponseEncryption, CredentialResponseEncryptionMetadata,
     CredentialSigningAlg, IssuerMetadata, KeyAttestationsRequired, ParsedCredentialOffer,
     PreAuthorizedCodeGrant, ProblemDetails, ProblemType, ProofTypeMetadata, Proofs, PublicJwk,
-    PublicJwkSet, TxCode, TxCodeInputMode,
+    PublicJwkSet, ReallyMeZkV1IssuanceRequest, TxCode, TxCodeInputMode,
 };
+use reallyme_codec::base64url::bytes_to_base64url;
 use serde_json::json;
 use zeroize::Zeroizing;
+
+#[test]
+fn reallyme_zk_credential_format_round_trips_across_json_and_proto() -> Result<(), TestError> {
+    let format = CredentialFormat::ReallyMeZkV1;
+    let encoded = serde_json::to_string(&format).map_err(|_| TestError::UnexpectedValue)?;
+    if encoded != "\"reallyme_zk_v1\"" {
+        return Err(TestError::UnexpectedValue);
+    }
+    let decoded: CredentialFormat =
+        serde_json::from_str(&encoded).map_err(|_| TestError::UnexpectedValue)?;
+    if decoded != format
+        || credential_format_from_proto(credential_format_to_proto(&decoded))? != format
+    {
+        return Err(TestError::UnexpectedValue);
+    }
+    Ok(())
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum TestError {
@@ -70,6 +89,10 @@ fn credential_request_survives_buffa_binary_roundtrip() -> Result<(), TestError>
             enc: "A256GCM".to_owned(),
             zip: Some("DEF".to_owned()),
         }),
+        reallyme_zk_v1_issuance: Some(
+            ReallyMeZkV1IssuanceRequest::new(zk_issuance_request_compact())
+                .map_err(|_| TestError::UnexpectedValue)?,
+        ),
     };
 
     let proto = credential_request_to_proto(&request)?;
@@ -78,6 +101,45 @@ fn credential_request_survives_buffa_binary_roundtrip() -> Result<(), TestError>
     let converted = credential_request_from_proto(decoded)?;
 
     if converted == request {
+        Ok(())
+    } else {
+        Err(TestError::UnexpectedValue)
+    }
+}
+
+fn zk_issuance_request_compact() -> String {
+    let mut request = pb::ReallyMeZkV1IssuanceRequest::default();
+    request.version = 1;
+    request.claims_root = vec![0x11; 32];
+    request.verified_holder_public_key = {
+        let mut key = vec![0_u8; 65];
+        key[0] = 0x04;
+        key
+    };
+    request.lineage_tag_commitment = vec![0x22; 32];
+    request.wallet_opening_commitment = vec![0x33; 32];
+    bytes_to_base64url(&request.encode_to_vec())
+}
+
+#[test]
+fn credential_request_rejects_non_canonical_zk_issuance_wire() -> Result<(), TestError> {
+    let mut bytes = reallyme_codec::base64url::base64url_to_bytes(&zk_issuance_request_compact())
+        .map_err(|_| TestError::UnexpectedValue)?;
+    bytes.extend_from_slice(&[0x08, 0x01]);
+    let request = CredentialRequest {
+        credential_configuration_id: Some("pid-sd-jwt".to_owned()),
+        credential_identifier: None,
+        proofs: None,
+        credential_response_encryption: None,
+        reallyme_zk_v1_issuance: Some(
+            ReallyMeZkV1IssuanceRequest::new(bytes_to_base64url(&bytes))
+                .map_err(|_| TestError::UnexpectedValue)?,
+        ),
+    };
+
+    let result = credential_request_to_proto(&request);
+
+    if result == Err(ProtoError::InvalidWireValue) {
         Ok(())
     } else {
         Err(TestError::UnexpectedValue)

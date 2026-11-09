@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+// SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -222,7 +222,6 @@ for (const moduleName of [
 for (const domainManifest of [
   "crates/attestation/Cargo.toml",
   "crates/wallet/Cargo.toml",
-  "crates/issuer/Cargo.toml",
   "crates/profiles/Cargo.toml",
   "crates/types/Cargo.toml",
 ]) {
@@ -231,6 +230,9 @@ for (const domainManifest of [
   rejectText(domainManifest, "openid4vci-http");
   rejectText(domainManifest, "axum");
 }
+// The issuer's custom reallyme_zk_v1 credential encoder produces a schema-owned
+// Buffa payload. This narrow transport encoder may depend on generated types.
+requireText("crates/issuer/Cargo.toml", "openid4vci-proto = { workspace = true");
 rejectText("crates/proto-codec/Cargo.toml", "openid4vci-http");
 rejectText("crates/proto-codec/Cargo.toml", "axum");
 requireText("crates/http/Cargo.toml", 'name = "openid4vci-http"');

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe LLC. All rights reserved
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
@@ -49,14 +49,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: reallyme/release-readiness
-          ref: bdedc88f3f25fcc14242730d4dec6ce6a0c75531
+          ref: v0.6.9
           path: openid4vci/.release-readiness
           persist-credentials: false
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c # master
         with:
-          toolchain: 1.98.1
+          toolchain: 1.99.0
           components: rustfmt
 
       - name: Install Node
