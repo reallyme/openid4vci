@@ -325,7 +325,21 @@ fn signed_metadata_binds_the_profile_required_signer_trust_purpose(
     let mut wrpac_context = context();
     wrpac_context.required_signer_trust_purpose =
         SignedMetadataSignerTrustPurpose::WalletRelyingPartyAccessCertificate;
-    let verified = verify_signed_issuer_metadata(&jwt, &wrpac_context, &WrpacTrustVerifier)
+    assert_eq!(
+        verify_signed_issuer_metadata(&jwt, &wrpac_context, &WrpacTrustVerifier)
+            .err()
+            .map(|error| error.status()),
+        Some(WalletStatus::InvalidSignedMetadata)
+    );
+    let wrpac_jwt = compact_jws(
+        &json!({
+            "typ": "openidvci-issuer-metadata+jwt",
+            "alg": "ES256",
+            "x5c": ["bGVhZi1hY2Nlc3MtY2VydGlmaWNhdGU="]
+        }),
+        &valid_metadata_claims(),
+    )?;
+    let verified = verify_signed_issuer_metadata(&wrpac_jwt, &wrpac_context, &WrpacTrustVerifier)
         .map_err(|_| SignedMetadataTestError::Metadata)?;
     assert_eq!(
         verified.trust_evidence().signer_trust_purpose(),

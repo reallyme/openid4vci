@@ -12,7 +12,7 @@
 use std::sync::Arc;
 
 use openid4vci_attestation::{
-    verify_key_attestation, KeyAttestationJwt, KeyAttestationTrustVerifier,
+    verify_key_attestation, BindingKeyAlgorithm, KeyAttestationJwt, KeyAttestationTrustVerifier,
     KeyAttestationValidationContext, VerifiedKeyAttestation,
 };
 use openid4vci_types::Proofs;
@@ -25,8 +25,8 @@ use serde_json::Value;
 
 use crate::error::{IssuerError, IssuerResult, IssuerStatus};
 use crate::proof::{
-    validate_common_proof_claims, CompactProofJwtParser, ConfirmationJwk, ProofAlgorithm,
-    ProofKind, ProofVerificationContext, ProofVerifier, UnverifiedProofClaims,
+    validate_common_proof_claims, CompactProofJwtParser, ConfirmationJwk, CredentialRequestProfile,
+    ProofAlgorithm, ProofKind, ProofVerificationContext, ProofVerifier, UnverifiedProofClaims,
     UnverifiedProofKeyBinding, VerifiedProof, VerifiedProofSet,
 };
 
@@ -113,11 +113,25 @@ impl ProofVerifier for JoseJwtProofVerifier {
         if proofs.jwt.is_empty() || !proofs.di_vp.is_empty() || !proofs.attestation.is_empty() {
             return Err(IssuerError::new(IssuerStatus::InvalidProof));
         }
+        if context.credential_request_profile == CredentialRequestProfile::EtsiTs119472Part3
+            && proofs.jwt.len() != 1
+        {
+            return Err(IssuerError::new(IssuerStatus::InvalidProof));
+        }
         let mut verified = Vec::with_capacity(proofs.jwt.len());
         let mut key_attestations = Vec::with_capacity(proofs.jwt.len());
         let mut all_proofs_include_key_attestation = true;
         for proof in &proofs.jwt {
             let (mut claims, proof_jwk, key_attestation) = self.verify_one(proof, context)?;
+            if context.credential_request_profile == CredentialRequestProfile::EtsiTs119472Part3 {
+                let key_attestation =
+                    key_attestation.ok_or(IssuerError::new(IssuerStatus::InvalidProof))?;
+                let expanded = etsi_binding_proofs(&claims, &key_attestation)?;
+                return VerifiedProofSet::new_with_shared_key_attestation(
+                    expanded,
+                    key_attestation,
+                );
+            }
             all_proofs_include_key_attestation &= key_attestation.is_some();
             if let Some(key_attestation) = key_attestation {
                 key_attestations.push(key_attestation);
@@ -294,27 +308,30 @@ impl JoseJwtProofVerifier {
             verify_key_attestation(&key_attestation, &validation_context, verifier.as_ref())
                 .map_err(attestation_error)?;
         policy.validate(&verified)?;
-        if attested_keys_contain_proof_key(
+        let attested_key_position = attested_proof_key_position(
             verified.attested_keys(),
             proof_jwk,
             claims.algorithm.as_str(),
-        )? {
-            Ok(Some(verified))
-        } else {
-            Err(IssuerError::new(IssuerStatus::InvalidProof))
+        )?
+        .ok_or(IssuerError::new(IssuerStatus::InvalidProof))?;
+        if context.credential_request_profile == CredentialRequestProfile::EtsiTs119472Part3
+            && attested_key_position != 0
+        {
+            return Err(IssuerError::new(IssuerStatus::InvalidProof));
         }
+        Ok(Some(verified))
     }
 }
 
-fn attested_keys_contain_proof_key(
+fn attested_proof_key_position(
     attested_keys: &[openid4vci_attestation::VerifiedBindingKey],
     proof_jwk: &Jwk,
     alg: &str,
-) -> IssuerResult<bool> {
+) -> IssuerResult<Option<usize>> {
     let proof_key = proof_jwk
         .public_key_bytes()
         .map_err(|_| IssuerError::new(IssuerStatus::InvalidProof))?;
-    for attested_key in attested_keys {
+    for (index, attested_key) in attested_keys.iter().enumerate() {
         let mut value = attested_key.public_jwk().clone();
         ensure_jwk_algorithm(&mut value, alg)?;
         let jwk = serde_json::from_value::<Jwk>(value)
@@ -323,10 +340,43 @@ fn attested_keys_contain_proof_key(
             .public_key_bytes()
             .map_err(|_| IssuerError::new(IssuerStatus::InvalidProof))?;
         if attested_public_key == proof_key {
-            return Ok(true);
+            return Ok(Some(index));
         }
     }
-    Ok(false)
+    Ok(None)
+}
+
+fn etsi_binding_proofs(
+    claims: &UnverifiedProofClaims,
+    key_attestation: &VerifiedKeyAttestation,
+) -> IssuerResult<Vec<VerifiedProof>> {
+    let binding_count = usize::try_from(key_attestation.attested_key_count())
+        .map_err(|_| IssuerError::new(IssuerStatus::InvalidProof))?;
+    if binding_count == 0 || binding_count != key_attestation.attested_keys().len() {
+        return Err(IssuerError::new(IssuerStatus::InvalidProof));
+    }
+    let mut proofs = Vec::with_capacity(binding_count);
+    for key in key_attestation.attested_keys() {
+        let algorithm = match key.algorithm() {
+            BindingKeyAlgorithm::P256 => ProofAlgorithm::Es256,
+            BindingKeyAlgorithm::Secp256K1 => ProofAlgorithm::Es256k,
+            BindingKeyAlgorithm::Ed25519 => ProofAlgorithm::EdDsa,
+        };
+        proofs.push(VerifiedProof::new(
+            ProofKind::Jwt,
+            claims.nonce.clone(),
+            claims.audience.clone(),
+            claims.key_binding_id.clone(),
+            key.key_id().map(str::to_owned),
+            Some(key.public_jwk().clone()),
+            Some(ConfirmationJwk {
+                algorithm,
+                public_key: key.public_key_bytes(),
+                key_id: key.key_id().map(str::to_owned),
+            }),
+        )?);
+    }
+    Ok(proofs)
 }
 
 fn proof_confirmation_jwk(header_jwk: &Value, alg: &str) -> IssuerResult<Jwk> {

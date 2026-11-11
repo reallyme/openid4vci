@@ -70,7 +70,7 @@ pub use nonce::{
     AuthenticatedNonceManager, NonceCapacitySnapshot, NonceManager, MAX_NONCE_TTL_SECONDS,
 };
 pub use proof::{
-    validate_common_proof_claims, CompactProofJwtParser, ConfirmationJwk,
+    validate_common_proof_claims, CompactProofJwtParser, ConfirmationJwk, CredentialRequestProfile,
     KeyAttestationLocalPolicy, KeyAttestationPolicy, ProofAlgorithm, ProofKind,
     ProofVerificationContext, ProofVerifier, UnverifiedProofClaims, VerifiedProof,
     VerifiedProofSet, DEFAULT_MAX_PROOF_JWT_BYTES, PROOF_JWT_TYP,

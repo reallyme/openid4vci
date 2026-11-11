@@ -93,7 +93,6 @@ else
     --locked \
     --manifest-path "$FUZZ_MANIFEST" \
     --format-version 1 \
-    --no-deps \
     >/dev/null
 
   # Build and link the complete target set once. Per-target Cargo invocations

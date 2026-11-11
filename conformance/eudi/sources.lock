@@ -30,20 +30,6 @@
       "note": "ARF v2.9.0 links this repository for the full Wallet Unit Attestation technical specification."
     },
     {
-      "id": "eudi-zkp-technical-specifications",
-      "kind": "out_of_scope_presentation_tracking_source",
-      "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-standards-and-technical-specifications",
-      "pinned_release": null,
-      "pinned_commit": "b53874f1477a76f00a91c87cfd3f18abea572e65",
-      "status": "pinned-head-no-release-tag-observed",
-      "relevant_paths": [
-        "docs/technical-specifications/ts4-zkp.md",
-        "docs/technical-specifications/ts13-zksnarks.md",
-        "docs/technical-specifications/ts14-zkps-from-mms.md"
-      ],
-      "note": "Tracked to keep OpenID4VCI scope boundaries explicit; ZKP presentation behavior belongs in reallyme/openid4vp and reallyme/zk-api integration points."
-    },
-    {
       "id": "eudi-pid-rulebook",
       "kind": "profile_rulebook_source",
       "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog",
@@ -56,20 +42,6 @@
       "note": "ARF Annex 3.01 points to this catalog for the current PID rulebook."
     },
     {
-      "id": "eudi-functional-conformance-assessment",
-      "kind": "assessment_source",
-      "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-functional-conformance-assessment",
-      "pinned_release": "v0.0.10",
-      "pinned_tag_object": "2b9f1131235489ad14fcc32bac616584f3d5eeba",
-      "pinned_commit": "944b8f89cc17873c47026a05dfa9d212e89b0ee3",
-      "status": "pinned-release",
-      "relevant_paths": [
-        "docs/fcaf/suts/wallet_solution/pid_provider/ws_pp.md",
-        "docs/fcaf/templates/test-spec-template.md",
-        "docs/introduction.md"
-      ]
-    },
-    {
       "id": "eudi-testing-application",
       "kind": "black_box_interop_target",
       "repository": "https://github.com/eu-digital-identity-wallet/eudi-doc-testing-application",
@@ -80,15 +52,15 @@
         "src/test/resources/features",
         "target/test-classes/features"
       ],
-      "note": "Tracked only as black-box interop evidence. Do not copy application code or test style into this workspace."
+      "note": "Pinned as a black-box interoperability comparison source; this entry is not execution evidence."
     },
     {
       "id": "eudi-jvm-openid4vci",
       "kind": "reference_library_interop_target",
       "repository": "https://github.com/eu-digital-identity-wallet/eudi-lib-jvm-openid4vci-kt",
-      "pinned_release": "v0.12.0",
-      "pinned_tag_object": "708fbe932d54564208522997c1202f782a05ac5f",
-      "pinned_commit": "2d932a7ceeef1afdb2ff7a383819f1b1bb6683c1",
+      "pinned_release": "v0.16.0",
+      "pinned_tag_object": "b1598eaceb1560f11353e22930cc54a9a520dbcf",
+      "pinned_commit": "b6380bdd059c7e4f162d0db8084a15185162d2ec",
       "status": "pinned-release"
     },
     {

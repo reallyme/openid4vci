@@ -23,10 +23,38 @@ tokens, operational private keys, or personal data. A fixture may contain an
 explicitly documented synthetic signing key when deterministic protocol output
 requires it; such keys are public test material and must never be reused.
 
+## Specification and interoperability scope
+
+The protocol baseline is OpenID4VCI 1.0 Final and HAIP 1.0 Final, as pinned in
+`specifications.lock`. OpenID4VCI 1.1 interactive authorization, credential
+dataset lifecycle, and server-to-server APIs are outside this implementation's
+supported protocol surface.
+
+Metadata discovery follows the approved 1.0 Final path rules, including issuer
+identifiers with a terminating slash. Retrieval URL derivation and exact issuer
+identity comparison are separate operations. Authorization-server adapters own
+transaction-code expiry, bounded guessing attempts, atomic invalidation, and
+single-use enforcement; wire validation alone does not provide those controls.
+
+The pinned EUDI sources and resource expectations describe comparison inputs.
+They do not establish executed two-sided interoperability. This repository
+contains no retained two-sided execution evidence for the pinned JVM, Swift,
+PID issuer, or EUDI testing-application comparators. Local parser checks and
+source inspection do not establish mTLS endpoint-alias
+selection, multi-issuer grant isolation, or production platform-attestation and
+provider-status enforcement. Mock platform validation and bare-JWK test inputs
+do not establish hardware-backed trust.
+
+Issuer-registration metadata is not validated against a complete Registrar
+certificate profile by this protocol engine. The pinned requirement lacks the
+complete field, certificate, and trust-resolution contract needed for that
+validation; applications must not infer registration compliance from generic
+metadata parsing.
+
 ## OIDF suite adapter
 
-The local OIDF adapter is pinned to Conformance Suite `release-v5.3.1`, commit
-`440eec8bac7b12b7389d7ca9cbc459b53507a443`. Discovery and execution reject a
+The local OIDF adapter is pinned to Conformance Suite `release-v5.3.4-36-g1e6f5433d`, commit
+`1e6f5433dc61b13e484fee1dec1f0346cca0cfa5`. Discovery and execution reject a
 different suite revision or module inventory.
 
 The issuer adapter covers SD-JWT VC and mdoc profiles for wallet-initiated and
@@ -34,6 +62,13 @@ issuer-initiated authorization-code flows. The wallet adapter is intended for a
 composed wallet implementation with real token exchange, proof generation,
 credential validation, and durable storage; the recorder-only harness is not a
 wallet implementation.
+
+The mdoc composition uses SSI's ISO/IEC 18013-5 issuer signer, which places
+`x5chain` in the unprotected `issuerAuth` header. COSE retains its generic
+header-placement policy. CI runs the issuer example tests explicitly because
+workspace nextest runs do not include example tests; these checks exercise the
+resolved SSI dependency and reject an incompatible signer before live suite
+execution.
 
 The example issuer is conformance infrastructure, not a deployable issuer. Its
 fixed identifiers, synthetic private keys, deterministic person data, and
@@ -53,8 +88,34 @@ Run the preflight checks before starting a local suite:
 
 ```sh
 scripts/conformance/preflight_oidf_oid4vci_issuer.sh
-scripts/conformance/preflight_oidf_oid4vci_wallet.sh
 ```
+
+Start the Docker-backed local suite with the repository-owned host-gateway
+override. The synthetic mdoc Document Signer certificate uses
+`https://localhost.emobix.co.uk:9443/security/mdoc-iaca.crl`; without this
+mapping the suite container cannot reach the issuer's CRL endpoint and every
+mdoc issuance reports the same `FetchMdocDsCertificateCrl` infrastructure
+failure.
+
+```sh
+docker compose \
+  -f /path/to/conformance-suite/docker-compose.yml \
+  -f conformance/oidf/docker-compose.local-host-gateway.yml \
+  up -d
+```
+
+Use the same two Compose files when stopping the suite so the project identity
+and merged configuration remain explicit:
+
+```sh
+docker compose \
+  -f /path/to/conformance-suite/docker-compose.yml \
+  -f conformance/oidf/docker-compose.local-host-gateway.yml \
+  down
+```
+
+The wallet runner performs its own fail-closed preflight after a composed
+Wallet harness, source checkout, and executable have been selected.
 
 For transport integration testing, the recorder-only wallet launch harness can
 be started with `scripts/conformance/serve_oidf_oid4vci_wallet_harness.sh`.

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "repository": "https://gitlab.com/openid/conformance-suite",
-  "commit": "440eec8bac7b12b7389d7ca9cbc459b53507a443",
-  "describe": "release-v5.3.1",
+  "commit": "1e6f5433dc61b13e484fee1dec1f0346cca0cfa5",
+  "describe": "release-v5.3.4-36-g1e6f5433d",
   "plans": [
     {
       "plan_id": "oid4vci-1_0-issuer-haip-test-plan",

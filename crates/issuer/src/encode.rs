@@ -313,17 +313,15 @@ fn expected_bound_credential_count(
     request: &CredentialRequest,
     verified_proofs: Option<&VerifiedProofSet>,
 ) -> IssuerResult<usize> {
-    let uses_direct_attestation = request
-        .proofs
-        .as_ref()
-        .is_some_and(|proofs| !proofs.attestation.is_empty());
-    if !uses_direct_attestation {
+    let Some(verified) = verified_proofs else {
         return Ok(expected_credential_count(request));
+    };
+    if verified.includes_key_attestation() {
+        if verified.binding_key_count() == 0 {
+            return Err(IssuerError::new(IssuerStatus::InvalidProof));
+        }
+        return usize::try_from(verified.binding_key_count())
+            .map_err(|_| IssuerError::new(IssuerStatus::InvalidProof));
     }
-    let verified = verified_proofs.ok_or(IssuerError::new(IssuerStatus::InvalidProof))?;
-    if !verified.includes_key_attestation() || verified.binding_key_count() == 0 {
-        return Err(IssuerError::new(IssuerStatus::InvalidProof));
-    }
-    usize::try_from(verified.binding_key_count())
-        .map_err(|_| IssuerError::new(IssuerStatus::InvalidProof))
+    Ok(expected_credential_count(request))
 }

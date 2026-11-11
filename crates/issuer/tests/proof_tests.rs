@@ -52,6 +52,7 @@ fn context() -> ProofVerificationContext {
         nonce_required: true,
         current_time: 1_700_000_000,
         key_attestation_policy: None,
+        credential_request_profile: openid4vci_issuer::CredentialRequestProfile::OpenId4Vci,
     }
 }
 

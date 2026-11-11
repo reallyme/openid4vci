@@ -10,6 +10,7 @@ use std::mem;
 use buffa::EnumValue;
 use openid4vci_proto::generated::proto::reallyme::openid4vci::v1 as pb;
 use openid4vci_types as types;
+use zeroize::Zeroizing;
 
 use super::convert_messages::{
     insert_unique, json_to_vec, map_wire, option_from_message_field, optional_json_bytes,
@@ -62,6 +63,22 @@ pub fn issuer_metadata_to_proto(value: &types::IssuerMetadata) -> ProtoResult<pb
                 ..Default::default()
             })
             .into(),
+        display: value
+            .display
+            .as_ref()
+            .map(|entries| entries.iter().map(issuer_display_to_proto).collect())
+            .unwrap_or_default(),
+        issuer_info: value
+            .issuer_info
+            .as_ref()
+            .map(|entries| {
+                entries
+                    .iter()
+                    .map(issuer_information_to_proto)
+                    .collect::<ProtoResult<Vec<_>>>()
+            })
+            .transpose()?
+            .unwrap_or_default(),
         __buffa_unknown_fields: Default::default(),
     })
 }
@@ -107,10 +124,78 @@ pub fn issuer_metadata_from_proto(
         .map(|batch| types::BatchCredentialIssuance {
             batch_size: batch.batch_size,
         }),
+        display: optional_vec(mem::take(&mut value.display))
+            .map(|entries| {
+                entries
+                    .into_iter()
+                    .map(issuer_display_from_proto)
+                    .collect::<ProtoResult<Vec<_>>>()
+            })
+            .transpose()?,
+        issuer_info: optional_vec(mem::take(&mut value.issuer_info))
+            .map(|entries| {
+                entries
+                    .into_iter()
+                    .map(issuer_information_from_proto)
+                    .collect::<ProtoResult<Vec<_>>>()
+            })
+            .transpose()?,
         credential_configurations_supported,
     };
     map_wire(metadata.validate())?;
     Ok(metadata)
+}
+
+fn issuer_display_to_proto(value: &types::IssuerDisplay) -> pb::IssuerDisplay {
+    pb::IssuerDisplay {
+        name: value.name.clone().unwrap_or_default(),
+        locale: value.locale.clone().unwrap_or_default(),
+        logo: value.logo.as_ref().map(issuer_logo_to_proto).into(),
+        __buffa_unknown_fields: Default::default(),
+    }
+}
+
+fn issuer_display_from_proto(mut value: pb::IssuerDisplay) -> ProtoResult<types::IssuerDisplay> {
+    Ok(types::IssuerDisplay {
+        name: optional_string(mem::take(&mut value.name)),
+        locale: optional_string(mem::take(&mut value.locale)),
+        logo: option_from_message_field(mem::take(&mut value.logo)).map(|mut logo| {
+            types::IssuerLogo {
+                uri: mem::take(&mut logo.uri),
+                alt_text: optional_string(mem::take(&mut logo.alt_text)),
+            }
+        }),
+    })
+}
+
+fn issuer_logo_to_proto(value: &types::IssuerLogo) -> pb::IssuerLogo {
+    pb::IssuerLogo {
+        uri: value.uri.clone(),
+        alt_text: value.alt_text.clone().unwrap_or_default(),
+        __buffa_unknown_fields: Default::default(),
+    }
+}
+
+fn issuer_information_to_proto(
+    value: &types::IssuerInformation,
+) -> ProtoResult<pb::IssuerInformation> {
+    Ok(pb::IssuerInformation {
+        format: value.format.clone(),
+        data_json: json_to_vec(&value.data)?,
+        __buffa_unknown_fields: Default::default(),
+    })
+}
+
+fn issuer_information_from_proto(
+    mut value: pb::IssuerInformation,
+) -> ProtoResult<types::IssuerInformation> {
+    // The generated owner clears this sensitive field on drop. Preserve that
+    // guarantee when moving the bytes out for profile JSON decoding.
+    let data_json = Zeroizing::new(mem::take(&mut value.data_json));
+    Ok(types::IssuerInformation {
+        format: mem::take(&mut value.format),
+        data: optional_json_bytes(&data_json)?.ok_or(ProtoError::MissingRequiredField)?,
+    })
 }
 
 fn credential_configuration_to_proto(

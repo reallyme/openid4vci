@@ -7,18 +7,99 @@
 use std::cell::Cell;
 
 use openid4vci_issuer::{
-    encode_immediate_response, CommonRootCredentialEncoder, CommonRootIssuedCredential,
-    IssuanceStatusEvidence, IssuerResult, IssuerStatus,
+    encode_immediate_response, CommonRootCredentialEncoder, CommonRootIssuanceRequestBinding,
+    CommonRootIssuedCredential, IssuanceStatusEvidence, IssuerResult, IssuerStatus,
 };
 use reallyme_credential::DispatchCredentialIssuerSigner;
 use reallyme_crypto::{core::Algorithm as CryptoAlgorithm, dispatch::generate_keypair};
-use reallyme_zk_api::{ZkCommonCredentialRootClaim, ZkHashStrategy};
+use reallyme_zk_api::{
+    circuits::ZkCredentialHashAlgorithm, common_root::ZkCommonCredentialRootClaim,
+};
 
 use crate::support::{
     common_root_zk_material, common_root_zk_material_for_lane, encoding_error,
     issuer_status_verifier, p256_issue_input, signed_active_status_list, zk_request_for_issued,
     CountingSigner, STATUS_TEST_FRESHNESS, STATUS_TEST_NOW,
 };
+
+#[test]
+fn common_root_both_lanes_reject_finished_lineage_leaf_before_signing() -> IssuerResult<()> {
+    for lane in [
+        ZkCredentialHashAlgorithm::Sha256,
+        ZkCredentialHashAlgorithm::Poseidon2,
+    ] {
+        let prepared = common_root_zk_material_for_lane(lane)?;
+        assert_ne!(
+            prepared.finished_lineage_leaf,
+            prepared.opaque_lineage_claim_digest
+        );
+        let binding = prepared.request_binding()?;
+        assert_eq!(
+            binding.opaque_lineage_claim_digest(),
+            &prepared.opaque_lineage_claim_digest
+        );
+        let legacy_binding = || {
+            CommonRootIssuanceRequestBinding::new(
+                *binding.lineage_tag_commitment(),
+                *binding.wallet_opening_commitment(),
+                prepared.finished_lineage_leaf,
+            )
+        };
+        let claims = [ZkCommonCredentialRootClaim {
+            name: "age",
+            value: b"42",
+            salt: &prepared.claim_salt,
+        }];
+        let mut input = p256_issue_input(
+            prepared.material.issuer_public_key.clone(),
+            prepared.material.holder_public_key.clone(),
+        );
+        input.profile_id = "reallyme.zk.common-root.v1".to_owned();
+        input.claimset_id = "reallyme.zk.common-root.v1".to_owned();
+        let key = input.issuer_verification_key.clone();
+        let delegate = DispatchCredentialIssuerSigner {
+            private_key: &prepared.material.issuer_private_key,
+            verification_key: &key,
+        };
+        let signer = CountingSigner {
+            delegate: &delegate,
+            called: Cell::new(false),
+        };
+        let status = signed_active_status_list(&prepared.material.issuer_private_key)?;
+        let verifier = issuer_status_verifier(&prepared.material);
+        let evidence =
+            IssuanceStatusEvidence::new(&status, &verifier, STATUS_TEST_NOW, STATUS_TEST_FRESHNESS);
+        let result = CommonRootIssuedCredential::issue_from_authorized_claims(
+            input,
+            prepared.material.envelope.claims_commitment.clone(),
+            &signer,
+            &evidence,
+            &prepared.material.holder_public_key,
+            legacy_binding()?,
+            &claims,
+        );
+        assert_eq!(
+            result.err().map(|error| error.status()),
+            Some(IssuerStatus::EncodingFailed)
+        );
+        assert!(!signer.called.get());
+
+        let result = CommonRootIssuedCredential::from_authorized_common_root_issuance(
+            &prepared.material.envelope,
+            &prepared.material.proof_binding,
+            &prepared.material.issuer_public_key,
+            &evidence,
+            &prepared.material.holder_public_key,
+            legacy_binding()?,
+            &claims,
+        );
+        assert_eq!(
+            result.err().map(|error| error.status()),
+            Some(IssuerStatus::EncodingFailed)
+        );
+    }
+    Ok(())
+}
 
 #[test]
 fn common_root_sha256_authorized_issuance_accepts_issuer_claim_root() -> IssuerResult<()> {
@@ -165,7 +246,7 @@ fn common_root_sha256_issues_and_transports_authorized_claims_without_resigning(
 
 #[test]
 fn common_root_poseidon2_issues_and_transports_authorized_claims() -> IssuerResult<()> {
-    let prepared = common_root_zk_material_for_lane(ZkHashStrategy::Poseidon2)?;
+    let prepared = common_root_zk_material_for_lane(ZkCredentialHashAlgorithm::Poseidon2)?;
     let claims = [ZkCommonCredentialRootClaim {
         name: "age",
         value: b"42",
@@ -210,7 +291,7 @@ fn common_root_poseidon2_issues_and_transports_authorized_claims() -> IssuerResu
 
 #[test]
 fn common_root_poseidon2_rejects_sha256_metadata_before_signing() -> IssuerResult<()> {
-    let prepared = common_root_zk_material_for_lane(ZkHashStrategy::Poseidon2)?;
+    let prepared = common_root_zk_material_for_lane(ZkCredentialHashAlgorithm::Poseidon2)?;
     let mut issue_input = p256_issue_input(
         prepared.material.issuer_public_key.clone(),
         prepared.material.holder_public_key.clone(),

@@ -4,6 +4,7 @@
 
 //! Credential request validation and proof-policy selection.
 
+use openid4vci_profiles::validate_etsi_credential_request_proofs;
 use openid4vci_types::{CredentialRequest, CredentialSelector, Proofs};
 
 use crate::authorization::IssuanceAuthorization;
@@ -11,7 +12,9 @@ use crate::credential_policy::CredentialEndpointConfig;
 use crate::encode::expected_credential_count;
 use crate::encrypt::validate_response_encryption_parameters;
 use crate::error::{IssuerError, IssuerResult, IssuerStatus};
-use crate::proof::{ProofKind, ProofVerificationContext, ProofVerifier, VerifiedProofSet};
+use crate::proof::{
+    CredentialRequestProfile, ProofKind, ProofVerificationContext, ProofVerifier, VerifiedProofSet,
+};
 
 /// Refines a generic unknown-credential error into its selector-specific code.
 pub(crate) fn specialize_unknown_credential(
@@ -87,6 +90,10 @@ pub(crate) fn validate_and_verify_credential_request(
     request
         .validate()
         .map_err(|_| IssuerError::new(IssuerStatus::InvalidRequest))?;
+    if config.credential_request_profile == CredentialRequestProfile::EtsiTs119472Part3 {
+        validate_etsi_credential_request_proofs(request.proofs.as_ref(), config.proof_required)
+            .map_err(|_| IssuerError::new(IssuerStatus::InvalidProof))?;
+    }
     if config.response_encryption_required && request.credential_response_encryption.is_none() {
         return Err(IssuerError::new(IssuerStatus::EncryptionRequired));
     }
@@ -114,13 +121,16 @@ pub(crate) fn validate_and_verify_credential_request(
                 nonce_required: config.nonce_required,
                 current_time,
                 key_attestation_policy: proof_policy.key_attestation_policy.clone(),
+                credential_request_profile: config.credential_request_profile,
             };
             let verified = proof_verifier.verify(proofs, &context)?;
             if verified
                 .proofs()
                 .iter()
                 .any(|proof| proof.kind() != proof_kind)
-                || (proof_kind == ProofKind::Jwt && verified.proofs().len() != proofs.jwt.len())
+                || (proof_kind == ProofKind::Jwt
+                    && config.credential_request_profile == CredentialRequestProfile::OpenId4Vci
+                    && verified.proofs().len() != proofs.jwt.len())
             {
                 return Err(IssuerError::new(IssuerStatus::InvalidProof));
             }

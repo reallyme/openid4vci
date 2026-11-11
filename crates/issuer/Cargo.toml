@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-issuer"
-version = "0.2.0"
+version = "0.3.0"
 description = "Transport-agnostic OpenID4VCI issuer endpoint engine."
 edition.workspace = true
 rust-version.workspace = true
@@ -29,6 +29,7 @@ native = [
     "dep:p384",
     "dep:p521",
     "openid4vci-attestation/native",
+    "openid4vci-profiles/native",
     "openid4vci-types/native",
     "reallyme-credential/native",
     "reallyme-crypto/native",
@@ -39,6 +40,7 @@ native = [
 ]
 wasm = [
     "openid4vci-attestation/wasm",
+    "openid4vci-profiles/wasm",
     "openid4vci-types/wasm",
     "reallyme-credential/wasm",
     "reallyme-crypto/wasm",
@@ -55,6 +57,7 @@ identity-jose = [
 [dependencies]
 buffa = { workspace = true }
 openid4vci-attestation = { workspace = true }
+openid4vci-profiles = { workspace = true }
 reallyme-codec = { workspace = true, features = ["base64url", "jcs"] }
 openid4vci-types = { workspace = true }
 openid4vci-proto = { workspace = true, features = ["generated"] }

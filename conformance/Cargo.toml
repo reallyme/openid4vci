@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-conformance"
-version = "0.2.0"
+version = "0.3.0"
 description = "Machine-readable OpenID4VCI conformance vector harness."
 edition.workspace = true
 rust-version.workspace = true
@@ -18,6 +18,7 @@ native = [
   "openid4vci-attestation/native",
   "openid4vci-issuer/identity-jose",
   "openid4vci-issuer/native",
+  "openid4vci-profiles/native",
   "openid4vci-types/native",
   "reallyme-openid4vci-wallet/identity-jose",
   "reallyme-openid4vci-wallet/native",
@@ -26,6 +27,7 @@ wasm = [
   "openid4vci-attestation/wasm",
   "openid4vci-issuer/identity-jose",
   "openid4vci-issuer/wasm",
+  "openid4vci-profiles/wasm",
   "openid4vci-types/wasm",
   "reallyme-openid4vci-wallet/identity-jose",
   "reallyme-openid4vci-wallet/wasm",
@@ -34,6 +36,7 @@ wasm = [
 [dependencies]
 openid4vci-attestation = { workspace = true }
 openid4vci-issuer = { workspace = true }
+openid4vci-profiles = { workspace = true }
 openid4vci-types = { workspace = true }
 reallyme-openid4vci-wallet = { workspace = true }
 reallyme-codec = { workspace = true, features = ["base64url"] }

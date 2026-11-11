@@ -283,6 +283,7 @@ fn context(nonce_required: bool) -> Result<ProofVerificationContext, Attestation
             300,
             60,
         )?),
+        credential_request_profile: openid4vci_issuer::CredentialRequestProfile::OpenId4Vci,
     })
 }
 

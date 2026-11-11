@@ -13,7 +13,7 @@ use openid4vci_types::{CredentialFormat, CredentialPayload};
 use reallyme_codec::base64url::bytes_to_base64url;
 use reallyme_credential_status::status_list_signing_payload;
 use reallyme_crypto::{core::Algorithm as CryptoAlgorithm, dispatch::sign};
-use reallyme_zk_api::ZkCommonCredentialRootClaim;
+use reallyme_zk_api::common_root::ZkCommonCredentialRootClaim;
 use serde_json::{json, Value};
 
 use crate::support::{
@@ -109,7 +109,10 @@ fn same_authorized_claim_decision_can_encode_sd_jwt_and_zk_configurations() -> I
     );
     assert_eq!(zk_wire.lineage_tag_commitment, [0x44; 32]);
     assert_eq!(zk_wire.wallet_opening_commitment, [0x55; 32]);
-    assert_eq!(zk_wire.opaque_lineage_leaf, prepared.opaque_lineage_leaf);
+    assert_eq!(
+        zk_wire.opaque_lineage_leaf,
+        prepared.opaque_lineage_claim_digest
+    );
     Ok(())
 }
 

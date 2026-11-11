@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "suite_commit": "440eec8bac7b12b7389d7ca9cbc459b53507a443",
-  "suite_version": "5.3.1",
+  "suite_commit": "1e6f5433dc61b13e484fee1dec1f0346cca0cfa5",
+  "suite_version": "5.3.4",
   "plans": [
     {
       "plan_id": "oid4vci-1_0-issuer-haip-test-plan",

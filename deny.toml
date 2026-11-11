@@ -40,17 +40,16 @@ ignore = true
 registries = []
 
 [bans]
-# Fail on every newly introduced duplicate. The precise transitional versions
-# below are the reviewed exceptions imposed by published upstream dependency
-# graphs; removing an exception is required as soon as those graphs converge.
+# Duplicate versions are denied except for the exact reviewed versions below.
+# These exceptions reflect the published upstream dependency graphs.
 multiple-versions = "deny"
 wildcards = "deny"
 highlight = "all"
 workspace-default-features = "allow"
 external-default-features = "allow"
 # Direct broad error/logging crates are prohibited by workspace lints and source
-# review. Do not ban transitive use until upstream dependencies are ready to
-# replace them without reducing interoperability coverage.
+# review. Transitive dependencies retain their upstream error/logging choices
+# and remain subject to source, license, and advisory checks.
 deny = []
 skip = [
     { name = "base64", version = "=0.22.1" },

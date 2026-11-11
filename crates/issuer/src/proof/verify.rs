@@ -24,6 +24,15 @@ pub enum ProofKind {
     Attestation,
 }
 
+/// Credential Request proof semantics selected by issuer deployment policy.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CredentialRequestProfile {
+    /// OpenID4VCI 1.0 Final semantics without additional profile constraints.
+    OpenId4Vci,
+    /// ETSI TS 119 472-3 clauses 4.6.1 and 4.6.2.
+    EtsiTs119472Part3,
+}
+
 /// Supported signature algorithms for proof key material.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProofAlgorithm {
@@ -90,6 +99,8 @@ pub struct ProofVerificationContext {
     pub current_time: i64,
     /// Optional constraints that trusted key attestations must satisfy.
     pub key_attestation_policy: Option<KeyAttestationPolicy>,
+    /// Additional request and binding semantics selected by the deployment.
+    pub credential_request_profile: CredentialRequestProfile,
 }
 
 /// A proof whose signature, claims, and key reference were validated.
@@ -227,6 +238,36 @@ impl VerifiedProofSet {
             binding_key_count,
             includes_key_attestation,
             key_attestations,
+            proofs,
+        })
+    }
+
+    /// Builds an ETSI receipt where one verified Wallet Unit Attestation covers
+    /// every credential-binding key exposed by the sole JWT proof.
+    #[cfg(feature = "identity-jose")]
+    pub(crate) fn new_with_shared_key_attestation(
+        proofs: Vec<VerifiedProof>,
+        key_attestation: VerifiedKeyAttestation,
+    ) -> IssuerResult<Self> {
+        if proofs.is_empty()
+            || proofs.iter().any(|proof| proof.kind != ProofKind::Jwt)
+            || usize::try_from(key_attestation.attested_key_count())
+                .map_err(|_| IssuerError::new(IssuerStatus::InvalidProof))?
+                != proofs.len()
+        {
+            return Err(IssuerError::new(IssuerStatus::InvalidProof));
+        }
+        for (proof, attested_key) in proofs.iter().zip(key_attestation.attested_keys()) {
+            if proof.public_jwk.as_ref() != Some(attested_key.public_jwk()) {
+                return Err(IssuerError::new(IssuerStatus::InvalidProof));
+            }
+        }
+        let binding_key_count = u32::try_from(proofs.len())
+            .map_err(|_| IssuerError::new(IssuerStatus::InvalidProof))?;
+        Ok(Self {
+            binding_key_count,
+            includes_key_attestation: true,
+            key_attestations: vec![key_attestation],
             proofs,
         })
     }

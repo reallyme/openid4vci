@@ -3,5 +3,5 @@
   "source": "https://gitlab.com/openid/conformance-suite",
   "target": "crates/http/examples/issuer",
   "profile": "openid4vci-final",
-  "purpose": "scheduled OIDF conformance-suite issuer plan target"
+  "purpose": "OIDF conformance-suite issuer plan target"
 }

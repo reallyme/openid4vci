@@ -7,7 +7,7 @@
 //! The router is intentionally a thin adapter. It owns HTTP status codes,
 //! content types, body limits, and problem-details serialization while all
 //! protocol decisions stay in `openid4vci-types`, `openid4vci-issuer`, and the
-//! generated protobuf service boundary.
+//! injected OAuth, authorization, and credential provider interfaces.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;

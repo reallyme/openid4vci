@@ -16,6 +16,6 @@ pub use process::{
     DEFAULT_MAX_PROOF_JWT_BYTES, PROOF_JWT_TYP,
 };
 pub use verify::{
-    ConfirmationJwk, ProofAlgorithm, ProofKind, ProofVerificationContext, ProofVerifier,
-    VerifiedProof, VerifiedProofSet,
+    ConfirmationJwk, CredentialRequestProfile, ProofAlgorithm, ProofKind, ProofVerificationContext,
+    ProofVerifier, VerifiedProof, VerifiedProofSet,
 };

@@ -24,7 +24,7 @@ VERIFIER = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = VERIFIER
 SPEC.loader.exec_module(VERIFIER)
 
-SUITE_VERSION = "5.3.1"
+SUITE_VERSION = "5.3.4"
 PLAN_VARIANT = {
     "credential_format": "sd_jwt_vc",
     "grant_management": "disabled",

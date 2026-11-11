@@ -9,7 +9,10 @@ use std::collections::BTreeMap;
 use openid4vci_types::{CredentialResponseEncryptionMetadata, IssuerMetadata, ProofTypeMetadata};
 
 use crate::error::{IssuerError, IssuerResult, IssuerStatus};
-use crate::proof::{KeyAttestationLocalPolicy, KeyAttestationPolicy, ProofAlgorithm, ProofKind};
+use crate::proof::{
+    CredentialRequestProfile, KeyAttestationLocalPolicy, KeyAttestationPolicy, ProofAlgorithm,
+    ProofKind,
+};
 
 /// Runtime proof policy selected by the proof type actually submitted.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -49,6 +52,8 @@ pub struct CredentialEndpointConfig {
     pub nonce_required: bool,
     /// Whether encrypted Credential Request transport is mandatory.
     pub request_encryption_required: bool,
+    /// Additional Credential Request semantics selected by deployment policy.
+    pub credential_request_profile: CredentialRequestProfile,
 }
 
 impl CredentialEndpointConfig {
@@ -137,7 +142,31 @@ impl CredentialEndpointConfig {
                 .credential_request_encryption
                 .as_ref()
                 .is_some_and(|encryption| encryption.encryption_required),
+            credential_request_profile: CredentialRequestProfile::OpenId4Vci,
         })
+    }
+
+    /// Enables ETSI TS 119 472-3 Credential Request semantics.
+    ///
+    /// The profile requires a Nonce Endpoint and at least one of the JWT or
+    /// direct-attestation proof mechanisms with an enforceable Wallet Unit
+    /// Attestation trust policy. This method fails closed instead of silently
+    /// weakening a partially configured issuer.
+    pub fn with_etsi_ts119472_part3_profile(mut self) -> IssuerResult<Self> {
+        if !self.nonce_required {
+            return Err(IssuerError::new(IssuerStatus::InvalidProofPolicy));
+        }
+        let jwt_policy = self.proof_type_policies.get(&ProofKind::Jwt);
+        let attestation_policy = self.proof_type_policies.get(&ProofKind::Attestation);
+        if (jwt_policy.is_some_and(|policy| policy.key_attestation_policy.is_none()))
+            || (attestation_policy.is_some_and(|policy| policy.key_attestation_policy.is_none()))
+            || (jwt_policy.is_none() && attestation_policy.is_none())
+            || self.proof_type_policies.contains_key(&ProofKind::DiVp)
+        {
+            return Err(IssuerError::new(IssuerStatus::InvalidProofPolicy));
+        }
+        self.credential_request_profile = CredentialRequestProfile::EtsiTs119472Part3;
+        Ok(self)
     }
 
     pub(crate) fn proof_policy(

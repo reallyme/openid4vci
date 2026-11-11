@@ -67,7 +67,7 @@ class DriverState:
     def __init__(self) -> None:
         self.handled_redirects: set[str] = set()
         self.handled_implicit_submits: set[str] = set()
-        self.handled_credential_offers: set[str] = set()
+        self.handled_credential_offers: dict[str, int] = {}
         self.stop_requested = False
 
 
@@ -190,7 +190,7 @@ def drive_once(config: DriverConfig, state: DriverState, context: ssl.SSLContext
         log_entries = fetch_json(config.conformance_server, f"/api/log/{module.test_id}", context)
         if not isinstance(log_entries, list):
             continue
-        drive_credential_offer(module.test_id, config, state, context)
+        drive_credential_offer(module.test_id, log_entries, config, state, context)
         drive_browser_control_urls(module.test_id, log_entries, config, state, context)
         drive_redirects(module.test_id, log_entries, config, state, context)
         drive_implicit_submits(module.test_id, log_entries, config, state, context)
@@ -198,6 +198,7 @@ def drive_once(config: DriverConfig, state: DriverState, context: ssl.SSLContext
 
 def drive_credential_offer(
     test_id: str,
+    log_entries: list[Any],
     config: DriverConfig,
     state: DriverState,
     context: ssl.SSLContext,
@@ -212,9 +213,13 @@ def drive_credential_offer(
     if not isinstance(credential_offer_endpoint, str):
         return
     key = f"{test_id}:{credential_offer_endpoint}"
-    if key in state.handled_credential_offers:
+    wait_count = credential_offer_wait_count(log_entries)
+    if wait_count == 0 or wait_count <= state.handled_credential_offers.get(key, 0):
         return
 
+    # Some issuer-initiated modules reuse one exposed endpoint for sequential
+    # clients. The suite log occurrence is the durable signal that a new offer
+    # is expected; endpoint-only deduplication would strand the second client.
     offer_url = credential_offer_submission_url(
         credential_offer_endpoint,
         config.credential_issuer_url,
@@ -222,8 +227,16 @@ def drive_credential_offer(
         test_id,
     )
     fetch_url(offer_url, context)
-    state.handled_credential_offers.add(key)
+    state.handled_credential_offers[key] = wait_count
     sys.stderr.write(f"OIDF browser driver submitted credential offer for {test_id}\n")
+
+
+def credential_offer_wait_count(log_entries: list[Any]) -> int:
+    return sum(
+        1
+        for entry in log_entries
+        if isinstance(entry, dict) and entry.get("src") == "VCIWaitForCredentialOffer"
+    )
 
 
 def credential_offer_submission_url(
@@ -384,6 +397,8 @@ def drive_browser_control_urls(
     visited_urls = {url for url in visited if isinstance(url, str)}
     expected_urls = authorization_endpoint_urls_from_log(log_entries)
     allow_visited_callback_probe = is_par_attempt_reuse_request_uri_module(log_entries)
+    defer_authentication = is_par_reuse_prior_to_auth_completion_module(log_entries)
+    share_authorization_visit = not allow_visited_callback_probe and not defer_authentication
     for url in urls:
         if not isinstance(url, str):
             continue
@@ -394,10 +409,19 @@ def drive_browser_control_urls(
         if url in visited_urls and not allow_visited_callback_probe:
             continue
         key = f"{test_id}:browser:{'visited' if url in visited_urls else 'new'}:{url}"
-        if key in state.handled_redirects:
+        authorization_visit_key = f"{test_id}:{url}"
+        if key in state.handled_redirects or (
+            share_authorization_visit and authorization_visit_key in state.handled_redirects
+        ):
             continue
         state.handled_redirects.add(key)
-        if is_par_reuse_prior_to_auth_completion_module(log_entries):
+        # Browser-control URLs can precede their redirect log entry. Record
+        # the same visit identity used by drive_redirects so a later poll does
+        # not replay a consumed PAR request. The two explicit PAR reuse tests
+        # retain their separate visits and deferred-callback behavior.
+        if share_authorization_visit:
+            state.handled_redirects.add(authorization_visit_key)
+        if defer_authentication:
             body = fetch_browser_control_url_without_callback(url, config, context)
         else:
             body = fetch_browser_control_url(url, config, context)

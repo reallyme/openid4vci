@@ -324,6 +324,7 @@ fn credential_configuration_with_key_attestation(
     let mut configuration = CredentialConfiguration::new(format);
     configuration.scope = Some("pid".to_owned());
     configuration.vct = Some("urn:eudi:pid:1".to_owned());
+    configuration.cryptographic_binding_methods_supported = Some(vec!["jwk".to_owned()]);
     configuration.proof_types_supported = Some(proof_types);
     configuration
 }

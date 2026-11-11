@@ -8,7 +8,11 @@
       "source_commit": "b53874f1477a76f00a91c87cfd3f18abea572e65",
       "source_path": "docs/technical-specifications/ts3-wallet-unit-attestation.md",
       "section": "Wallet Unit Attestations used in issuance of PID and Attestations",
-      "role": ["wallet", "pid_provider", "attestation_provider"],
+      "role": [
+        "wallet",
+        "pid_provider",
+        "attestation_provider"
+      ],
       "openid4vci_feature": "wallet_attestation_client_authentication",
       "implemented_in": [
         "openid4vci_http::IssuerHttpSecurityConfig",
@@ -31,7 +35,10 @@
       "source_commit": "b53874f1477a76f00a91c87cfd3f18abea572e65",
       "source_path": "docs/technical-specifications/ts3-wallet-unit-attestation.md",
       "section": "2.4 Life Cycle of WIAs and KAs",
-      "role": ["pid_provider", "attestation_provider"],
+      "role": [
+        "pid_provider",
+        "attestation_provider"
+      ],
       "openid4vci_feature": "credential_issuer_metadata",
       "implemented_in": [
         "openid4vci_types::IssuerMetadata",
@@ -51,7 +58,11 @@
       "source_commit": "b53874f1477a76f00a91c87cfd3f18abea572e65",
       "source_path": "docs/technical-specifications/ts3-wallet-unit-attestation.md",
       "section": "Key Attestations used in issuance of PID and Attestations",
-      "role": ["wallet", "pid_provider", "attestation_provider"],
+      "role": [
+        "wallet",
+        "pid_provider",
+        "attestation_provider"
+      ],
       "openid4vci_feature": "jwt_proof_key_attestation",
       "implemented_in": [
         "openid4vci_issuer::JoseJwtProofVerifier",
@@ -72,7 +83,10 @@
       "source_commit": "9b9bd9aa4dc9ef9127ac74f08b644917dce05dfc",
       "source_path": "rulebooks/pid/pid-rulebook.md",
       "section": "PID issuance profile",
-      "role": ["pid_provider", "wallet"],
+      "role": [
+        "pid_provider",
+        "wallet"
+      ],
       "openid4vci_feature": "pid_credential_configuration",
       "implemented_in": [
         "openid4vci_profiles::eudi_pid_policy"
@@ -91,7 +105,10 @@
       "source_commit": "28644bfba9381fee5669f3eac90e96c5ef25f044",
       "source_path": "docs/architecture-and-reference-framework-main.md",
       "section": "High assurance PID issuance",
-      "role": ["pid_provider", "wallet"],
+      "role": [
+        "pid_provider",
+        "wallet"
+      ],
       "openid4vci_feature": "haip_eudi_pid_sender_constrained_issuance",
       "implemented_in": [
         "openid4vci_profiles::eudi_pid_policy",
@@ -114,7 +131,10 @@
       "source_commit": "9b9bd9aa4dc9ef9127ac74f08b644917dce05dfc",
       "source_path": "rulebooks/pid/pid-rulebook.md",
       "section": "PID credential formats",
-      "role": ["pid_provider", "wallet"],
+      "role": [
+        "pid_provider",
+        "wallet"
+      ],
       "openid4vci_feature": "pid_sd_jwt_vc_and_mdoc_configuration",
       "implemented_in": [
         "openid4vci_profiles::eudi_pid_policy",
@@ -135,18 +155,21 @@
       "source_commit": "62c4ba73007ea25440e6ba24a651937bc692629b",
       "source_path": "src/test/resources/features",
       "section": "Reference wallet and PID provider flows",
-      "role": ["pid_provider", "wallet"],
+      "role": [
+        "pid_provider",
+        "wallet"
+      ],
       "openid4vci_feature": "black_box_interop_reporting",
       "implemented_in": [
-        "conformance/eudi/upstream-tests.json",
         "conformance/src/bin/compare_eudi_reference_resources.rs"
       ],
       "tests": [
-        "eudi_interop_reporting_is_owned_by_composed_conformance"
+        "eudi_interop_evidence_is_explicitly_unverified"
       ],
       "applicable_to_openid4vci_repo": true,
-      "status": "implemented-delegated-evidence-boundary",
-      "exclusion_reason": "The protocol repository owns pinned interoperability inputs and reusable comparison logic. Composed execution, retained results, and redacted evidence are owned by reallyme/identity-conformance."
+      "status": "execution-unverified",
+      "exclusion_reason": "Composed interoperability execution and retained results are outside this protocol repository; parser comparisons do not establish two-sided interoperability.",
+      "limitation": "The reusable comparator checks local parser behavior only. This repository contains no retained two-sided execution evidence for the pinned external implementations."
     },
     {
       "requirement_id": "EUDI-ISSUANCE-METADATA-001",
@@ -155,7 +178,10 @@
       "source_commit": "28644bfba9381fee5669f3eac90e96c5ef25f044",
       "source_path": "docs/architecture-and-reference-framework-main.md",
       "section": "PID Provider or Attestation Provider registration and notification",
-      "role": ["pid_provider", "attestation_provider"],
+      "role": [
+        "pid_provider",
+        "attestation_provider"
+      ],
       "openid4vci_feature": "credential_issuer_metadata",
       "implemented_in": [
         "openid4vci_profiles::IssuerProfileRequirements"
@@ -165,9 +191,9 @@
         "eudi_pid_policy_rejects_metadata_without_configuration_scope"
       ],
       "applicable_to_openid4vci_repo": true,
-      "status": "extracted-blocked-on-ecosystem-field-names",
-      "exclusion_reason": "Pinned ARF text requires Registrar service and optional registration-certificate material in Credential Issuer metadata, but the pinned OpenID4VCI/HAIP/EUDI sources in this repository do not define concrete JSON field names, certificate profiles, or trust-anchor resolution rules. OpenID4VCI must not invent non-standard wire fields before the ecosystem profile supplies them.",
-      "next_action": "When a pinned EUDI source defines concrete Credential Issuer Metadata extension names for Registrar URLs and registration certificates, add typed fields, proto/Connect mapping, validation, and EUDI interop fixtures."
+      "status": "unsupported",
+      "exclusion_reason": "Registrar metadata compliance is not implemented: the pinned sources do not specify the complete JSON field, certificate-profile, and trust-resolution contract. Generic metadata parsing does not establish registration compliance.",
+      "limitation": "The pinned sources do not provide the complete Registrar metadata field, certificate-profile, and trust-resolution contract required for registration validation."
     }
   ]
 }

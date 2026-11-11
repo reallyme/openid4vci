@@ -41,10 +41,13 @@ use reallyme_ssi_proto::generated::proto::identity::{
     credential::v1 as credential_pb, status::v1 as status_pb,
 };
 use reallyme_zk_api::{
-    verify_common_credential_root_poseidon2_issuer_claims_root,
-    verify_common_credential_root_sha256_issuer_claims_root,
-    ZkCommonCredentialRootApprovedIssuerRoot, ZkCommonCredentialRootClaim, ZkHashStrategy,
-    COMMON_CREDENTIAL_ROOT_V1_CLAIM_ENCODING,
+    circuits::ZkCredentialHashAlgorithm,
+    common_root::{
+        verify_common_credential_root_poseidon2_issuer_claims_root,
+        verify_common_credential_root_sha256_issuer_claims_root,
+        ZkCommonCredentialRootApprovedIssuerRoot, ZkCommonCredentialRootClaim,
+        COMMON_CREDENTIAL_ROOT_V1_CLAIM_ENCODING,
+    },
 };
 use serde_json::Value;
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
@@ -76,7 +79,7 @@ const PROTO_RECURSION_LIMIT: u32 = 32;
 const PROTO_UNKNOWN_FIELD_LIMIT: usize = 0;
 const LINEAGE_TAG_COMMITMENT_BYTES: usize = 32;
 const WALLET_OPENING_COMMITMENT_BYTES: usize = 32;
-const OPAQUE_LINEAGE_LEAF_BYTES: usize = 32;
+const LINEAGE_CLAIM_DIGEST_BYTES: usize = 32;
 const SSI_COMMON_ROOT_PROFILE: &str = "reallyme.zk.common-root.v1";
 const SSI_SHA256_HASH_ALGORITHM: &str = "sha-256";
 const SSI_POSEIDON2_HASH_ALGORITHM: &str = "poseidon2-bn254";
@@ -126,27 +129,31 @@ pub struct CommonRootIssuanceRequestBinding {
     lineage_tag_commitment: [u8; LINEAGE_TAG_COMMITMENT_BYTES],
     /// Wallet commitment to the first private opening used for reconciliation.
     wallet_opening_commitment: [u8; WALLET_OPENING_COMMITMENT_BYTES],
-    /// Opaque leaf that lets the issuer approve the root without seeing lineage.
-    opaque_lineage_leaf: [u8; OPAQUE_LINEAGE_LEAF_BYTES],
+    /// Salted lineage claim digest carried by the `opaque_lineage_leaf` wire field.
+    opaque_lineage_claim_digest: [u8; LINEAGE_CLAIM_DIGEST_BYTES],
 }
 
 impl CommonRootIssuanceRequestBinding {
     /// Builds the required request binding and rejects absent all-zero fields.
+    ///
+    /// The `opaque_lineage_claim_digest` argument carries the wallet's salted `CLM1`
+    /// digest. The ZK verifier derives the reserved `LEAF1` leaf from it when
+    /// recomputing the issuer-approved claims root.
     pub fn new(
         lineage_tag_commitment: [u8; LINEAGE_TAG_COMMITMENT_BYTES],
         wallet_opening_commitment: [u8; WALLET_OPENING_COMMITMENT_BYTES],
-        opaque_lineage_leaf: [u8; OPAQUE_LINEAGE_LEAF_BYTES],
+        opaque_lineage_claim_digest: [u8; LINEAGE_CLAIM_DIGEST_BYTES],
     ) -> IssuerResult<Self> {
         if lineage_tag_commitment.iter().all(|byte| *byte == 0)
             || wallet_opening_commitment.iter().all(|byte| *byte == 0)
-            || opaque_lineage_leaf.iter().all(|byte| *byte == 0)
+            || opaque_lineage_claim_digest.iter().all(|byte| *byte == 0)
         {
             return Err(IssuerError::new(IssuerStatus::EncodingFailed));
         }
         Ok(Self {
             lineage_tag_commitment,
             wallet_opening_commitment,
-            opaque_lineage_leaf,
+            opaque_lineage_claim_digest,
         })
     }
 
@@ -160,9 +167,9 @@ impl CommonRootIssuanceRequestBinding {
         &self.wallet_opening_commitment
     }
 
-    /// Returns the opaque lineage leaf approved by the issuer.
-    pub fn opaque_lineage_leaf(&self) -> &[u8; OPAQUE_LINEAGE_LEAF_BYTES] {
-        &self.opaque_lineage_leaf
+    /// Returns the salted lineage claim digest carried by the wire field.
+    pub fn opaque_lineage_claim_digest(&self) -> &[u8; LINEAGE_CLAIM_DIGEST_BYTES] {
+        &self.opaque_lineage_claim_digest
     }
 }
 
@@ -205,14 +212,15 @@ impl From<&CredentialProofBinding> for CommonRootProofBinding {
 }
 
 /// Issuer-prepared `reallyme_zk_v1` payload for OpenID4VCI responses.
-#[derive(PartialEq)]
+#[derive(PartialEq, Zeroize, ZeroizeOnDrop)]
 pub struct CommonRootIssuedCredential {
     credential_pb: Zeroizing<Vec<u8>>,
     status_list_pb: Zeroizing<Vec<u8>>,
     verified_holder_public_key: [u8; P256_SEC1_UNCOMPRESSED_BYTES],
     proof_binding: CommonRootProofBinding,
     request_binding: CommonRootIssuanceRequestBinding,
-    hash_strategy: ZkHashStrategy,
+    #[zeroize(skip)]
+    hash_strategy: ZkCredentialHashAlgorithm,
 }
 
 /// Signed status material and the issuer's verification policy for one issuance.
@@ -270,8 +278,8 @@ impl CommonRootIssuedCredential {
     /// Approves authoritative claims, issues the SSI credential, and prepares
     /// its OpenID4VCI response without replacing any already signed field.
     ///
-    /// The caller supplies claims from its issuance decision and the opaque
-    /// lineage leaf from the holder. Neither the holder's claim values nor an
+    /// The caller supplies claims from its issuance decision and the salted
+    /// lineage claim digest from the holder. Neither the holder's claim values nor an
     /// unverified root can authorize the issuer signature. Status authenticity
     /// and freshness are checked before invoking the issuer signer.
     pub fn issue_from_authorized_claims(
@@ -293,7 +301,7 @@ impl CommonRootIssuedCredential {
         let approved_root = verify_issuer_claims_root(
             hash_strategy,
             root,
-            request_binding.opaque_lineage_leaf,
+            request_binding.opaque_lineage_claim_digest,
             approved_claims,
         )?;
         status.verify()?;
@@ -328,10 +336,10 @@ impl CommonRootIssuedCredential {
     /// `approved_claims` must come from the issuer's authoritative issuance
     /// decision after applying the credential profile's canonical byte
     /// conversion. It must not be copied from wallet-provided claim bytes. The
-    /// opaque lineage leaf is wallet-provided because the issuer should not
-    /// learn the holder's private lineage value; the later lineage proof binds
-    /// that opaque leaf to the hidden root. The status verifier independently
-    /// resolves the list signer and checks its freshness.
+    /// wallet supplies the salted lineage claim digest. The verifier derives
+    /// the reserved lineage leaf without learning the holder's private
+    /// lineage value. The status verifier independently resolves the list
+    /// signer and checks its freshness.
     pub fn from_authorized_common_root_issuance(
         envelope: &SsiCredentialEnvelope,
         proof_binding: &CredentialProofBinding,
@@ -345,7 +353,7 @@ impl CommonRootIssuedCredential {
         let approved_root = verify_issuer_claims_root(
             hash_strategy,
             proof_binding.claims_root,
-            request_binding.opaque_lineage_leaf,
+            request_binding.opaque_lineage_claim_digest,
             approved_claims,
         )?;
         status.verify()?;
@@ -376,7 +384,7 @@ impl CommonRootIssuedCredential {
         request_binding: CommonRootIssuanceRequestBinding,
     ) -> IssuerResult<Self> {
         let hash_strategy = common_root_hash_strategy(&envelope.claims_commitment)?;
-        if approved_root.hash_strategy() != hash_strategy
+        if approved_root.credential_hash_algorithm() != hash_strategy
             || approved_root.root() != proof_binding.claims_root
         {
             return Err(IssuerError::new(IssuerStatus::EncodingFailed));
@@ -388,15 +396,17 @@ impl CommonRootIssuedCredential {
             verified_status_list,
             verified_holder_public_key_sec1,
         )?;
-        let credential_pb = credential_envelope_to_proto(envelope)
-            .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?
-            .encode_to_vec();
-        let status_list_pb = status_list_to_proto(verified_status_list)
-            .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?
-            .encode_to_vec();
+        let credential_pb = Zeroizing::new(
+            credential_envelope_to_proto(envelope)
+                .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?
+                .encode_to_vec(),
+        );
+        let status_list_pb = Zeroizing::new(
+            status_list_to_proto(verified_status_list)
+                .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))?
+                .encode_to_vec(),
+        );
         validate_proto_lengths(&credential_pb, &status_list_pb)?;
-        let credential_pb = Zeroizing::new(credential_pb);
-        let status_list_pb = Zeroizing::new(status_list_pb);
         let verified_holder_public_key = normalize_p256_sec1(verified_holder_public_key_sec1)?;
         Ok(Self {
             credential_pb,

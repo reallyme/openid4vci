@@ -226,10 +226,13 @@ fn mdoc_credential_configuration() -> CredentialConfiguration {
     configuration.doctype = Some(PID_MDOC_DOCTYPE.to_owned());
     configuration.credential_metadata = Some(json!({
         "claims": [
-            {"path": [PID_MDOC_DOCTYPE, "given_name"], "mandatory": false},
-            {"path": [PID_MDOC_DOCTYPE, "family_name"], "mandatory": false},
-            {"path": [PID_MDOC_DOCTYPE, "birth_date"], "mandatory": false},
-            {"path": [PID_MDOC_DOCTYPE, "issuing_country"], "mandatory": false}
+            {"path": [PID_MDOC_DOCTYPE, "given_name"], "mandatory": true},
+            {"path": [PID_MDOC_DOCTYPE, "family_name"], "mandatory": true},
+            {"path": [PID_MDOC_DOCTYPE, "birth_date"], "mandatory": true},
+            {"path": [PID_MDOC_DOCTYPE, "place_of_birth"], "mandatory": true},
+            {"path": [PID_MDOC_DOCTYPE, "nationality"], "mandatory": true},
+            {"path": [PID_MDOC_DOCTYPE, "issuing_authority"], "mandatory": true},
+            {"path": [PID_MDOC_DOCTYPE, "issuing_country"], "mandatory": true}
         ]
     }));
     configuration

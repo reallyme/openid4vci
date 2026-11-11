@@ -16,7 +16,7 @@ on:
         description: Release version without a leading v
         required: true
         type: string
-        default: 0.2.0
+        default: 0.3.0
 
 concurrency:
   group: crates-package-preflight-${{ inputs.version }}-${{ github.sha }}
@@ -49,7 +49,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '24'
+          node-version: '26'
 
       - name: Match workflow head, current main, and crate versions
         id: verify-source
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
-      - name: Checkout certified release commit
+      - name: Checkout verified release commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.verify-source-sha.outputs.release_sha }}
@@ -89,7 +89,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: reallyme/release-readiness
-          ref: v0.6.9
+          ref: 18a6d91d99837e80f92e41fe04effb0b043d754e
           path: openid4vci/.release-readiness
           persist-credentials: false
 
@@ -101,7 +101,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '24'
+          node-version: '26'
 
       - name: Install cargo-audit
         uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2.85.2

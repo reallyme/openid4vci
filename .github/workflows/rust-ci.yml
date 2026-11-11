@@ -7,7 +7,7 @@ name: Rust CI
 env:
   CARGO_AUDIT_VERSION: 0.22.2
   CARGO_DENY_VERSION: 0.20.2
-  CARGO_NEXTEST_VERSION: 0.9.140
+  CARGO_NEXTEST_VERSION: 0.9.146
   CARGO_SEMVER_CHECKS_VERSION: 0.50.0
 
 on:
@@ -27,6 +27,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: rust-ci-${{ github.event_name }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
 jobs:
   semver:
     name: Public API semver
@@ -42,7 +46,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "24"
+          node-version: "26"
 
       # cargo-semver-checks consumes rustdoc JSON, whose schema follows the
       # compiler. Pin both so an upstream release cannot silently change this
@@ -67,8 +71,8 @@ jobs:
         working-directory: openid4vci
         run: node scripts/check-published-semver.mjs
 
-  rust:
-    name: fmt, lint, test, dependency policy
+  rust-checks:
+    name: Rust source, lint, tests, and dependency policy
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -82,7 +86,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: reallyme/release-readiness
-          ref: v0.6.9
+          ref: 18a6d91d99837e80f92e41fe04effb0b043d754e
           path: openid4vci/.release-readiness
           persist-credentials: false
 
@@ -107,7 +111,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: "24"
+          node-version: "26"
 
       - name: Install ripgrep
         uses: taiki-e/install-action@41049aa56687c35e0afa74eed4f09cec4f9afabf # v2.85.2
@@ -150,9 +154,19 @@ jobs:
         working-directory: openid4vci
         run: python3 -m unittest discover -s scripts/conformance -p 'test_*.py'
 
+      - name: Check all features with warnings denied
+        working-directory: openid4vci
+        env:
+          RUSTFLAGS: -Dwarnings
+        run: cargo check --locked --workspace --all-features
+
       - name: Clippy
         working-directory: openid4vci
         run: cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
+
+      - name: Test default lane
+        working-directory: openid4vci
+        run: cargo nextest run --locked --workspace
 
       - name: Test native lane
         working-directory: openid4vci
@@ -162,11 +176,21 @@ jobs:
         working-directory: openid4vci
         run: cargo nextest run --locked --workspace --all-features
 
+      - name: Test issuer composition
+        working-directory: openid4vci
+        run: cargo test --locked -p openid4vci-http --example issuer --features axum,identity-jose,tls
+
       - name: Build documentation
         working-directory: openid4vci
         env:
           RUSTDOCFLAGS: -Dwarnings
         run: cargo doc --locked --workspace --no-deps --all-features
+
+      - name: Test documentation contracts
+        working-directory: openid4vci
+        env:
+          RUSTDOCFLAGS: -Dwarnings
+        run: cargo test --locked --doc --workspace --all-features
 
       - name: Check wasm lane
         working-directory: openid4vci
@@ -236,3 +260,21 @@ jobs:
           -p openid4vci-http
           -p reallyme-openid4vci
           --all-features
+
+
+  rust:
+    name: fmt, lint, test, dependency policy
+    if: ${{ always() }}
+    needs: [rust-checks, semver, msrv]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every Rust validation gate
+        env:
+          SOURCE_RESULT: ${{ needs.rust-checks.result }}
+          SEMVER_RESULT: ${{ needs.semver.result }}
+          MSRV_RESULT: ${{ needs.msrv.result }}
+        run: |
+          test "$SOURCE_RESULT" = success
+          test "$SEMVER_RESULT" = success
+          test "$MSRV_RESULT" = success

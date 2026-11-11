@@ -53,7 +53,7 @@ jobs:
       - name: Build fuzz targets
         working-directory: openid4vci
         run: |
-          cargo +nightly-2026-09-15 metadata --locked --manifest-path fuzz/Cargo.toml --format-version 1 --no-deps
+          cargo +nightly-2026-09-15 metadata --locked --manifest-path fuzz/Cargo.toml --format-version 1
           cargo +nightly-2026-09-15 fuzz build
 
       - name: Stage fuzz executables

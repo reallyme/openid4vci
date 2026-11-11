@@ -20,9 +20,11 @@ transcript and are selected by the signed SSI commitment metadata. The issuer
 supplies canonical claims from its own issuance decision, the wallet request's
 `CommonRootIssuanceRequestBinding`, a verified holder key, and
 `IssuanceStatusEvidence`. The request binding carries the lineage-tag
-commitment, wallet-opening commitment, and opaque lineage leaf that must later
-match the OpenID4VCI request byte-for-byte. The status context supplies the
-signed list, independently trusted signature verifier, current time, and
+commitment, wallet-opening commitment, and salted lineage claim digest in
+`opaque_lineage_leaf`. The ZK API derives the reserved Merkle leaf from that
+digest. The binding fields must match the OpenID4VCI request byte-for-byte.
+The status context supplies the signed list, independently trusted signature
+verifier, current time, and
 freshness policy. The constructor authenticates the list before invoking the
 credential signer.
 
@@ -36,7 +38,7 @@ claim root, holder binding, and status pointer before packaging the response.
 `CommonRootCredentialEncoder` emits one OpenID4VCI credential string:
 unpadded base64url of the generated Buffa `ReallyMeZkV1Credential` message.
 That message carries the embedded SSI protobufs, public proof binding, holder
-key, wallet request commitments, opaque lineage leaf, and wire version.
+key, wallet request commitments, lineage claim digest, and wire version.
 Encoders and receivers bound message size and depth and reject unknown fields
 or versions.
 

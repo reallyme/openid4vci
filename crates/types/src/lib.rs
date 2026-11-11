@@ -31,8 +31,9 @@ pub use format::CredentialFormat;
 pub use jwk::{PublicJwk, PublicJwkSet};
 pub use metadata::{
     BatchCredentialIssuance, CredentialConfiguration, CredentialRequestEncryptionMetadata,
-    CredentialResponseEncryptionMetadata, CredentialSigningAlg, IssuerMetadata,
-    IssuerMetadataBuilder, KeyAttestationsRequired, ProofTypeMetadata, MIN_BATCH_SIZE,
+    CredentialResponseEncryptionMetadata, CredentialSigningAlg, IssuerDisplay, IssuerInformation,
+    IssuerLogo, IssuerMetadata, IssuerMetadataBuilder, KeyAttestationsRequired, ProofTypeMetadata,
+    MIN_BATCH_SIZE,
 };
 pub use nonce::{NonceRequest, NonceResponse};
 pub use notification::{NotificationEvent, NotificationRequest};

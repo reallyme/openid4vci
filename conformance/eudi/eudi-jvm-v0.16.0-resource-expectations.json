@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "source_id": "eudi-jvm-openid4vci",
+  "source_release": "v0.16.0",
+  "source_commit": "b6380bdd059c7e4f162d0db8084a15185162d2ec",
+  "resource_root": "upstream:eudi-jvm-openid4vci/src/test/resources",
+  "resources": [
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_negative_preferred_client_status_period.json",
+      "sha256": "d2079ce656c8caa0be8e8c3d057a9375e31a935ba0418a67d6f7665a4a23282a",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_no_asymmetric_algs.json",
+      "sha256": "12886daf9079d9c7c4a32bf899f70b9572fb68b0b1349d4c08f234366e9b0ae7",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_no_request_encryption.json",
+      "sha256": "6417470a67723a0a150068b64e2c858705af89e15181819ef2a06d894d75301a",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_no_response_encryption.json",
+      "sha256": "78296c03b17b8daef0f07001a49479ad2767bc16675ac97f3c8e8080d42a80f8",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_valid.json",
+      "sha256": "8a4d2c0c9e99850d81261ea56c5c0a771a27fc069be50f60eafaeb0498ccf112",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_valid_multiple_auth_servers.json",
+      "sha256": "1f80fc9f593c9be2140308f67f9f6a555c3739624afe1a984fcd60e597ac572e",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_both_once_only_limited_time_compact.json",
+      "sha256": "e02f537912d3bd302743f90090944341dce1399456d489ee3c05b9fa6bd97821",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_both_once_only_limited_time_expanded.json",
+      "sha256": "314b04a83ee014378f68aa67bc33124bac9b97ffc0218e6a33f86cd6b702236d",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_compact.json",
+      "sha256": "143267e3091fd62c7e5a1bcb05a1bbbdc6bc278918e9b111f47d0ac6426b8941",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_duplicate_details_compact.json",
+      "sha256": "d8fb7e33c24129c8c841e69ac8b00b98560882a1f0e0d0a3674290a56c15cf09",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_duplicate_details_expanded.json",
+      "sha256": "37dd7355c4a8864d8be1ae4cd3fcc13bc59de8044ee12f9f45807ea038684ad4",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_duplicates_compact.json",
+      "sha256": "03e282d473de27443f085912ab39bb3f1a8e8e7f417d592013f1c1f7d11a4a42",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_duplicates_expanded.json",
+      "sha256": "c173fd08f1610d4cf19c50bb5456a0e627fb5a084aee152ed76a738885af0758",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_expanded.json",
+      "sha256": "8a68ca58e97a738be1dc3ad762db4e031cf1a97edbaf5c372d8c11d9325cb0b2",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_only_per_relying_party.json",
+      "sha256": "76f993fcb1170ad0fe3ffdf5f29bf88e43793242551d6efcc6a24ec4e43a9882",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_reuse_policy_only_rotating_batch.json",
+      "sha256": "c4d78d99b01994f171389ef7bdba7302a280262eff54ff2ae550afb277732611",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_with_unknown_reuse_policy.json",
+      "sha256": "fe767bf258292e2a70c3846f574b6224f51c0c8e781732ec770d549710462cba",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept",
+      "semantic_profile": "etsi_reuse_policy"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_issuer_metadata_zero_preferred_client_status_period.json",
+      "sha256": "c24587d092e5bc24c1bbbc543b6dd4767ab872d441f7b88a866907839dccd08a",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_offer_over_sized_tx_code_description.json",
+      "sha256": "feeb0a6e03b13d2a425905b6b9ebd7fc63d7df6c1e22acba0f98770428341b76",
+      "parser_target": "credential_offer",
+      "expectation": "reject"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_offer_with_blank_issuer_state.json",
+      "sha256": "7503770101cd7fe000544e352d95f4e27471195a9cb33408ecf6e164d7d3cfbd",
+      "parser_target": "credential_offer",
+      "expectation": "reject"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_offer_with_blank_pre_authorized_code.json",
+      "sha256": "520cf6b76f8fa8166208df3bc6c06f0a587146bcfa7ea7e47f929e5f7faaccdc",
+      "parser_target": "credential_offer",
+      "expectation": "reject"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_offer_with_different_authorization_servers.json",
+      "sha256": "4e8aae1b3d5ea3c414e7b47e4ef6688c56d7f144c2b25be47f18732acce60c25",
+      "parser_target": "credential_offer",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/credential_offer_with_unknown_format.json",
+      "sha256": "fe722ac1247016022d3fd2e3948b7d1b9a041047fbab929e0fa420d79ebaaf0b",
+      "parser_target": "credential_offer",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/invalid_credential_issuer_metadata.json",
+      "sha256": "9ac2c77c94a6bfe74b01ce3ab312aed9ef577388dac9c63ccf2212eee67f5a20",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/oauth_authorization_server_metadata.json",
+      "sha256": "4b4697d71fc86384195abce308e05780609adaa075e08bff02778be877d02422",
+      "parser_target": null,
+      "expectation": "not_applicable"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/oauth_authorization_server_metadata_no_auth_endpoint.json",
+      "sha256": "8f899bb5726486541264d2ac44cb4cd2659f4fa8b34a40e33f0f69861d443053",
+      "parser_target": null,
+      "expectation": "not_applicable"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/request_encryption_keyset.json",
+      "sha256": "e5f8e349b4dcba57f13c96a4f0eb325282d2eed2e7260b04ed0a60ae6b0c4788",
+      "parser_target": null,
+      "expectation": "not_applicable"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/sample_credential_offer.json",
+      "sha256": "f963a0beb131f758330ee145d8209118bf6c18b6b4500787f5f6a1ba90c4fcb2",
+      "parser_target": "credential_offer",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/sample_credential_offer_auth_code.json",
+      "sha256": "cb1deeb306997e3b3c9ea49e0d2d61391ecaa3ffb0898cef269c983cb8262f8a",
+      "parser_target": "credential_offer",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/sample_credential_offer_pre-auth_code.json",
+      "sha256": "ae387bba07522b9c7f4a914d05d724b98b65b8e43c164b9a63036476f09ddb58",
+      "parser_target": "credential_offer",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "eu/europa/ec/eudi/openid4vci/internal/signed_metadata_jwk.json",
+      "sha256": "0cce6b44c5e7c10dbeec3d7f2f6348c036ccbe8598a4a9ab682ea2573365fa1a",
+      "parser_target": null,
+      "expectation": "not_applicable"
+    },
+    {
+      "relative_path": "well-known/openid-configuration-no-client-attestation.json",
+      "sha256": "48b1e9a37c770078fb4b904efa971f4d868aacfc7df18cd5ceb351e41ca20f80",
+      "parser_target": null,
+      "expectation": "not_applicable"
+    },
+    {
+      "relative_path": "well-known/openid-configuration.json",
+      "sha256": "b9833907add9b2240e1786f8234e92a99635f76925b2ff805d34b5dcbf1036e8",
+      "parser_target": null,
+      "expectation": "not_applicable"
+    },
+    {
+      "relative_path": "well-known/openid-configuration_no_dpop.json",
+      "sha256": "5cec39ee9e2042a4c8f4aee11b9fa9b077f60363b0e75c70dd2d6ad0b43f147c",
+      "parser_target": null,
+      "expectation": "not_applicable"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_attestation_proof_supported.json",
+      "sha256": "ef93dbef8c94e8eb41d0c818b6bfc8f2f56c122f92635a8e32876794c4d5716c",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_contains_invalid_configuration.json",
+      "sha256": "8189a51ce6fe4bcd25f0bbe1137474e5233227e361da5ac8158e08849ca73e62",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_encrypted_requests_only.json",
+      "sha256": "ec66bd468d085bba02a0f7242a573066efbdcc97842f409abf839a696c1fa455",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_encrypted_responses.json",
+      "sha256": "6d3b402f7b43043c90ff2b864f57a7fed83c19b4c29bbebd810ccbaa1fce75fa",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_encryption_not_required.json",
+      "sha256": "9b7f3bc8c288f73c960bc6e050d75bf478a43dd71202cb860ca85c1de6df7575",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_encryption_not_supported.json",
+      "sha256": "1b6701355580e48c93e1ea48d867b8f25aaa22c5a1140d1f747ed76b0f99ef10",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_invalid_attestation_proof_supported.json",
+      "sha256": "d40ebf84391445f33202da468bf149b6ab99f9324001669d35785c1f1262dfca",
+      "parser_target": "issuer_metadata",
+      "expectation": "reject"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_jwt_proof_no_keyattestation.json",
+      "sha256": "eaa8b082956f5e5761f507e3f5936826ba3b3d7a512fdaf2ca6f67ef9fd5130b",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_no_batch.json",
+      "sha256": "9844adee94c340b47f3823fade2d755c5f75f0d1729c9dda548fbe6a1f4b7b5b",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_no_nonce_endpoint.json",
+      "sha256": "fec70346d29a28b7f5f1d863d861af013a13781e0fc02e7c951528b3ed4613b1",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_no_scopes.json",
+      "sha256": "cbd658552a5159f43623fe9cef2f021c732a3fc281b9804c271871b727905af6",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_only_attestation_proof.json",
+      "sha256": "34e57c5b84606ce6030c0adbe3a25617359f42419584d32edf42ed784c66becf",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_only_jwt_proof.json",
+      "sha256": "1f57878b1444ea0428eb465e1f6d000bb1223405586e035170afd06578597710",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_only_jwt_proofs_without_key_attestation.json",
+      "sha256": "eaa8b082956f5e5761f507e3f5936826ba3b3d7a512fdaf2ca6f67ef9fd5130b",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    },
+    {
+      "relative_path": "well-known/openid-credential-issuer_with_preferred_client_status_period.json",
+      "sha256": "122fa58bbc7976a56e9152357d6abba87a8a1fd8dc960aa8442540c4dac7dc47",
+      "parser_target": "issuer_metadata",
+      "expectation": "accept"
+    }
+  ]
+}

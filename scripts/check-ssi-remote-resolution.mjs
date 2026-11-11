@@ -13,46 +13,46 @@ const manifestDependencies = [
   { manifest: "Cargo.toml", name: "reallyme-jose", version: "0.4.6" },
   { manifest: "Cargo.toml", name: "reallyme-codec", version: "0.3.2" },
   { manifest: "Cargo.toml", name: "reallyme-crypto", version: "0.3.17" },
-  { manifest: "Cargo.toml", name: "reallyme-credential", version: "0.5.1" },
+  { manifest: "Cargo.toml", name: "reallyme-credential", version: "0.6.1" },
   {
     manifest: "Cargo.toml",
     name: "reallyme-credential-status",
-    version: "0.5.1",
+    version: "0.6.1",
   },
-  { manifest: "Cargo.toml", name: "reallyme-ssi-proto", version: "0.5.1" },
+  { manifest: "Cargo.toml", name: "reallyme-ssi-proto", version: "0.6.1" },
   {
     manifest: "Cargo.toml",
     name: "reallyme-openid-oauth",
-    version: "0.5.1",
+    version: "0.6.1",
   },
   {
     manifest: "Cargo.toml",
     name: "reallyme-openid4vc-profiles",
-    version: "0.5.1",
+    version: "0.6.1",
   },
   {
     manifest: "Cargo.toml",
     name: "reallyme-trust-core",
-    version: "0.5.1",
+    version: "0.6.1",
   },
   {
     manifest: "Cargo.toml",
     name: "envelopes-x509",
     packageName: "reallyme-trust-x509",
-    version: "0.5.1",
+    version: "0.6.1",
   },
-  { manifest: "Cargo.toml", name: "reallyme-mdoc", version: "0.5.1" },
+  { manifest: "Cargo.toml", name: "reallyme-mdoc", version: "0.6.1" },
   {
     manifest: "Cargo.toml",
     name: "reallyme-revocation",
-    version: "0.5.1",
+    version: "0.6.1",
   },
-  { manifest: "Cargo.toml", name: "reallyme-cose", version: "0.2.9" },
-  { manifest: "Cargo.toml", name: "reallyme-zk-api", version: "0.2.1" },
+  { manifest: "Cargo.toml", name: "reallyme-cose", version: "0.2.10" },
+  { manifest: "Cargo.toml", name: "reallyme-zk-api", version: "0.3.0" },
   {
     manifest: "crates/http/Cargo.toml",
     name: "reallyme-sd-jwt",
-    version: "0.5.1",
+    version: "0.6.1",
   },
   {
     manifest: "fuzz/Cargo.toml",
@@ -64,18 +64,20 @@ const rootLockedDependencies = [
   { name: "reallyme-jose", version: "0.4.6" },
   { name: "reallyme-codec", version: "0.3.2" },
   { name: "reallyme-crypto", version: "0.3.17" },
-  { name: "reallyme-credential", version: "0.5.1" },
-  { name: "reallyme-credential-status", version: "0.5.1" },
-  { name: "reallyme-ssi-proto", version: "0.5.1" },
-  { name: "reallyme-openid-oauth", version: "0.5.1" },
-  { name: "reallyme-openid4vc-profiles", version: "0.5.1" },
-  { name: "reallyme-trust-core", version: "0.5.1" },
-  { name: "reallyme-trust-x509", version: "0.5.1" },
-  { name: "reallyme-mdoc", version: "0.5.1" },
-  { name: "reallyme-revocation", version: "0.5.1" },
-  { name: "reallyme-cose", version: "0.2.9" },
-  { name: "reallyme-zk-api", version: "0.2.1" },
-  { name: "reallyme-sd-jwt", version: "0.5.1" },
+  { name: "reallyme-credential", version: "0.6.1" },
+  { name: "reallyme-credential-audit", version: "0.6.1" },
+  { name: "reallyme-credential-claims", version: "0.6.1" },
+  { name: "reallyme-credential-status", version: "0.6.1" },
+  { name: "reallyme-ssi-proto", version: "0.6.1" },
+  { name: "reallyme-openid-oauth", version: "0.6.1" },
+  { name: "reallyme-openid4vc-profiles", version: "0.6.1" },
+  { name: "reallyme-trust-core", version: "0.6.1" },
+  { name: "reallyme-trust-x509", version: "0.6.1" },
+  { name: "reallyme-mdoc", version: "0.6.1" },
+  { name: "reallyme-revocation", version: "0.6.1" },
+  { name: "reallyme-cose", version: "0.2.10" },
+  { name: "reallyme-sd-jwt", version: "0.6.1" },
+  { name: "reallyme-zk-api", version: "0.3.0" },
 ];
 const fuzzLockedDependencies = rootLockedDependencies.filter(
   ({ name }) => name !== "reallyme-mdoc" && name !== "reallyme-sd-jwt",
@@ -109,7 +111,7 @@ for (const { manifest, name, packageName = name, version } of manifestDependenci
   if (!exactVersion.test(declaration)) {
     fail(`${manifest} ${name} must use exact version =${version}`);
   }
-  if (/\b(?:git|path)\s*=/u.test(declaration)) {
+  if (/\b(?:git|path|registry)\s*=/u.test(declaration)) {
     fail(`${manifest} ${name} must resolve from crates.io`);
   }
   if (
@@ -166,5 +168,5 @@ for (const expected of fuzzLockedDependencies) {
 }
 
 console.log(
-  `published dependency resolution check passed for ${rootLockedDependencies.length} locked crates`,
+  `dependency resolution check passed for ${rootLockedDependencies.length} registry crates`,
 );

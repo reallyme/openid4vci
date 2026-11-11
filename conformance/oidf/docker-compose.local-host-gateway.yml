@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: Copyright © 2026 ReallyMe Technologies Limited. All rights reserved
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+# The synthetic mdoc Document Signer certificate names this host in its CRL
+# distribution point. Resolve it to Docker's host gateway so the suite's Java
+# process verifies revocation against the same issuer instance it is testing.
+services:
+  server:
+    extra_hosts:
+      - "localhost.emobix.co.uk:host-gateway"

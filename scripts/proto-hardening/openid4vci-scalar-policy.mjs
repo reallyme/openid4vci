@@ -88,6 +88,12 @@ export const OPENID4VCI_SCALAR_FIELD_CLASSIFICATIONS = Object.freeze([
   publicScalar("CredentialConfiguration", "vct", "string"),
   publicScalar("CredentialConfiguration", "doctype", "string"),
   sensitive("CredentialConfiguration", "credential_metadata_json", "bytes"),
+  sensitive("IssuerLogo", "uri", "string"),
+  sensitive("IssuerLogo", "alt_text", "string"),
+  sensitive("IssuerDisplay", "name", "string"),
+  publicScalar("IssuerDisplay", "locale", "string"),
+  publicScalar("IssuerInformation", "format", "string"),
+  sensitive("IssuerInformation", "data_json", "bytes"),
   publicScalar(
     "CredentialRequestEncryptionMetadata",
     "alg_values_supported",

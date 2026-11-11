@@ -33,19 +33,20 @@ fn common_root_payload(
     wire.verified_holder_public_key = verified_holder_public_key.to_vec();
     wire.lineage_tag_commitment = request_binding.lineage_tag_commitment.to_vec();
     wire.wallet_opening_commitment = request_binding.wallet_opening_commitment.to_vec();
-    wire.opaque_lineage_leaf = request_binding.opaque_lineage_leaf.to_vec();
+    wire.opaque_lineage_leaf = request_binding.opaque_lineage_claim_digest.to_vec();
     let encoded = Zeroizing::new(wire.encode_to_vec());
     if encoded.len() > MAX_WIRE_PROTO_BYTES {
         return Err(IssuerError::new(IssuerStatus::EncodingFailed));
     }
     Ok(Value::String(bytes_to_base64url(&encoded)))
 }
+#[derive(Zeroize, ZeroizeOnDrop)]
 struct ValidatedCommonRootPayload {
     claims_root: [u8; DIGEST_BYTES],
     verified_holder_public_key: [u8; P256_SEC1_UNCOMPRESSED_BYTES],
     lineage_tag_commitment: [u8; LINEAGE_TAG_COMMITMENT_BYTES],
     wallet_opening_commitment: [u8; WALLET_OPENING_COMMITMENT_BYTES],
-    opaque_lineage_leaf: [u8; OPAQUE_LINEAGE_LEAF_BYTES],
+    opaque_lineage_claim_digest: [u8; LINEAGE_CLAIM_DIGEST_BYTES],
 }
 fn validate_common_root_payload(value: &Value) -> IssuerResult<ValidatedCommonRootPayload> {
     let encoded = value
@@ -111,7 +112,7 @@ fn validate_matching_issuance_request(
         || wire.lineage_tag_commitment.iter().all(|byte| *byte == 0)
         || wire.wallet_opening_commitment.len() != WALLET_OPENING_COMMITMENT_BYTES
         || wire.wallet_opening_commitment.iter().all(|byte| *byte == 0)
-        || wire.opaque_lineage_leaf.len() != OPAQUE_LINEAGE_LEAF_BYTES
+        || wire.opaque_lineage_leaf.len() != LINEAGE_CLAIM_DIGEST_BYTES
         || wire.opaque_lineage_leaf.iter().all(|byte| *byte == 0)
     {
         return Err(IssuerError::new(IssuerStatus::EncodingFailed));
@@ -123,7 +124,7 @@ fn validate_matching_issuance_request(
             != payload.lineage_tag_commitment
         || fixed_wallet_opening_commitment(&wire.wallet_opening_commitment)?
             != payload.wallet_opening_commitment
-        || fixed_opaque_lineage_leaf(&wire.opaque_lineage_leaf)? != payload.opaque_lineage_leaf
+        || fixed_lineage_claim_digest(&wire.opaque_lineage_leaf)? != payload.opaque_lineage_claim_digest
     {
         return Err(IssuerError::new(IssuerStatus::EncodingFailed));
     }
@@ -138,7 +139,7 @@ fn validate_wire_issuance_payload(
         || wire.lineage_tag_commitment.iter().all(|byte| *byte == 0)
         || wire.wallet_opening_commitment.len() != WALLET_OPENING_COMMITMENT_BYTES
         || wire.wallet_opening_commitment.iter().all(|byte| *byte == 0)
-        || wire.opaque_lineage_leaf.len() != OPAQUE_LINEAGE_LEAF_BYTES
+        || wire.opaque_lineage_leaf.len() != LINEAGE_CLAIM_DIGEST_BYTES
         || wire.opaque_lineage_leaf.iter().all(|byte| *byte == 0)
     {
         return Err(IssuerError::new(IssuerStatus::EncodingFailed));
@@ -179,7 +180,7 @@ fn validate_wire_issuance_payload(
         wallet_opening_commitment: fixed_wallet_opening_commitment(
             &wire.wallet_opening_commitment,
         )?,
-        opaque_lineage_leaf: fixed_opaque_lineage_leaf(&wire.opaque_lineage_leaf)?,
+        opaque_lineage_claim_digest: fixed_lineage_claim_digest(&wire.opaque_lineage_leaf)?,
     })
 }
 
@@ -215,7 +216,7 @@ fn validate_issuance_binding(
         .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))
 }
 
-fn common_root_hash_strategy(commitment: &ClaimsCommitment) -> IssuerResult<ZkHashStrategy> {
+fn common_root_hash_strategy(commitment: &ClaimsCommitment) -> IssuerResult<ZkCredentialHashAlgorithm> {
     if commitment.value_encoding != COMMON_CREDENTIAL_ROOT_V1_CLAIM_ENCODING
         || commitment.domain_tags.clm != "CLM1"
         || commitment.domain_tags.leaf != "LEAF1"
@@ -226,27 +227,27 @@ fn common_root_hash_strategy(commitment: &ClaimsCommitment) -> IssuerResult<ZkHa
         return Err(IssuerError::new(IssuerStatus::EncodingFailed));
     }
     match commitment.hash_alg.as_str() {
-        SSI_SHA256_HASH_ALGORITHM => Ok(ZkHashStrategy::Sha256),
-        SSI_POSEIDON2_HASH_ALGORITHM => Ok(ZkHashStrategy::Poseidon2),
+        SSI_SHA256_HASH_ALGORITHM => Ok(ZkCredentialHashAlgorithm::Sha256),
+        SSI_POSEIDON2_HASH_ALGORITHM => Ok(ZkCredentialHashAlgorithm::Poseidon2),
         _ => Err(IssuerError::new(IssuerStatus::EncodingFailed)),
     }
 }
 
 fn verify_issuer_claims_root(
-    hash_strategy: ZkHashStrategy,
+    hash_strategy: ZkCredentialHashAlgorithm,
     proposed_root: [u8; DIGEST_BYTES],
-    opaque_lineage_leaf: [u8; DIGEST_BYTES],
+    opaque_lineage_claim_digest: [u8; DIGEST_BYTES],
     approved_claims: &[ZkCommonCredentialRootClaim<'_>],
 ) -> IssuerResult<ZkCommonCredentialRootApprovedIssuerRoot> {
     match hash_strategy {
-        ZkHashStrategy::Sha256 => verify_common_credential_root_sha256_issuer_claims_root(
+        ZkCredentialHashAlgorithm::Sha256 => verify_common_credential_root_sha256_issuer_claims_root(
             proposed_root,
-            opaque_lineage_leaf,
+            opaque_lineage_claim_digest,
             approved_claims,
         ),
-        ZkHashStrategy::Poseidon2 => verify_common_credential_root_poseidon2_issuer_claims_root(
+        ZkCredentialHashAlgorithm::Poseidon2 => verify_common_credential_root_poseidon2_issuer_claims_root(
             proposed_root,
-            opaque_lineage_leaf,
+            opaque_lineage_claim_digest,
             approved_claims,
         ),
         _ => return Err(IssuerError::new(IssuerStatus::EncodingFailed)),
@@ -337,8 +338,8 @@ fn fixed_wallet_opening_commitment(
         .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))
 }
 
-fn fixed_opaque_lineage_leaf(bytes: &[u8]) -> IssuerResult<[u8; OPAQUE_LINEAGE_LEAF_BYTES]> {
-    <[u8; OPAQUE_LINEAGE_LEAF_BYTES]>::try_from(bytes)
+fn fixed_lineage_claim_digest(bytes: &[u8]) -> IssuerResult<[u8; LINEAGE_CLAIM_DIGEST_BYTES]> {
+    <[u8; LINEAGE_CLAIM_DIGEST_BYTES]>::try_from(bytes)
         .map_err(|_| IssuerError::new(IssuerStatus::EncodingFailed))
 }
 

@@ -6,6 +6,7 @@
 
 mod describe;
 mod encryption;
+mod issuer_information;
 mod validate;
 
 pub use describe::{
@@ -13,3 +14,4 @@ pub use describe::{
     IssuerMetadataBuilder, KeyAttestationsRequired, ProofTypeMetadata, MIN_BATCH_SIZE,
 };
 pub use encryption::{CredentialRequestEncryptionMetadata, CredentialResponseEncryptionMetadata};
+pub use issuer_information::{IssuerDisplay, IssuerInformation, IssuerLogo};

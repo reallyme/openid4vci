@@ -76,7 +76,6 @@ fn pre_authorized_offer_transitions_to_token_and_credential_requests() -> Wallet
         &issuance,
         Some(&tx_secret),
         Some("wallet-client".to_owned()),
-        None,
     )?;
     let token_json = serde_json::to_value(&token_request)
         .map_err(|_| WalletError::new(WalletStatus::InvalidRequest))?;
@@ -145,7 +144,6 @@ fn authorization_code_offer_transitions_to_token_and_credential_requests() -> Wa
         "https://wallet.example/callback".to_owned(),
         &pkce_verifier,
         Some("wallet-client".to_owned()),
-        None,
     )?;
     let token_json = serde_json::to_value(&token_request)
         .map_err(|_| WalletError::new(WalletStatus::InvalidRequest))?;
@@ -198,7 +196,6 @@ fn wallet_initiated_flow_builds_token_and_credential_requests_without_offer() ->
         "https://wallet.example/callback".to_owned(),
         &pkce_verifier,
         Some("wallet-client".to_owned()),
-        None,
     )?;
     let token_json = serde_json::to_value(&token_request)
         .map_err(|_| WalletError::new(WalletStatus::InvalidRequest))?;

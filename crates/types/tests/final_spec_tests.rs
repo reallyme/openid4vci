@@ -10,11 +10,11 @@ use reallyme_openid4vci_types::{
     build_credential_offer_uri, parse_credential_offer_uri, CredentialConfiguration,
     CredentialEnvelope, CredentialErrorCode, CredentialErrorResponse, CredentialFormat,
     CredentialOffer, CredentialRequest, CredentialResponse, DeferredCredentialErrorCode,
-    DeferredCredentialErrorResponse, DeferredCredentialRequest, IssuerMetadata,
-    KeyAttestationsRequired, NonceResponse, NotificationErrorCode, NotificationErrorResponse,
-    NotificationEvent, NotificationRequest, OpenId4VciError, ParsedCredentialOffer,
-    ProofTypeMetadata, Proofs, ReallyMeZkV1IssuanceRequest, Reason, TxCode, TxCodeInputMode,
-    MAX_CREDENTIAL_OFFER_URI_BYTES, MAX_CREDENTIAL_RESPONSE_JSON_BYTES,
+    DeferredCredentialErrorResponse, DeferredCredentialRequest, IssuerDisplay, IssuerInformation,
+    IssuerLogo, IssuerMetadata, KeyAttestationsRequired, NonceResponse, NotificationErrorCode,
+    NotificationErrorResponse, NotificationEvent, NotificationRequest, OpenId4VciError,
+    ParsedCredentialOffer, ProofTypeMetadata, Proofs, ReallyMeZkV1IssuanceRequest, Reason, TxCode,
+    TxCodeInputMode, MAX_CREDENTIAL_OFFER_URI_BYTES, MAX_CREDENTIAL_RESPONSE_JSON_BYTES,
     MAX_REALLYME_ZK_V1_ISSUANCE_REQUEST_BYTES,
 };
 use serde_json::{json, Value};
@@ -378,9 +378,65 @@ fn issuer_metadata_accepts_final_minimum() -> Result<(), OpenId4VciError> {
         credential_request_encryption: None,
         credential_response_encryption: None,
         batch_credential_issuance: None,
+        display: None,
+        issuer_info: None,
         credential_configurations_supported: configurations,
     };
     metadata.validate()
+}
+
+#[test]
+fn issuer_metadata_preserves_display_and_profile_information() -> Result<(), OpenId4VciError> {
+    let metadata = IssuerMetadata::builder(
+        "https://issuer.example".to_owned(),
+        "https://issuer.example/credential".to_owned(),
+    )
+    .display(vec![IssuerDisplay {
+        name: Some("Example Issuer".to_owned()),
+        locale: Some("en-US".to_owned()),
+        logo: Some(IssuerLogo {
+            uri: "https://issuer.example/logo.svg".to_owned(),
+            alt_text: Some("Example Issuer logo".to_owned()),
+        }),
+    }])
+    .issuer_information(vec![IssuerInformation {
+        format: "registration_cert".to_owned(),
+        data: json!("synthetic-registration-certificate"),
+    }])
+    .credential_configuration(
+        "pid".to_owned(),
+        CredentialConfiguration::new(CredentialFormat::SdJwtVc),
+    )
+    .build()?;
+
+    let reparsed = IssuerMetadata::parse_json(&metadata.to_json()?)?;
+    assert_eq!(reparsed, metadata);
+    Ok(())
+}
+
+#[test]
+fn issuer_metadata_rejects_duplicate_display_locales_and_null_issuer_information() {
+    let duplicate_locale = r#"{
+        "credential_issuer":"https://issuer.example",
+        "credential_endpoint":"https://issuer.example/credential",
+        "display":[{"locale":"en-US"},{"locale":"en-us"}],
+        "credential_configurations_supported":{"pid":{"format":"dc+sd-jwt"}}
+    }"#;
+    let null_information = r#"{
+        "credential_issuer":"https://issuer.example",
+        "credential_endpoint":"https://issuer.example/credential",
+        "issuer_info":[{"format":"registration_cert","data":null}],
+        "credential_configurations_supported":{"pid":{"format":"dc+sd-jwt"}}
+    }"#;
+
+    assert_reason(
+        IssuerMetadata::parse_json(duplicate_locale),
+        Reason::InvalidString,
+    );
+    assert_reason(
+        IssuerMetadata::parse_json(null_information),
+        Reason::MissingRequiredField,
+    );
 }
 
 #[test]
@@ -397,6 +453,7 @@ fn metadata_builder_derives_proof_metadata_without_batch_endpoint() -> Result<()
         "pid".to_owned(),
         CredentialConfiguration {
             scope: Some("pid".to_owned()),
+            cryptographic_binding_methods_supported: Some(vec!["jwk".to_owned()]),
             ..CredentialConfiguration::new(CredentialFormat::SdJwtVc)
         },
     )
@@ -415,6 +472,45 @@ fn metadata_builder_derives_proof_metadata_without_batch_endpoint() -> Result<()
         Some(&["EdDSA".to_owned()][..])
     );
     Ok(())
+}
+
+#[test]
+fn credential_configuration_requires_binding_and_proof_metadata_together() {
+    let mut proof_types = BTreeMap::new();
+    proof_types.insert(
+        "jwt".to_owned(),
+        ProofTypeMetadata {
+            proof_signing_alg_values_supported: vec!["ES256".to_owned()],
+            key_attestations_required: None,
+        },
+    );
+
+    let binding_without_proof = CredentialConfiguration {
+        cryptographic_binding_methods_supported: Some(vec!["jwk".to_owned()]),
+        ..CredentialConfiguration::new(CredentialFormat::SdJwtVc)
+    };
+    assert_reason(
+        binding_without_proof.validate(),
+        Reason::MissingRequiredField,
+    );
+
+    let proof_without_binding = CredentialConfiguration {
+        proof_types_supported: Some(proof_types),
+        ..CredentialConfiguration::new(CredentialFormat::SdJwtVc)
+    };
+    assert_reason(proof_without_binding.validate(), Reason::ForbiddenField);
+
+    let required_without_proof = IssuerMetadata::builder(
+        "https://issuer.example".to_owned(),
+        "https://issuer.example/credential".to_owned(),
+    )
+    .proof_required(true)
+    .credential_configuration(
+        "pid".to_owned(),
+        CredentialConfiguration::new(CredentialFormat::SdJwtVc),
+    )
+    .build();
+    assert_reason(required_without_proof, Reason::MissingRequiredField);
 }
 
 #[test]
@@ -441,6 +537,7 @@ fn metadata_accepts_eudi_wua_status_period_preferences() -> Result<(), OpenId4Vc
     .credential_configuration(
         "pid".to_owned(),
         CredentialConfiguration {
+            cryptographic_binding_methods_supported: Some(vec!["jwk".to_owned()]),
             proof_types_supported: Some(proof_types),
             ..CredentialConfiguration::new(CredentialFormat::SdJwtVc)
         },
@@ -461,9 +558,13 @@ fn metadata_builder_allows_proofs_without_optional_nonce_endpoint() {
         "https://issuer.example/credential".to_owned(),
     )
     .proof_required(true)
+    .jwt_proof_signing_alg_values_supported(vec!["ES256".to_owned()])
     .credential_configuration(
         "pid".to_owned(),
-        CredentialConfiguration::new(CredentialFormat::SdJwtVc),
+        CredentialConfiguration {
+            cryptographic_binding_methods_supported: Some(vec!["jwk".to_owned()]),
+            ..CredentialConfiguration::new(CredentialFormat::SdJwtVc)
+        },
     )
     .build();
 

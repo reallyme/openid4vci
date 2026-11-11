@@ -25,9 +25,10 @@ use openid4vci_types::{
     BatchCredentialIssuance, CredentialConfiguration, CredentialEnvelope, CredentialFormat,
     CredentialOffer, CredentialPayload, CredentialRequest, CredentialRequestEncryptionMetadata,
     CredentialResponse, CredentialResponseEncryption, CredentialResponseEncryptionMetadata,
-    CredentialSigningAlg, IssuerMetadata, KeyAttestationsRequired, ParsedCredentialOffer,
-    PreAuthorizedCodeGrant, ProblemDetails, ProblemType, ProofTypeMetadata, Proofs, PublicJwk,
-    PublicJwkSet, ReallyMeZkV1IssuanceRequest, TxCode, TxCodeInputMode,
+    CredentialSigningAlg, IssuerDisplay, IssuerInformation, IssuerLogo, IssuerMetadata,
+    KeyAttestationsRequired, ParsedCredentialOffer, PreAuthorizedCodeGrant, ProblemDetails,
+    ProblemType, ProofTypeMetadata, Proofs, PublicJwk, PublicJwkSet, ReallyMeZkV1IssuanceRequest,
+    TxCode, TxCodeInputMode,
 };
 use reallyme_codec::base64url::bytes_to_base64url;
 use serde_json::json;
@@ -599,9 +600,20 @@ fn issuer_metadata_preserves_final_and_eudi_fields() -> Result<(), TestError> {
             encryption_required: true,
         }),
         batch_credential_issuance: Some(BatchCredentialIssuance { batch_size: 2 }),
+        display: Some(vec![IssuerDisplay {
+            name: Some("Example Issuer".to_owned()),
+            locale: Some("en-US".to_owned()),
+            logo: Some(IssuerLogo {
+                uri: "https://issuer.example/logo.svg".to_owned(),
+                alt_text: Some("Example Issuer logo".to_owned()),
+            }),
+        }]),
+        issuer_info: Some(vec![IssuerInformation {
+            format: "registration_cert".to_owned(),
+            data: json!("synthetic-registration-certificate"),
+        }]),
         credential_configurations_supported: configurations,
     };
-
     let proto = issuer_metadata_to_proto(&metadata)?;
     let bytes = proto.encode_to_vec();
     let decoded = pb::IssuerMetadata::decode_from_slice(&bytes).map_err(|_| TestError::Decode)?;

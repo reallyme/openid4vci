@@ -28,9 +28,9 @@ jobs:
         run: |
           git init conformance-suite
           git -C conformance-suite remote add origin https://gitlab.com/openid/conformance-suite.git
-          git -C conformance-suite fetch --depth 1 origin 440eec8bac7b12b7389d7ca9cbc459b53507a443
+          git -C conformance-suite fetch --depth 1 origin 1e6f5433dc61b13e484fee1dec1f0346cca0cfa5
           git -C conformance-suite checkout --detach FETCH_HEAD
-          test "$(git -C conformance-suite rev-parse HEAD)" = "440eec8bac7b12b7389d7ca9cbc459b53507a443"
+          test "$(git -C conformance-suite rev-parse HEAD)" = "1e6f5433dc61b13e484fee1dec1f0346cca0cfa5"
 
       - name: Load issuer protocol profiles
         id: profile_matrix
@@ -122,7 +122,7 @@ jobs:
           cp oidf-assets/issuer openid4vci/target/debug/examples/issuer
           chmod 0755 openid4vci/target/debug/examples/issuer
           tar -xzf oidf-assets/conformance-suite.tar.gz
-          test "$(git -C conformance-suite rev-parse HEAD)" = "440eec8bac7b12b7389d7ca9cbc459b53507a443"
+          test "$(git -C conformance-suite rev-parse HEAD)" = "1e6f5433dc61b13e484fee1dec1f0346cca0cfa5"
 
       - name: Install OIDF runner dependencies
         run: python3 -m pip install --require-hashes -r openid4vci/scripts/conformance/oidf-runner-requirements.lock
@@ -143,7 +143,11 @@ jobs:
               extra_hosts:
                 - "host.docker.internal:host-gateway"
           YAML
-          docker compose -f docker-compose.yml -f docker-compose.openid4vci-host.yml up -d --build server nginx mongodb
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.openid4vci-host.yml \
+            -f ../openid4vci/conformance/oidf/docker-compose.local-host-gateway.yml \
+            up -d --build server nginx mongodb
 
       - name: Run OID4VCI issuer test plan
         working-directory: openid4vci

@@ -4,7 +4,7 @@
 
 [package]
 name = "reallyme-openid4vci-types"
-version = "0.2.0"
+version = "0.3.0"
 description = "OpenID4VCI 1.0 final wire types for ReallyMe issuance protocol crates."
 edition.workspace = true
 rust-version.workspace = true

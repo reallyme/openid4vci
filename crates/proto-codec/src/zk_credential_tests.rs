@@ -45,7 +45,7 @@ fn accepts_canonical_container_without_claiming_issuer_trust() -> ProtoCodecResu
     assert_eq!(decoded.verified_holder_public_key().len(), 65);
     assert_eq!(decoded.lineage_tag_commitment().len(), 32);
     assert_eq!(decoded.wallet_opening_commitment().len(), 32);
-    assert_eq!(decoded.opaque_lineage_leaf().len(), 32);
+    assert_eq!(decoded.opaque_lineage_claim_digest(), &[16; 32]);
     assert!(decoded.proof_binding().is_ok());
     Ok(())
 }

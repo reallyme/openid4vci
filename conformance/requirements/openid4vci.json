@@ -227,7 +227,7 @@
         "credential_issuer"
       ],
       "feature": "credential_issuer_metadata",
-      "requirement": "Credential Issuer metadata exposes final endpoint fields and may advertise a Nonce Endpoint independently of proof support.",
+      "requirement": "Credential Issuer metadata exposes final endpoint fields, may advertise a Nonce Endpoint independently of proof support, and describes key binding only when non-empty cryptographic binding methods and proof types are both present.",
       "implementation": [
         "openid4vci_types::IssuerMetadata",
         "openid4vci_types::IssuerMetadataBuilder"
@@ -235,7 +235,8 @@
       "tests": [
         "issuer_metadata_accepts_final_minimum",
         "metadata_builder_derives_proof_metadata_without_batch_endpoint",
-        "metadata_builder_allows_proofs_without_optional_nonce_endpoint"
+        "metadata_builder_allows_proofs_without_optional_nonce_endpoint",
+        "credential_configuration_requires_binding_and_proof_metadata_together"
       ],
       "oidf_modules": [
         "oid4vci-1_0-issuer-metadata-test"

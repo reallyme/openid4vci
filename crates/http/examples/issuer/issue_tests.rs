@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-//! Batch credential binding tests for the deployable issuer example.
+//! Batch credential binding tests for the synthetic conformance issuer.
 
 use openid4vci_issuer::{
     ConfirmationJwk, CredentialIssuer, IssuanceAuthorization, IssuanceOutcome, IssuerError,

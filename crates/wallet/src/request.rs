@@ -12,7 +12,7 @@ use openid4vci_types::{
     CredentialRequest, CredentialRequestEncryptionMetadata, CredentialResponseEncryption,
     CredentialResponseEncryptionMetadata, IssuerMetadata, Proofs,
 };
-use reallyme_openid_oauth::{AttestationClientAuthentication, GrantType, PkceVerifier};
+use reallyme_openid_oauth::{GrantType, PkceVerifier};
 use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use zeroize::{Zeroize, Zeroizing};
@@ -38,7 +38,6 @@ pub struct AuthorizationCodeTokenRequest {
     redirect_uri: String,
     code_verifier: Zeroizing<String>,
     client_id: Option<String>,
-    attestation_client_authentication: Option<AttestationClientAuthentication>,
 }
 
 impl AuthorizationCodeTokenRequest {
@@ -49,17 +48,11 @@ impl AuthorizationCodeTokenRequest {
         redirect_uri: String,
         pkce_verifier: &PkceVerifier,
         client_id: Option<String>,
-        attestation_client_authentication: Option<AttestationClientAuthentication>,
     ) -> WalletResult<Self> {
         issuance.require_grant(CredentialOfferGrantType::AuthorizationCode)?;
         validate_public_string(&redirect_uri)?;
         if let Some(value) = &client_id {
             validate_public_string(value)?;
-        }
-        if let Some(attestation) = &attestation_client_authentication {
-            attestation
-                .validate()
-                .map_err(|_| WalletError::new(WalletStatus::InvalidRequest))?;
         }
         Ok(Self {
             grant_type: GrantType::AuthorizationCode,
@@ -67,7 +60,6 @@ impl AuthorizationCodeTokenRequest {
             redirect_uri,
             code_verifier: Zeroizing::new(pkce_verifier.expose_secret().to_owned()),
             client_id,
-            attestation_client_authentication,
         })
     }
 }
@@ -81,10 +73,6 @@ impl Debug for AuthorizationCodeTokenRequest {
             .field("redirect_uri", &self.redirect_uri)
             .field("code_verifier", &"<redacted>")
             .field("client_id", &self.client_id)
-            .field(
-                "attestation_client_authentication",
-                &self.attestation_client_authentication.is_some(),
-            )
             .finish()
     }
 }
@@ -95,7 +83,6 @@ impl Serialize for AuthorizationCodeTokenRequest {
         // is the single, intentional exposure point for the bearer secrets.
         let mut len = 4;
         len += usize::from(self.client_id.is_some());
-        len += 2 * usize::from(self.attestation_client_authentication.is_some());
         let mut map = serializer.serialize_map(Some(len))?;
         map.serialize_entry("grant_type", &self.grant_type)?;
         map.serialize_entry("code", self.code.as_str())?;
@@ -103,13 +90,6 @@ impl Serialize for AuthorizationCodeTokenRequest {
         map.serialize_entry("code_verifier", self.code_verifier.as_str())?;
         if let Some(client_id) = &self.client_id {
             map.serialize_entry("client_id", client_id)?;
-        }
-        if let Some(attestation) = &self.attestation_client_authentication {
-            map.serialize_entry("client_attestation", &attestation.client_attestation)?;
-            map.serialize_entry(
-                "client_attestation_pop",
-                &attestation.client_attestation_pop,
-            )?;
         }
         map.end()
     }
@@ -126,7 +106,6 @@ pub struct PreAuthorizedTokenRequest {
     pre_authorized_code: Zeroizing<String>,
     tx_code: Option<Zeroizing<String>>,
     client_id: Option<String>,
-    attestation_client_authentication: Option<AttestationClientAuthentication>,
 }
 
 impl PreAuthorizedTokenRequest {
@@ -135,23 +114,16 @@ impl PreAuthorizedTokenRequest {
         issuance: &ValidatedIssuance,
         tx_code: Option<&TransactionCode>,
         client_id: Option<String>,
-        attestation_client_authentication: Option<AttestationClientAuthentication>,
     ) -> WalletResult<Self> {
         let pre_authorized_code = issuance.pre_authorized_code()?;
         if let Some(value) = &client_id {
             validate_public_string(value)?;
-        }
-        if let Some(attestation) = &attestation_client_authentication {
-            attestation
-                .validate()
-                .map_err(|_| WalletError::new(WalletStatus::InvalidRequest))?;
         }
         Ok(Self {
             grant_type: GrantType::PreAuthorizedCode,
             pre_authorized_code: Zeroizing::new(pre_authorized_code.to_owned()),
             tx_code: tx_code.map(|code| Zeroizing::new(code.expose_secret().to_owned())),
             client_id,
-            attestation_client_authentication,
         })
     }
 }
@@ -164,10 +136,6 @@ impl Debug for PreAuthorizedTokenRequest {
             .field("pre_authorized_code", &"<redacted>")
             .field("tx_code", &self.tx_code.as_ref().map(|_| "<redacted>"))
             .field("client_id", &self.client_id)
-            .field(
-                "attestation_client_authentication",
-                &self.attestation_client_authentication.is_some(),
-            )
             .finish()
     }
 }
@@ -179,7 +147,6 @@ impl Serialize for PreAuthorizedTokenRequest {
         let mut len = 2;
         len += usize::from(self.tx_code.is_some());
         len += usize::from(self.client_id.is_some());
-        len += 2 * usize::from(self.attestation_client_authentication.is_some());
         let mut map = serializer.serialize_map(Some(len))?;
         map.serialize_entry("grant_type", &self.grant_type)?;
         map.serialize_entry("pre-authorized_code", self.pre_authorized_code.as_str())?;
@@ -188,13 +155,6 @@ impl Serialize for PreAuthorizedTokenRequest {
         }
         if let Some(client_id) = &self.client_id {
             map.serialize_entry("client_id", client_id)?;
-        }
-        if let Some(attestation) = &self.attestation_client_authentication {
-            map.serialize_entry("client_attestation", &attestation.client_attestation)?;
-            map.serialize_entry(
-                "client_attestation_pop",
-                &attestation.client_attestation_pop,
-            )?;
         }
         map.end()
     }

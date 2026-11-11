@@ -103,9 +103,9 @@ impl CanonicalReallyMeZkV1Credential {
         &self.wire.wallet_opening_commitment
     }
 
-    /// Borrow the opaque lineage leaf that must match the approved request.
+    /// Borrow the salted lineage claim digest that must match the approved request.
     #[must_use]
-    pub fn opaque_lineage_leaf(&self) -> &[u8] {
+    pub fn opaque_lineage_claim_digest(&self) -> &[u8] {
         &self.wire.opaque_lineage_leaf
     }
 }

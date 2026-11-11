@@ -28,7 +28,7 @@ const KEY_ATTESTATION_POLICY_VERSION: &str = "reallyme-oidf-key-attestation-v1";
 const KEY_ATTESTATION_SOURCE_SNAPSHOT: &str = "oidf-conformance-suite-5.3.1";
 const KEY_ATTESTATION_ANCHOR: &str = "oidf-conformance-p256-key-1";
 
-/// Closed-set trust provider used by the deployable conformance issuer.
+/// Closed-set trust provider used by the synthetic conformance issuer.
 ///
 /// Production deployments inject their trust-registry provider through the
 /// same interface. This provider is intentionally pinned to the OIDF fixture

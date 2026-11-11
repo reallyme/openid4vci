@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-//! mdoc proof binding tests for the deployable issuer example.
+//! mdoc proof binding tests for the synthetic conformance issuer.
 
 use ciborium::value::Value as CborValue;
 use envelopes_x509::{
@@ -24,7 +24,10 @@ use reallyme_crypto::p256::decompress_public_key;
 use serde_json::json;
 
 use super::issue::ExampleCredentialIssuer;
-use super::mdoc::{document_signer_certificate_der, mdoc_validity_info, PID_MDOC_CONFIGURATION_ID};
+use super::mdoc::{
+    document_signer_certificate_der, iaca_crl_der, mdoc_validity_info, pid_elements,
+    PID_MDOC_CONFIGURATION_ID, PID_MDOC_CRL_PATH,
+};
 
 const P256_COMPRESSED_SEC1_BYTES: usize = 33;
 const P256_UNCOMPRESSED_SEC1_BYTES: usize = 65;
@@ -36,6 +39,8 @@ const ONE_HOUR_SECONDS: u64 = 3_600;
 const MAX_DOCUMENT_SIGNER_VALIDITY_DAYS: i64 = 457;
 const MAX_IACA_VALIDITY_DAYS: i64 = 7_305;
 const OID_ISSUER_ALTERNATIVE_NAME: &str = "2.5.29.18";
+const EXPECTED_CRL_DISTRIBUTION_POINT: &str =
+    "https://localhost.emobix.co.uk:9443/security/mdoc-iaca.crl";
 
 #[test]
 fn mdoc_conformance_certificates_match_iso_profile_invariants() -> IssuerResult<()> {
@@ -87,6 +92,12 @@ fn mdoc_conformance_certificates_match_iso_profile_invariants() -> IssuerResult<
         .iter()
         .any(|extension| extension.critical
             && matches!(extension.kind, CertificateExtensionKind::ExtendedKeyUsage)));
+    assert!(document_signer
+        .profile
+        .extensions
+        .iter()
+        .any(|extension| !extension.critical
+            && matches!(extension.kind, CertificateExtensionKind::BasicConstraints)));
     assert!(has_noncritical_extension(
         &document_signer,
         OID_ISSUER_ALTERNATIVE_NAME
@@ -99,6 +110,52 @@ fn mdoc_conformance_certificates_match_iso_profile_invariants() -> IssuerResult<
         .profile
         .crl_distribution_point_uris
         .is_empty());
+    assert_eq!(
+        document_signer.profile.crl_distribution_point_uris,
+        vec![EXPECTED_CRL_DISTRIBUTION_POINT.to_owned()]
+    );
+    assert_eq!(PID_MDOC_CRL_PATH, "/security/mdoc-iaca.crl");
+    assert!(iaca_crl_der().starts_with(&[0x30]));
+    Ok(())
+}
+
+#[test]
+fn pid_mdoc_contains_each_regulated_mandatory_element_once() -> IssuerResult<()> {
+    let elements = pid_elements()?;
+    let expected = [
+        "family_name",
+        "given_name",
+        "birth_date",
+        "place_of_birth",
+        "nationality",
+        "issuing_authority",
+        "issuing_country",
+    ];
+    assert_eq!(elements.len(), expected.len());
+    for identifier in expected {
+        assert_eq!(
+            elements
+                .iter()
+                .filter(|element| element.element_identifier == identifier)
+                .count(),
+            1
+        );
+    }
+
+    let place_of_birth = elements
+        .iter()
+        .find(|element| element.element_identifier == "place_of_birth")
+        .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
+    assert!(decode_cbor(&place_of_birth.element_value_cbor)?
+        .as_map()
+        .is_some());
+    let nationality = elements
+        .iter()
+        .find(|element| element.element_identifier == "nationality")
+        .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
+    assert!(decode_cbor(&nationality.element_value_cbor)?
+        .as_array()
+        .is_some());
     Ok(())
 }
 
@@ -138,6 +195,16 @@ fn mdoc_validity_rounds_issuance_time_without_crossing_certificate_bounds() -> I
     assert_eq!(validity.signed, certificate_not_before);
     assert_eq!(validity.valid_from, certificate_not_before);
     assert_eq!(validity.valid_until, 90_000);
+    assert_eq!(validity.valid_until % ONE_HOUR_SECONDS, 0);
+    Ok(())
+}
+
+#[test]
+fn mdoc_validity_keeps_batch_time_claims_on_coarse_boundaries() -> IssuerResult<()> {
+    let validity = mdoc_validity_info(10_859, 0, 100_000)?;
+
+    assert_eq!(validity.signed % ONE_HOUR_SECONDS, 0);
+    assert_eq!(validity.valid_from % ONE_HOUR_SECONDS, 0);
     assert_eq!(validity.valid_until % ONE_HOUR_SECONDS, 0);
     Ok(())
 }
@@ -273,9 +340,18 @@ fn extract_device_key(credential: &CredentialPayload) -> IssuerResult<Vec<u8>> {
     let protected = protected
         .as_map()
         .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
-    // The signer authenticates the certificate path in the protected COSE
-    // header; checking only the unprotected map would reject a valid issuer.
-    if !protected.iter().any(|(label, value)| {
+    if protected
+        .iter()
+        .any(|(label, _)| label.as_integer().map(i128::from) == Some(33))
+    {
+        return Err(IssuerError::new(IssuerStatus::EncodingFailed));
+    }
+    // ISO/IEC 18013-5 fixes issuerAuth x5chain in the unprotected bucket.
+    let unprotected = fields
+        .get(1)
+        .and_then(CborValue::as_map)
+        .ok_or(IssuerError::new(IssuerStatus::EncodingFailed))?;
+    if !unprotected.iter().any(|(label, value)| {
         label.as_integer().map(i128::from) == Some(33) && value.as_bytes().is_some()
     }) {
         return Err(IssuerError::new(IssuerStatus::EncodingFailed));

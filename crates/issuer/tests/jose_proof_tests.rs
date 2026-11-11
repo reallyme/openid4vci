@@ -35,6 +35,9 @@ use jose_proof_fixtures::{
     kid_bound_proof, public_jwk_value, public_jwk_with_kid, x5c_bound_proof,
 };
 
+#[path = "jose_proof_tests/etsi.rs"]
+mod etsi_profile_tests;
+
 const ISSUER: &str = "https://issuer.example";
 const NONCE: &str = "nonce-1";
 const SEED: [u8; 32] = [7_u8; 32];
@@ -608,6 +611,7 @@ fn context(nonce_required: bool) -> ProofVerificationContext {
         nonce_required,
         current_time: 1_700_000_000,
         key_attestation_policy: Some(key_attestation_policy),
+        credential_request_profile: openid4vci_issuer::CredentialRequestProfile::OpenId4Vci,
     }
 }
 

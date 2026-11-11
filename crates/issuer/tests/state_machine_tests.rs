@@ -562,6 +562,7 @@ fn credential_config() -> CredentialEndpointConfig {
         max_batch_size: None,
         response_encryption_required: false,
         response_encryption_metadata: None,
+        credential_request_profile: openid4vci_issuer::CredentialRequestProfile::OpenId4Vci,
     }
 }
 

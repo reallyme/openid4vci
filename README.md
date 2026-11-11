@@ -149,8 +149,17 @@ Wasm instances.
 | Add bounded protobuf conversions | Use `openid4vci-proto-codec`. |
 | Add the HTTP framing boundary | Use `openid4vci-http`. |
 
-Released dependencies resolve from crates.io; a sibling checkout is not
-required.
+The workspace and fuzz lockfiles pin the published SSI 0.6.1 crates and
+ZK API 0.3.0 from crates.io.
+
+OpenID4VCI 0.3.0 updates the optional `reallyme_zk_v1` issuer contract.
+Wallets send the salted `CLM1` lineage claim digest in the existing
+`opaque_lineage_leaf` field. The issuer derives the reserved `LEAF1` leaf
+when it verifies the approved claims root. Upgrade wallets and issuers that
+use this format together.
+The issuer request binding and decoded credential container expose this value
+through `opaque_lineage_claim_digest()`. Update callers of the former
+`opaque_lineage_leaf()` accessor when moving to 0.3.0.
 
 ## Repository structure
 
@@ -195,8 +204,8 @@ conformance harness remains repository-only and is never published.
 The repository targets the OpenID4VCI 1.0 and HAIP 1.0 Final Specifications.
 Conformance tooling exercises issuer-role profiles for SD-JWT VC and mdoc
 across wallet-initiated and issuer-initiated flows. Tests are pinned to OIDF
-Conformance Suite `release-v5.3.1`, commit
-`440eec8bac7b12b7389d7ca9cbc459b53507a443`.
+Conformance Suite `release-v5.3.4-36-g1e6f5433d`, commit
+`1e6f5433dc61b13e484fee1dec1f0346cca0cfa5`.
 
 The repository retains role adapters, protocol tests, vectors, negative cases,
 and revision-bound evidence. The [conformance guide](conformance/README.md)
@@ -228,7 +237,7 @@ Run the repository gate and the core Rust checks before submitting changes:
 
 ```sh
 git clone --no-checkout https://github.com/reallyme/release-readiness.git .release-readiness
-git -C .release-readiness checkout --detach v0.6.9
+git -C .release-readiness checkout --detach 18a6d91d99837e80f92e41fe04effb0b043d754e
 node .release-readiness/scripts/run-consumer-check.mjs
 cargo fmt --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings

@@ -4,24 +4,28 @@
 
 //! Produces redacted parser-comparison evidence from pinned EUDI resources.
 
+use std::collections::BTreeMap;
 use std::env;
 use std::ffi::OsString;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::process::ExitCode;
 
+use openid4vci_profiles::parse_credential_reuse_policy;
 use openid4vci_types::{
     CredentialErrorResponse, CredentialOffer, CredentialResponse, IssuerMetadata, NonceResponse,
     ProblemDetails,
 };
 use reallyme_crypto::sha2::digest as digest_sha2_256;
-use serde::Serialize;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
 
 const EXIT_INVALID_ARGS: u8 = 2;
 const EXIT_IO: u8 = 3;
 const EXIT_JSON: u8 = 4;
 const EXIT_PATH: u8 = 5;
+const EXIT_INTEGRITY: u8 = 6;
+const EXPECTATIONS_JSON: &str =
+    include_str!("../../../conformance/eudi/eudi-jvm-v0.16.0-resource-expectations.json");
 
 fn main() -> ExitCode {
     match run() {
@@ -36,6 +40,7 @@ enum ToolFailure {
     Io,
     Json,
     Path,
+    Integrity,
 }
 
 impl ToolFailure {
@@ -45,11 +50,12 @@ impl ToolFailure {
             Self::Io => EXIT_IO,
             Self::Json => EXIT_JSON,
             Self::Path => EXIT_PATH,
+            Self::Integrity => EXIT_INTEGRITY,
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum ParserTarget {
     IssuerMetadata,
@@ -81,12 +87,26 @@ enum ParserOutcome {
     Skipped,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum Expectation {
     Accept,
     Reject,
     NotApplicable,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum SemanticProfile {
+    EtsiReusePolicy,
+}
+
+impl SemanticProfile {
+    const fn wire_name(self) -> &'static str {
+        match self {
+            Self::EtsiReusePolicy => "profiles::etsi_reuse_policy",
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -127,6 +147,8 @@ struct FixtureResource {
     relative_path: String,
     sha256: String,
     parser_target: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    semantic_profile: Option<&'static str>,
     expectation: Expectation,
 }
 
@@ -144,9 +166,29 @@ struct ComparisonRecord {
     relative_path: String,
     sha256: String,
     parser_target: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    semantic_profile: Option<&'static str>,
     expectation: Expectation,
     outcome: ParserOutcome,
     expectation_matched: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct ExpectedFixtureManifest {
+    schema_version: u8,
+    source_id: String,
+    source_release: String,
+    source_commit: String,
+    resources: Vec<ExpectedFixture>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ExpectedFixture {
+    relative_path: String,
+    sha256: String,
+    parser_target: Option<ParserTarget>,
+    semantic_profile: Option<SemanticProfile>,
+    expectation: Expectation,
 }
 
 struct Config {
@@ -159,45 +201,63 @@ struct Config {
 
 fn run() -> Result<(), ToolFailure> {
     let config = read_config()?;
+    let expected = read_expectations(&config)?;
     fs::create_dir_all(&config.evidence_dir).map_err(|_| ToolFailure::Io)?;
 
     let mut files = Vec::new();
     collect_json_files(&config.resource_root, &mut files)?;
-    files.sort();
+    let mut actual_files = files
+        .into_iter()
+        .map(|file| {
+            let relative = relative_path_string(&config.resource_root, &file)?;
+            Ok((relative, file))
+        })
+        .collect::<Result<BTreeMap<_, _>, ToolFailure>>()?;
+    if actual_files.len() != expected.resources.len() {
+        return Err(ToolFailure::Integrity);
+    }
 
     let mut totals = Totals::default();
-    let mut resources = Vec::with_capacity(files.len());
-    let mut comparisons = Vec::with_capacity(files.len());
+    let mut resources = Vec::with_capacity(expected.resources.len());
+    let mut comparisons = Vec::with_capacity(expected.resources.len());
 
-    for file in files {
-        totals.resources_seen = totals
-            .resources_seen
-            .checked_add(1)
-            .ok_or(ToolFailure::Io)?;
-
+    for fixture in expected.resources {
+        totals.resources_seen = increment(totals.resources_seen)?;
+        validate_relative_path(&fixture.relative_path)?;
+        let file = actual_files
+            .remove(&fixture.relative_path)
+            .ok_or(ToolFailure::Integrity)?;
         let body = fs::read_to_string(&file).map_err(|_| ToolFailure::Io)?;
-        let relative_path = relative_path_string(&config.resource_root, &file)?;
         let sha256 = sha256_hex(body.as_bytes());
-        let parser_target = classify_parser_target(&relative_path);
-        let expectation = classify_expectation(&relative_path, parser_target, &body);
-        let outcome = parser_target.map_or(ParserOutcome::Skipped, |target| parse(target, &body));
-
-        update_totals(&mut totals, expectation, outcome)?;
+        if sha256 != fixture.sha256 {
+            return Err(ToolFailure::Integrity);
+        }
+        let outcome = fixture
+            .parser_target
+            .map_or(ParserOutcome::Skipped, |target| {
+                parse(target, fixture.semantic_profile, &body)
+            });
+        update_totals(&mut totals, fixture.expectation, outcome)?;
 
         resources.push(FixtureResource {
-            relative_path: relative_path.clone(),
+            relative_path: fixture.relative_path.clone(),
             sha256: sha256.clone(),
-            parser_target: parser_target.map(ParserTarget::wire_name),
-            expectation,
+            parser_target: fixture.parser_target.map(ParserTarget::wire_name),
+            semantic_profile: fixture.semantic_profile.map(SemanticProfile::wire_name),
+            expectation: fixture.expectation,
         });
         comparisons.push(ComparisonRecord {
-            relative_path,
+            relative_path: fixture.relative_path,
             sha256,
-            parser_target: parser_target.map(ParserTarget::wire_name),
-            expectation,
+            parser_target: fixture.parser_target.map(ParserTarget::wire_name),
+            semantic_profile: fixture.semantic_profile.map(SemanticProfile::wire_name),
+            expectation: fixture.expectation,
             outcome,
-            expectation_matched: expectation_matches(expectation, outcome),
+            expectation_matched: expectation_matches(fixture.expectation, outcome),
         });
+    }
+    if !actual_files.is_empty() {
+        return Err(ToolFailure::Integrity);
     }
 
     let result = if totals.expectation_mismatches == 0 {
@@ -205,7 +265,6 @@ fn run() -> Result<(), ToolFailure> {
     } else {
         "failed"
     };
-
     let resource_root = redacted_resource_root(&config.source_id);
     let summary = Summary {
         schema_version: 1,
@@ -245,6 +304,19 @@ fn run() -> Result<(), ToolFailure> {
     Ok(())
 }
 
+fn read_expectations(config: &Config) -> Result<ExpectedFixtureManifest, ToolFailure> {
+    let manifest: ExpectedFixtureManifest =
+        serde_json::from_str(EXPECTATIONS_JSON).map_err(|_| ToolFailure::Json)?;
+    if manifest.schema_version != 1
+        || manifest.source_id != config.source_id
+        || manifest.source_release != config.source_release
+        || manifest.source_commit != config.source_commit
+    {
+        return Err(ToolFailure::Integrity);
+    }
+    Ok(manifest)
+}
+
 fn redacted_resource_root(source_id: &str) -> String {
     match source_id {
         "eudi-jvm-openid4vci" => "upstream:eudi-jvm-openid4vci/src/test/resources".to_owned(),
@@ -258,7 +330,6 @@ fn read_config() -> Result<Config, ToolFailure> {
     if args.len() != 6 {
         return Err(ToolFailure::InvalidArgs);
     }
-
     Ok(Config {
         source_id: os_arg_to_string(&args[1])?,
         source_release: os_arg_to_string(&args[2])?,
@@ -282,7 +353,7 @@ fn collect_json_files(root: &Path, files: &mut Vec<PathBuf>) -> Result<(), ToolF
         let path = entry.path();
         if path.is_dir() {
             collect_json_files(&path, files)?;
-        } else if path.extension().and_then(|ext| ext.to_str()) == Some("json") {
+        } else if path.extension().and_then(|extension| extension.to_str()) == Some("json") {
             files.push(path);
         }
     }
@@ -297,83 +368,25 @@ fn relative_path_string(root: &Path, file: &Path) -> Result<String, ToolFailure>
         .ok_or(ToolFailure::Path)
 }
 
-fn classify_parser_target(relative_path: &str) -> Option<ParserTarget> {
-    let path = relative_path.to_ascii_lowercase();
-    if path.contains("credential_issuer_metadata") || path.contains("openid-credential-issuer") {
-        Some(ParserTarget::IssuerMetadata)
-    } else if path.contains("credential_offer") || path.contains("sample_credential_offer") {
-        Some(ParserTarget::CredentialOffer)
-    } else if path.contains("cnonce") || path.contains("nonce") {
-        Some(ParserTarget::NonceResponse)
-    } else if path.contains("issuance_success_response")
-        || path.contains("credential_response")
-        || path.contains("deferredcredential")
-        || path.contains("deferred_credential")
+fn validate_relative_path(relative_path: &str) -> Result<(), ToolFailure> {
+    let path = Path::new(relative_path);
+    if path
+        .components()
+        .all(|component| matches!(component, Component::Normal(_)))
     {
-        Some(ParserTarget::CredentialResponse)
-    } else if path.contains("generic_error_response") || path.contains("error_response") {
-        Some(ParserTarget::CredentialErrorResponse)
-    } else if path.contains("problem_details") {
-        Some(ParserTarget::ProblemDetails)
+        Ok(())
     } else {
-        None
+        Err(ToolFailure::Path)
     }
 }
 
-fn classify_expectation(
-    relative_path: &str,
-    parser_target: Option<ParserTarget>,
+fn parse(
+    target: ParserTarget,
+    semantic_profile: Option<SemanticProfile>,
     body: &str,
-) -> Expectation {
-    if parser_target.is_none() {
-        return Expectation::NotApplicable;
-    }
-
-    let path = relative_path.to_ascii_lowercase();
-    if path.contains("invalid_auth_server_hint") {
-        return Expectation::Accept;
-    }
-    if path.contains("blank") && contains_blank_required_offer_value(body) {
-        return Expectation::Reject;
-    }
-    if path.contains("invalid")
-        || path.contains("negative")
-        || path.contains("oversized")
-        || path.contains("over_sized")
-        || path.contains("zero_preferred")
-        || path.contains("no_nonce_endpoint")
-        || path.contains("contains_invalid")
-        || path.contains("no_asymmetric_algs")
-    {
-        Expectation::Reject
-    } else {
-        Expectation::Accept
-    }
-}
-
-fn contains_blank_required_offer_value(body: &str) -> bool {
-    serde_json::from_str::<Value>(body)
-        .ok()
-        .is_some_and(|value| {
-            let grants = value.get("grants").unwrap_or(&Value::Null);
-            let authorization_code = grants.get("authorization_code").unwrap_or(&Value::Null);
-            let pre_authorized = grants
-                .get("urn:ietf:params:oauth:grant-type:pre-authorized_code")
-                .unwrap_or(&Value::Null);
-            is_blank_json_string(authorization_code.get("issuer_state"))
-                || is_blank_json_string(pre_authorized.get("pre-authorized_code"))
-        })
-}
-
-fn is_blank_json_string(value: Option<&Value>) -> bool {
-    value
-        .and_then(Value::as_str)
-        .is_some_and(|item| item.trim().is_empty())
-}
-
-fn parse(target: ParserTarget, body: &str) -> ParserOutcome {
+) -> ParserOutcome {
     let accepted = match target {
-        ParserTarget::IssuerMetadata => IssuerMetadata::parse_json(body).is_ok(),
+        ParserTarget::IssuerMetadata => parse_issuer_metadata(body, semantic_profile),
         ParserTarget::CredentialOffer => CredentialOffer::parse_json(body).is_ok(),
         ParserTarget::NonceResponse => NonceResponse::parse_json(body).is_ok(),
         ParserTarget::CredentialResponse => CredentialResponse::parse_json(body).is_ok(),
@@ -384,6 +397,21 @@ fn parse(target: ParserTarget, body: &str) -> ParserOutcome {
         ParserOutcome::Accepted
     } else {
         ParserOutcome::Rejected
+    }
+}
+
+fn parse_issuer_metadata(body: &str, semantic_profile: Option<SemanticProfile>) -> bool {
+    let Ok(metadata) = IssuerMetadata::parse_json(body) else {
+        return false;
+    };
+    match semantic_profile {
+        None => true,
+        Some(SemanticProfile::EtsiReusePolicy) => metadata
+            .credential_configurations_supported
+            .values()
+            .all(|configuration| {
+                parse_credential_reuse_policy(configuration.credential_metadata.as_ref()).is_ok()
+            }),
     }
 }
 

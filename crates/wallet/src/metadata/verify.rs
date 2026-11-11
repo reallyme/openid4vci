@@ -117,7 +117,7 @@ fn parse_signed_issuer_metadata(
         .map_err(|_| WalletError::new(WalletStatus::InvalidSignedMetadata))?;
     let typed_header: SignedMetadataHeader = serde_json::from_str(header.as_str())
         .map_err(|_| WalletError::new(WalletStatus::InvalidSignedMetadata))?;
-    let algorithm = validate_header(&typed_header, &context.accepted_algorithms)?;
+    let algorithm = validate_header(&typed_header, context)?;
     let claims: SignedMetadataClaims = serde_json::from_str(payload.as_str())
         .map_err(|_| WalletError::new(WalletStatus::InvalidSignedMetadata))?;
     validate_claims(&claims, context)?;
@@ -196,7 +196,7 @@ struct SignedMetadataHeader {
 
 fn validate_header(
     header: &SignedMetadataHeader,
-    accepted_algorithms: &[SignedMetadataAlgorithm],
+    context: &SignedIssuerMetadataValidationContext,
 ) -> WalletResult<SignedMetadataAlgorithm> {
     // OpenID4VCI 1.0 Final §12.2.3 fixes `typ` and requires asymmetric JWS.
     // RFC 7515 §4.1.1 and RFC 8725 §3.1 require an application allow-list.
@@ -208,11 +208,14 @@ fn validate_header(
         || header.b64.is_some()
         || !valid_untrusted_chain(header.x5c.as_deref())
         || !valid_untrusted_chain(header.trust_chain.as_deref())
+        || (context.required_signer_trust_purpose
+            == super::SignedMetadataSignerTrustPurpose::WalletRelyingPartyAccessCertificate
+            && header.x5c.is_none())
     {
         return Err(WalletError::new(WalletStatus::InvalidSignedMetadata));
     }
     let algorithm = SignedMetadataAlgorithm::from_jose_name(&header.alg)?;
-    if accepted_algorithms.is_empty() || !accepted_algorithms.contains(&algorithm) {
+    if context.accepted_algorithms.is_empty() || !context.accepted_algorithms.contains(&algorithm) {
         return Err(WalletError::new(
             WalletStatus::SignedMetadataAlgorithmNotAllowed,
         ));

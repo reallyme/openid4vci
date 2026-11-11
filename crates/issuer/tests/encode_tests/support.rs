@@ -40,11 +40,14 @@ use reallyme_crypto::{
     dispatch::{generate_keypair, sign, verify},
 };
 use reallyme_zk_api::{
-    build_common_credential_root_poseidon2_claims_commitment,
-    build_common_credential_root_sha256_claims_commitment,
-    derive_common_credential_root_v1_lineage, ZkCommonCredentialRootClaim,
-    ZkCommonCredentialRootSubjectPublicKey, ZkHashStrategy, ZkIssuerPublicKey,
-    COMMON_CREDENTIAL_ROOT_V1_CLAIM_ENCODING,
+    circuits::ZkCredentialHashAlgorithm,
+    common_root::{
+        build_common_credential_root_poseidon2_claims_commitment,
+        build_common_credential_root_sha256_claims_commitment,
+        derive_common_credential_root_v1_lineage, ZkCommonCredentialRootClaim,
+        ZkCommonCredentialRootSubjectPublicKey, COMMON_CREDENTIAL_ROOT_V1_CLAIM_ENCODING,
+    },
+    keys::ZkIssuerPublicKey,
 };
 use serde_json::{json, Value};
 
@@ -136,7 +139,8 @@ impl CredentialIssuerSigner for CountingSigner<'_> {
 
 pub(crate) struct PreparedCommonRootMaterial {
     pub(crate) material: ZkIssuedMaterial,
-    pub(crate) opaque_lineage_leaf: [u8; 32],
+    pub(crate) opaque_lineage_claim_digest: [u8; 32],
+    pub(crate) finished_lineage_leaf: [u8; 32],
     pub(crate) claim_salt: [u8; 16],
 }
 
@@ -197,7 +201,11 @@ impl AuthorizedClaimDecision<'_> {
 
 impl PreparedCommonRootMaterial {
     pub(crate) fn request_binding(&self) -> IssuerResult<CommonRootIssuanceRequestBinding> {
-        CommonRootIssuanceRequestBinding::new([0x44; 32], [0x55; 32], self.opaque_lineage_leaf)
+        CommonRootIssuanceRequestBinding::new(
+            [0x44; 32],
+            [0x55; 32],
+            self.opaque_lineage_claim_digest,
+        )
     }
 }
 
@@ -359,11 +367,11 @@ pub(crate) fn compact_issuance_request(
 }
 
 pub(crate) fn common_root_zk_material() -> IssuerResult<PreparedCommonRootMaterial> {
-    common_root_zk_material_for_lane(ZkHashStrategy::Sha256)
+    common_root_zk_material_for_lane(ZkCredentialHashAlgorithm::Sha256)
 }
 
 pub(crate) fn common_root_zk_material_for_lane(
-    hash_strategy: ZkHashStrategy,
+    hash_strategy: ZkCredentialHashAlgorithm,
 ) -> IssuerResult<PreparedCommonRootMaterial> {
     let mut material = issue_zk_material()?;
     let issuer_key = p256_key_coordinates(&material.issuer_public_key)?;
@@ -390,20 +398,31 @@ pub(crate) fn common_root_zk_material_for_lane(
         salt: &claim_salt,
     }];
     let commitment = match hash_strategy {
-        ZkHashStrategy::Sha256 => {
+        ZkCredentialHashAlgorithm::Sha256 => {
             build_common_credential_root_sha256_claims_commitment(&lineage, &lineage_salt, &claims)
         }
-        ZkHashStrategy::Poseidon2 => build_common_credential_root_poseidon2_claims_commitment(
-            &lineage,
-            &lineage_salt,
-            &claims,
-        ),
+        ZkCredentialHashAlgorithm::Poseidon2 => {
+            build_common_credential_root_poseidon2_claims_commitment(
+                &lineage,
+                &lineage_salt,
+                &claims,
+            )
+        }
         _ => return Err(encoding_error()),
     }
     .map_err(|_| encoding_error())?;
-    let opaque_lineage_leaf = commitment
-        .opaque_lineage_leaf()
+    let opaque_lineage_claim_digest = commitment
+        .opaque_lineage_claim_digest()
         .map_err(|_| encoding_error())?;
+    // In this two-claim fixture the age opening's first sibling is the
+    // finished lineage leaf. Retain it to reject the former transport value
+    // through the published API without recreating either hash transcript.
+    let finished_lineage_leaf = commitment
+        .openings()
+        .get(1)
+        .and_then(|opening| opening.siblings().first())
+        .copied()
+        .ok_or_else(encoding_error)?;
     let mut issue_input = p256_issue_input(
         material.issuer_public_key.clone(),
         material.holder_public_key.clone(),
@@ -421,8 +440,8 @@ pub(crate) fn common_root_zk_material_for_lane(
             merkle_root: commitment.root().to_vec(),
             claimset_id: "reallyme.zk.common-root.v1".to_owned(),
             hash_alg: match hash_strategy {
-                ZkHashStrategy::Sha256 => "sha-256",
-                ZkHashStrategy::Poseidon2 => "poseidon2-bn254",
+                ZkCredentialHashAlgorithm::Sha256 => "sha-256",
+                ZkCredentialHashAlgorithm::Poseidon2 => "poseidon2-bn254",
                 _ => return Err(encoding_error()),
             }
             .to_owned(),
@@ -444,7 +463,8 @@ pub(crate) fn common_root_zk_material_for_lane(
     material.proof_binding = issued.proof_binding;
     Ok(PreparedCommonRootMaterial {
         material,
-        opaque_lineage_leaf,
+        opaque_lineage_claim_digest,
+        finished_lineage_leaf,
         claim_salt,
     })
 }

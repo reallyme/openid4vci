@@ -56,6 +56,7 @@ fn default_config() -> CredentialEndpointConfig {
         max_batch_size: None,
         response_encryption_required: false,
         response_encryption_metadata: None,
+        credential_request_profile: openid4vci_issuer::CredentialRequestProfile::OpenId4Vci,
     }
 }
 
@@ -146,6 +147,7 @@ fn mixed_proof_config(reverse_insertion: bool) -> IssuerResult<CredentialEndpoin
     .credential_configuration(
         "pid".to_owned(),
         CredentialConfiguration {
+            cryptographic_binding_methods_supported: Some(vec!["jwk".to_owned()]),
             proof_types_supported: Some(proof_types),
             ..CredentialConfiguration::new(CredentialFormat::SdJwtVc)
         },

@@ -20,7 +20,7 @@ mod oidf_runtime;
 mod requirements;
 
 use inspect_manifest::{
-    assert_open_items_have_next_actions, find_item_by_id, manifests, parse_json_or_null,
+    find_item_by_id, has_documented_evidence_status, manifests, parse_json_or_null,
 };
 
 #[test]
@@ -134,16 +134,10 @@ fn eudi_source_pins_are_resolved_and_scope_labeled() {
     });
     assert!(has_untagged_wua);
 
-    let zk_is_not_openid4vci_scope = entries.iter().any(|item| {
-        item.get("id").and_then(Value::as_str) == Some("eudi-zkp-technical-specifications")
-            && item.get("kind").and_then(Value::as_str)
-                == Some("out_of_scope_presentation_tracking_source")
-            && item
-                .get("note")
-                .and_then(Value::as_str)
-                .is_some_and(|note| note.contains("reallyme/openid4vp"))
-    });
-    assert!(zk_is_not_openid4vci_scope);
+    assert!(entries.iter().all(|item| {
+        item.get("kind").and_then(Value::as_str)
+            != Some("out_of_scope_presentation_tracking_source")
+    }));
 }
 
 #[test]
@@ -220,34 +214,55 @@ fn eudi_requirements_reference_pinned_sources() {
 }
 
 #[test]
-fn eudi_open_items_have_accountable_next_actions() {
-    assert_open_items_have_next_actions(
-        parse_json_or_null(include_str!("../eudi/requirements.json"))
-            .get("requirements")
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default(),
-    );
-    assert_open_items_have_next_actions(
-        parse_json_or_null(include_str!("../eudi/test-cases.json"))
-            .get("test_cases")
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default(),
-    );
-    assert_open_items_have_next_actions(
-        parse_json_or_null(include_str!("../eudi/upstream-tests.json"))
-            .get("upstream_tests")
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default(),
-    );
+fn eudi_requirements_document_support_and_evidence_limits() {
+    let manifest = parse_json_or_null(include_str!("../eudi/requirements.json"));
+    let entries = manifest.get("requirements").and_then(Value::as_array);
+    assert!(entries.is_some_and(|items| !items.is_empty()));
+    if let Some(items) = entries {
+        for item in items {
+            assert!(has_documented_evidence_status(item));
+        }
+    }
+}
+
+#[test]
+fn evidence_status_validation_requires_explicit_limitations() {
+    for status in ["unsupported", "execution-unverified"] {
+        assert!(has_documented_evidence_status(&serde_json::json!({
+            "status": status,
+            "limitation": "No retained execution evidence."
+        })));
+        for invalid in [
+            Value::Null,
+            serde_json::json!(""),
+            serde_json::json!("  "),
+            serde_json::json!(42),
+        ] {
+            assert!(!has_documented_evidence_status(&serde_json::json!({
+                "status": status,
+                "limitation": invalid
+            })));
+        }
+        assert!(!has_documented_evidence_status(
+            &serde_json::json!({"status": status})
+        ));
+    }
+    assert!(has_documented_evidence_status(&serde_json::json!({
+        "status": "implemented-at-profile-boundary"
+    })));
+    for invalid in [
+        Value::Null,
+        serde_json::json!({}),
+        serde_json::json!({"status": 42}),
+        serde_json::json!({"status": "implemented-imaginary"}),
+    ] {
+        assert!(!has_documented_evidence_status(&invalid));
+    }
 }
 
 #[test]
 fn eudi_issuer_registration_metadata_requirement_fails_closed() {
     let requirements = parse_json_or_null(include_str!("../eudi/requirements.json"));
-    let test_cases = parse_json_or_null(include_str!("../eudi/test-cases.json"));
     let sources = parse_json_or_null(include_str!("../eudi/sources.lock"));
 
     let requirement = find_item_by_id(
@@ -260,25 +275,12 @@ fn eudi_issuer_registration_metadata_requirement_fails_closed() {
     let requirement = requirement.unwrap_or(&Value::Null);
     assert_eq!(
         requirement.get("status").and_then(Value::as_str),
-        Some("extracted-blocked-on-ecosystem-field-names")
+        Some("unsupported")
     );
     assert!(requirement
         .get("exclusion_reason")
         .and_then(Value::as_str)
-        .is_some_and(|reason| reason.contains("must not invent non-standard wire fields")));
-
-    let test_case = find_item_by_id(
-        &test_cases,
-        "test_cases",
-        "id",
-        "eudi-issuer-registration-certificate-metadata",
-    );
-    assert!(test_case.is_some());
-    let test_case = test_case.unwrap_or(&Value::Null);
-    assert_eq!(
-        test_case.get("status").and_then(Value::as_str),
-        Some("extracted-blocked-on-ecosystem-field-names")
-    );
+        .is_some_and(|reason| reason.contains("registration compliance")));
 
     let arf_source = sources
         .get("sources")
@@ -296,7 +298,7 @@ fn eudi_issuer_registration_metadata_requirement_fails_closed() {
 }
 
 #[test]
-fn eudi_interop_reporting_is_owned_by_composed_conformance() {
+fn eudi_interop_evidence_is_explicitly_unverified() {
     let requirements = parse_json_or_null(include_str!("../eudi/requirements.json"));
     let requirement = find_item_by_id(
         &requirements,
@@ -307,48 +309,16 @@ fn eudi_interop_reporting_is_owned_by_composed_conformance() {
     .unwrap_or(&Value::Null);
     assert_eq!(
         requirement.get("status").and_then(Value::as_str),
-        Some("implemented-delegated-evidence-boundary")
+        Some("execution-unverified")
     );
     assert!(requirement
-        .get("exclusion_reason")
+        .get("limitation")
         .and_then(Value::as_str)
-        .is_some_and(|reason| reason.contains("reallyme/identity-conformance")));
+        .is_some_and(|limitation| limitation.contains("no retained two-sided execution evidence")));
     assert!(requirement
         .get("implemented_in")
         .and_then(Value::as_array)
         .is_some_and(|paths| paths
             .iter()
             .all(|path| path.as_str().is_some_and(|path| !path.contains("reports")))));
-}
-
-#[test]
-fn eudi_reference_library_ledger_does_not_claim_unexecuted_two_sided_comparisons() {
-    let comparator = include_str!("../src/bin/compare_eudi_reference_resources.rs");
-    let upstream_tests = parse_json_or_null(include_str!("../eudi/upstream-tests.json"));
-    assert!(comparator.contains("IssuerMetadata::parse_json"));
-    assert!(comparator.contains("CredentialOffer::parse_json"));
-    assert!(comparator.contains("CredentialResponse::parse_json"));
-
-    for source_id in ["eudi-jvm-openid4vci", "eudi-ios-openid4vci"] {
-        let correctly_scoped = upstream_tests
-            .get("upstream_tests")
-            .and_then(Value::as_array)
-            .is_some_and(|items| {
-                items.iter().any(|item| {
-                    item.get("source_id").and_then(Value::as_str) == Some(source_id)
-                        && item.get("target_role").and_then(Value::as_str)
-                            == Some("reference_library")
-                        && item.get("status").and_then(Value::as_str)
-                            == Some("pinned-not-yet-executed")
-                        && item
-                            .get("next_action")
-                            .and_then(Value::as_str)
-                            .is_some_and(|action| action.contains("two-sided comparator"))
-                })
-            });
-        assert!(
-            correctly_scoped,
-            "EUDI reference-library ledger must not overstate unexecuted evidence: {source_id}"
-        );
-    }
 }

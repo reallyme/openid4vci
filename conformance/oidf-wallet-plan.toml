@@ -4,7 +4,7 @@
 
 [oidf]
 suite = "https://gitlab.com/openid/conformance-suite"
-pinned_commit = "440eec8bac7b12b7389d7ca9cbc459b53507a443"
+pinned_commit = "1e6f5433dc61b13e484fee1dec1f0346cca0cfa5"
 plan = "oid4vci-1_0-wallet-haip-test-plan"
 
 [target]
@@ -25,5 +25,3 @@ wallet_attestation_client_authentication = true
 
 [fixtures]
 oidf = "conformance/fixtures/oidf"
-eudi = "conformance/fixtures/eudi"
-ewc = "conformance/fixtures/ewc"

@@ -52,6 +52,7 @@ CERTIFICATION_POSITIVE_MODULES = frozenset(
 ENGINEERING_POSITIVE_MODULES = frozenset(
     {
         "oid4vci-1_0-wallet-happy-path-with-scopes-without-authorization-details-in-token-response",
+        "fapi2-security-profile-final-client-test-happy-path-no-mtls-endpoint-aliases",
     }
 )
 

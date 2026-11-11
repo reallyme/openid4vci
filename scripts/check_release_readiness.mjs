@@ -62,10 +62,44 @@ const shared = createReleaseReadinessContext({
 
 shared.assertReallyMeReleasePackagePolicy({
   scriptPath: "scripts/check_release_readiness.mjs",
-  version: "0.6.9",
+  version: "0.7.0",
 });
 shared.assertWorkflowActionsPinned();
-shared.assertNodeWorkflowJobsPinNode({ nodeVersion: "24" });
+shared.assertWorkflowPolicy({
+  path: ".github/workflows/rust-ci.yml",
+  jobs: {
+    "rust-checks": { needs: [] },
+    semver: { needs: [] },
+    msrv: { needs: [] },
+    rust: { needs: ["rust-checks", "semver", "msrv"] },
+  },
+  runSteps: [
+    {
+      job: "rust-checks",
+      name: "Check all features with warnings denied",
+      run: "cargo check --locked --workspace --all-features",
+      workingDirectory: "openid4vci",
+    },
+    {
+      job: "rust-checks",
+      name: "Test default lane",
+      run: "cargo nextest run --locked --workspace",
+      workingDirectory: "openid4vci",
+    },
+    {
+      job: "rust-checks",
+      name: "Test documentation contracts",
+      run: "cargo test --locked --doc --workspace --all-features",
+      workingDirectory: "openid4vci",
+    },
+    {
+      job: "rust",
+      name: "Require every Rust validation gate",
+      run: 'test "$SOURCE_RESULT" = success\ntest "$SEMVER_RESULT" = success\ntest "$MSRV_RESULT" = success',
+    },
+  ],
+});
+shared.assertNodeWorkflowJobsPinNode({ nodeVersion: "26" });
 shared.assertCargoFuzzWorkflowPolicy({
   workflow: ".github/workflows/fuzz.yml",
   version: "0.13.2",
@@ -412,6 +446,7 @@ for (const path of [
   "crates/wallet/LICENSE-MIT",
   "crates/wallet/LICENSE-APACHE",
   "conformance/fixtures/oidf/openid4vci-conformance-mdoc-iaca.pem",
+  "crates/http/examples/issuer/fixtures/openid4vci-conformance-mdoc-iaca.crl",
   "scripts/check-proto-first-boundaries.mjs",
   "scripts/check-openid4vci-format.sh",
   "scripts/check-published-semver.mjs",
@@ -517,14 +552,13 @@ assertContains(
 assertContains("Cargo.toml", 'license = "MIT OR Apache-2.0"');
 assertContains(
   "Cargo.toml",
-  'reallyme-zk-api = { version = "=0.2.1", default-features = false }',
+  'reallyme-zk-api = { version = "=0.3.0", default-features = false }',
 );
-assertNotContains("Cargo.toml", 'reallyme-zk-api = { path =');
 assertContains("README.md", "[MIT License](LICENSE-MIT)");
 assertContains("README.md", "[Apache License, Version 2.0](LICENSE-APACHE)");
 assertContains(
   "README.md",
-  "git -C .release-readiness checkout --detach v0.6.9",
+  "git -C .release-readiness checkout --detach 18a6d91d99837e80f92e41fe04effb0b043d754e",
 );
 assertContains("README.md", "node .release-readiness/scripts/run-consumer-check.mjs");
 assertContains(".gitignore", "!crates/proto/src/generated/**");
@@ -567,7 +601,7 @@ assertContains(
 );
 assertContains(
   ".github/workflows/fuzz.yml",
-  "cargo +nightly-2026-09-15 metadata --locked --manifest-path fuzz/Cargo.toml --format-version 1 --no-deps",
+  "cargo +nightly-2026-09-15 metadata --locked --manifest-path fuzz/Cargo.toml --format-version 1",
 );
 assertNotContains(
   ".github/workflows/fuzz.yml",
@@ -733,6 +767,10 @@ assertContains(
 );
 assertContains(
   rustCiWorkflow,
+  "cargo test --locked -p openid4vci-http --example issuer --features axum,identity-jose,tls",
+);
+assertContains(
+  rustCiWorkflow,
   "cargo doc --locked --workspace --no-deps --all-features",
 );
 assertContains(rustCiWorkflow, "scripts/audit_committed_lockfiles.sh");
@@ -871,7 +909,7 @@ for (const releaseReadinessWorkflow of [
   assertContains(releaseReadinessWorkflow, "repository: reallyme/release-readiness");
   assertContains(
     releaseReadinessWorkflow,
-    "ref: v0.6.9",
+    "ref: 18a6d91d99837e80f92e41fe04effb0b043d754e",
   );
   assertContains(releaseReadinessWorkflow, "persist-credentials: false");
   assertNotContains(releaseReadinessWorkflow, "npm exec --yes --package=github:");
@@ -906,8 +944,6 @@ for (const duplicate of [
   assertNotContains(packagePreflightWorkflow, duplicate);
 }
 for (const duplicate of [
-  "cargo check --locked --workspace --all-features",
-  "cargo test --locked -p openid4vci-http --example issuer",
   "scripts/run-fuzz-smoke.sh",
   "node scripts/publish-crates-in-order.mjs inspect",
 ]) {
@@ -1082,6 +1118,9 @@ assertContains(
   "reallyme.openid4vci.crates-publication-ledger.v1",
 );
 assertContains("scripts/run-fuzz-smoke.sh", 'fuzz_args+=("$corpus_dir")');
+// Lock validation must resolve dependencies, including the isolated fuzz graph.
+assertNotContains(".github/workflows/fuzz.yml", "--no-deps");
+assertNotContains("scripts/run-fuzz-smoke.sh", "--no-deps");
 assertContains("fuzz/Cargo.toml", 'non_kebab_case_bins = "allow"');
 assertContains("fuzz/.gitignore", "!corpus/operation_wire/");
 

@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-profiles"
-version = "0.2.0"
+version = "0.3.0"
 description = "OpenID4VCI profile constants and policy surfaces."
 edition.workspace = true
 rust-version.workspace = true
@@ -32,10 +32,8 @@ wasm = ["openid4vci-types/wasm", "reallyme-openid4vc-profiles/wasm"]
 openid4vci-types = { workspace = true }
 reallyme-openid4vc-profiles = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-thiserror = { workspace = true }
-
-[dev-dependencies]
 serde_json = { workspace = true }
+thiserror = { workspace = true }
 
 [lints]
 workspace = true

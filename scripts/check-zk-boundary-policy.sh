@@ -56,9 +56,8 @@ while IFS= read -r match; do
   esac
 done <"${policy_tmp_dir}/source-matches"
 
-# The 0.2.1 API keeps deprecated aliases for downstream migration, but this
-# repository must use the canonical Rust terminology. Generated protobuf names
-# are wire contracts and remain intentionally outside this source-only check.
+# Use the canonical Rust terminology from the published ZK API. Generated
+# protobuf names are checked by the wire contract policy.
 run_rg_allow_no_matches "${policy_tmp_dir}/deprecated-rust-names" -n \
   '\bZkPrepared[A-Za-z0-9_]*\b' \
   crates conformance \

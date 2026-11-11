@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-//! Signed Credential Issuer Metadata provider for the deployable example.
+//! Signed Credential Issuer Metadata provider for the synthetic conformance issuer.
 
 use openid4vci_issuer::{
     IssuerError, IssuerMetadataSigner, IssuerResult, IssuerStatus, SignedIssuerMetadataJwt,

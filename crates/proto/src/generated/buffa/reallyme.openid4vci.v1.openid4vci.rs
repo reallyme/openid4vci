@@ -5731,6 +5731,8 @@ pub struct ReallyMeZkV1Credential {
         skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
     )]
     pub wallet_opening_commitment: ::buffa::alloc::vec::Vec<u8>,
+    /// Salted CLM1 lineage claim digest. The issuer derives the LEAF1 leaf.
+    ///
     /// Field 8: `opaque_lineage_leaf`
     #[serde(
         rename = "opaqueLineageLeaf",
@@ -6644,6 +6646,8 @@ pub struct ReallyMeZkV1IssuanceRequest {
         skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
     )]
     pub wallet_opening_commitment: ::buffa::alloc::vec::Vec<u8>,
+    /// Salted CLM1 lineage claim digest. The issuer derives the LEAF1 leaf.
+    ///
     /// Field 6: `opaque_lineage_leaf`
     #[serde(
         rename = "opaqueLineageLeaf",
@@ -11540,6 +11544,617 @@ pub const __BATCH_CREDENTIAL_ISSUANCE_JSON_ANY: ::buffa::type_registry::JsonAnyE
         from_json: ::buffa::type_registry::any_from_json::<BatchCredentialIssuance>,
         is_wkt: false,
     };
+#[derive(Clone, PartialEq, Default, ::serde::Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct IssuerLogo {
+    /// Field 1: `uri`
+    #[serde(
+        rename = "uri",
+        with = "::buffa::json_helpers::proto_string",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+    )]
+    pub uri: ::buffa::alloc::string::String,
+    /// Field 2: `alt_text`
+    #[serde(
+        rename = "altText",
+        alias = "alt_text",
+        with = "::buffa::json_helpers::proto_string",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+    )]
+    pub alt_text: ::buffa::alloc::string::String,
+    #[serde(skip)]
+    #[doc(hidden)]
+    pub __buffa_unknown_fields: ::buffa::UnknownFields,
+}
+impl ::core::fmt::Debug for IssuerLogo {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        f.debug_struct("IssuerLogo")
+            .field("uri", &"<redacted>")
+            .field("alt_text", &"<redacted>")
+            .finish()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for IssuerLogo {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        fn deserialize_zeroizing_string<'de, D>(
+            deserializer: D,
+        ) -> ::core::result::Result<::zeroize::Zeroizing<::buffa::alloc::string::String>, D::Error>
+        where
+            D: ::serde::Deserializer<'de>,
+        {
+            ::buffa::json_helpers::proto_string::deserialize(deserializer)
+                .map(::zeroize::Zeroizing::new)
+        }
+
+        #[derive(Default, ::serde::Deserialize)]
+        #[serde(default, deny_unknown_fields)]
+        struct Wire {
+            #[serde(
+                rename = "uri",
+                deserialize_with = "deserialize_zeroizing_string",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+            )]
+            uri: ::zeroize::Zeroizing<::buffa::alloc::string::String>,
+            #[serde(
+                rename = "altText",
+                alias = "alt_text",
+                deserialize_with = "deserialize_zeroizing_string",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+            )]
+            alt_text: ::zeroize::Zeroizing<::buffa::alloc::string::String>,
+        }
+
+        let mut wire = Wire::deserialize(deserializer)?;
+        Ok(Self {
+            uri: ::core::mem::take(&mut *wire.uri),
+            alt_text: ::core::mem::take(&mut *wire.alt_text),
+            __buffa_unknown_fields: Default::default(),
+        })
+    }
+}
+impl ::core::ops::Drop for IssuerLogo {
+    fn drop(&mut self) {
+        ::zeroize::Zeroize::zeroize(&mut self.uri);
+        ::zeroize::Zeroize::zeroize(&mut self.alt_text);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl IssuerLogo {
+    /// Protobuf type URL for this message, for use with `Any::pack` and
+    /// `Any::unpack_if`.
+    ///
+    /// Format: `type.googleapis.com/<fully.qualified.TypeName>`
+    pub const TYPE_URL: &'static str = "type.googleapis.com/reallyme.openid4vci.v1.IssuerLogo";
+}
+::buffa::impl_default_instance!(IssuerLogo);
+impl ::buffa::MessageName for IssuerLogo {
+    const PACKAGE: &'static str = "reallyme.openid4vci.v1";
+    const NAME: &'static str = "IssuerLogo";
+    const FULL_NAME: &'static str = "reallyme.openid4vci.v1.IssuerLogo";
+    const TYPE_URL: &'static str = "type.googleapis.com/reallyme.openid4vci.v1.IssuerLogo";
+}
+impl ::buffa::Message for IssuerLogo {
+    /// Returns the total encoded size in bytes.
+    ///
+    /// Accumulates in `u64` (which cannot overflow for in-memory
+    /// data) and saturates to `u32` at return, so a message whose
+    /// encoded size exceeds the 2 GiB protobuf limit yields a value
+    /// above [`::buffa::MAX_MESSAGE_BYTES`] that the encode entry
+    /// points reject, never a silently wrapped size.
+    #[allow(clippy::let_and_return)]
+    fn compute_size(&self, _cache: &mut ::buffa::SizeCache) -> u32 {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        let mut size = 0u64;
+        if !self.uri.is_empty() {
+            size += 1u64 + ::buffa::types::string_encoded_len(&self.uri) as u64;
+        }
+        if !self.alt_text.is_empty() {
+            size += 1u64 + ::buffa::types::string_encoded_len(&self.alt_text) as u64;
+        }
+        size += self.__buffa_unknown_fields.encoded_len() as u64;
+        ::buffa::saturate_size(size)
+    }
+    fn write_to(&self, _cache: &mut ::buffa::SizeCache, buf: &mut impl ::buffa::EncodeSink) {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        if !self.uri.is_empty() {
+            ::buffa::types::put_string_field(1u32, &self.uri, buf);
+        }
+        if !self.alt_text.is_empty() {
+            ::buffa::types::put_string_field(2u32, &self.alt_text, buf);
+        }
+        self.__buffa_unknown_fields.write_to(buf);
+    }
+    fn merge_field(
+        &mut self,
+        tag: ::buffa::encoding::Tag,
+        buf: &mut impl ::buffa::bytes::Buf,
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<(), ::buffa::DecodeError> {
+        #[allow(unused_imports)]
+        use ::buffa::bytes::Buf as _;
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        match tag.field_number() {
+            1u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_string(&mut self.uri, buf)?;
+            }
+            2u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_string(&mut self.alt_text, buf)?;
+            }
+            _ => {
+                self.__buffa_unknown_fields
+                    .push(::buffa::encoding::decode_unknown_field(tag, buf, ctx)?);
+            }
+        }
+        ::core::result::Result::Ok(())
+    }
+    fn clear(&mut self) {
+        ::zeroize::Zeroize::zeroize(&mut self.uri);
+        ::zeroize::Zeroize::zeroize(&mut self.alt_text);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl ::buffa::ExtensionSet for IssuerLogo {
+    const PROTO_FQN: &'static str = "reallyme.openid4vci.v1.IssuerLogo";
+    fn unknown_fields(&self) -> &::buffa::UnknownFields {
+        &self.__buffa_unknown_fields
+    }
+    fn unknown_fields_mut(&mut self) -> &mut ::buffa::UnknownFields {
+        &mut self.__buffa_unknown_fields
+    }
+}
+impl ::buffa::json_helpers::ProtoElemJson for IssuerLogo {
+    fn serialize_proto_json<S: ::serde::Serializer>(
+        v: &Self,
+        s: S,
+    ) -> ::core::result::Result<S::Ok, S::Error> {
+        ::serde::Serialize::serialize(v, s)
+    }
+    fn deserialize_proto_json<'de, D: ::serde::Deserializer<'de>>(
+        d: D,
+    ) -> ::core::result::Result<Self, D::Error> {
+        <Self as ::serde::Deserialize>::deserialize(d)
+    }
+}
+#[doc(hidden)]
+pub const __ISSUER_LOGO_JSON_ANY: ::buffa::type_registry::JsonAnyEntry =
+    ::buffa::type_registry::JsonAnyEntry {
+        type_url: "type.googleapis.com/reallyme.openid4vci.v1.IssuerLogo",
+        to_json: ::buffa::type_registry::any_to_json::<IssuerLogo>,
+        from_json: ::buffa::type_registry::any_from_json::<IssuerLogo>,
+        is_wkt: false,
+    };
+#[derive(Clone, PartialEq, Default, ::serde::Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct IssuerDisplay {
+    /// Field 1: `name`
+    #[serde(
+        rename = "name",
+        with = "::buffa::json_helpers::proto_string",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+    )]
+    pub name: ::buffa::alloc::string::String,
+    /// Field 2: `locale`
+    #[serde(
+        rename = "locale",
+        with = "::buffa::json_helpers::proto_string",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+    )]
+    pub locale: ::buffa::alloc::string::String,
+    /// Field 3: `logo`
+    #[serde(
+        rename = "logo",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_unset_message_field"
+    )]
+    pub logo: ::buffa::MessageField<IssuerLogo, ::buffa::Inline<IssuerLogo>>,
+    #[serde(skip)]
+    #[doc(hidden)]
+    pub __buffa_unknown_fields: ::buffa::UnknownFields,
+}
+impl ::core::fmt::Debug for IssuerDisplay {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        f.debug_struct("IssuerDisplay")
+            .field("name", &"<redacted>")
+            .field("locale", &self.locale)
+            .field("logo", &self.logo)
+            .finish()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for IssuerDisplay {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        fn deserialize_zeroizing_string<'de, D>(
+            deserializer: D,
+        ) -> ::core::result::Result<::zeroize::Zeroizing<::buffa::alloc::string::String>, D::Error>
+        where
+            D: ::serde::Deserializer<'de>,
+        {
+            ::buffa::json_helpers::proto_string::deserialize(deserializer)
+                .map(::zeroize::Zeroizing::new)
+        }
+
+        #[derive(Default, ::serde::Deserialize)]
+        #[serde(default, deny_unknown_fields)]
+        struct Wire {
+            #[serde(
+                rename = "name",
+                deserialize_with = "deserialize_zeroizing_string",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+            )]
+            name: ::zeroize::Zeroizing<::buffa::alloc::string::String>,
+            #[serde(
+                rename = "locale",
+                with = "::buffa::json_helpers::proto_string",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+            )]
+            locale: ::buffa::alloc::string::String,
+            #[serde(
+                rename = "logo",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_unset_message_field"
+            )]
+            logo: ::buffa::MessageField<IssuerLogo, ::buffa::Inline<IssuerLogo>>,
+        }
+
+        let mut wire = Wire::deserialize(deserializer)?;
+        Ok(Self {
+            name: ::core::mem::take(&mut *wire.name),
+            locale: wire.locale,
+            logo: wire.logo,
+            __buffa_unknown_fields: Default::default(),
+        })
+    }
+}
+impl ::core::ops::Drop for IssuerDisplay {
+    fn drop(&mut self) {
+        ::zeroize::Zeroize::zeroize(&mut self.name);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl IssuerDisplay {
+    /// Protobuf type URL for this message, for use with `Any::pack` and
+    /// `Any::unpack_if`.
+    ///
+    /// Format: `type.googleapis.com/<fully.qualified.TypeName>`
+    pub const TYPE_URL: &'static str = "type.googleapis.com/reallyme.openid4vci.v1.IssuerDisplay";
+}
+::buffa::impl_default_instance!(IssuerDisplay);
+impl ::buffa::MessageName for IssuerDisplay {
+    const PACKAGE: &'static str = "reallyme.openid4vci.v1";
+    const NAME: &'static str = "IssuerDisplay";
+    const FULL_NAME: &'static str = "reallyme.openid4vci.v1.IssuerDisplay";
+    const TYPE_URL: &'static str = "type.googleapis.com/reallyme.openid4vci.v1.IssuerDisplay";
+}
+impl ::buffa::Message for IssuerDisplay {
+    /// Returns the total encoded size in bytes.
+    ///
+    /// Accumulates in `u64` (which cannot overflow for in-memory
+    /// data) and saturates to `u32` at return, so a message whose
+    /// encoded size exceeds the 2 GiB protobuf limit yields a value
+    /// above [`::buffa::MAX_MESSAGE_BYTES`] that the encode entry
+    /// points reject, never a silently wrapped size.
+    #[allow(clippy::let_and_return)]
+    fn compute_size(&self, __cache: &mut ::buffa::SizeCache) -> u32 {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        let mut size = 0u64;
+        if !self.name.is_empty() {
+            size += 1u64 + ::buffa::types::string_encoded_len(&self.name) as u64;
+        }
+        if !self.locale.is_empty() {
+            size += 1u64 + ::buffa::types::string_encoded_len(&self.locale) as u64;
+        }
+        if self.logo.is_set() {
+            let __slot = __cache.reserve();
+            let inner_size = self.logo.compute_size(__cache);
+            __cache.set(__slot, inner_size);
+            size +=
+                1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
+        }
+        size += self.__buffa_unknown_fields.encoded_len() as u64;
+        ::buffa::saturate_size(size)
+    }
+    fn write_to(&self, __cache: &mut ::buffa::SizeCache, buf: &mut impl ::buffa::EncodeSink) {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        if !self.name.is_empty() {
+            ::buffa::types::put_string_field(1u32, &self.name, buf);
+        }
+        if !self.locale.is_empty() {
+            ::buffa::types::put_string_field(2u32, &self.locale, buf);
+        }
+        if self.logo.is_set() {
+            ::buffa::types::put_len_delimited_header(3u32, u64::from(__cache.consume_next()), buf);
+            self.logo.write_to(__cache, buf);
+        }
+        self.__buffa_unknown_fields.write_to(buf);
+    }
+    fn merge_field(
+        &mut self,
+        tag: ::buffa::encoding::Tag,
+        buf: &mut impl ::buffa::bytes::Buf,
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<(), ::buffa::DecodeError> {
+        #[allow(unused_imports)]
+        use ::buffa::bytes::Buf as _;
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        match tag.field_number() {
+            1u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_string(&mut self.name, buf)?;
+            }
+            2u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_string(&mut self.locale, buf)?;
+            }
+            3u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::Message::merge_length_delimited(
+                    self.logo.get_or_insert_default(),
+                    buf,
+                    ctx,
+                )?;
+            }
+            _ => {
+                self.__buffa_unknown_fields
+                    .push(::buffa::encoding::decode_unknown_field(tag, buf, ctx)?);
+            }
+        }
+        ::core::result::Result::Ok(())
+    }
+    fn clear(&mut self) {
+        ::zeroize::Zeroize::zeroize(&mut self.name);
+        self.locale.clear();
+        self.logo = ::buffa::MessageField::none();
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl ::buffa::ExtensionSet for IssuerDisplay {
+    const PROTO_FQN: &'static str = "reallyme.openid4vci.v1.IssuerDisplay";
+    fn unknown_fields(&self) -> &::buffa::UnknownFields {
+        &self.__buffa_unknown_fields
+    }
+    fn unknown_fields_mut(&mut self) -> &mut ::buffa::UnknownFields {
+        &mut self.__buffa_unknown_fields
+    }
+}
+impl ::buffa::json_helpers::ProtoElemJson for IssuerDisplay {
+    fn serialize_proto_json<S: ::serde::Serializer>(
+        v: &Self,
+        s: S,
+    ) -> ::core::result::Result<S::Ok, S::Error> {
+        ::serde::Serialize::serialize(v, s)
+    }
+    fn deserialize_proto_json<'de, D: ::serde::Deserializer<'de>>(
+        d: D,
+    ) -> ::core::result::Result<Self, D::Error> {
+        <Self as ::serde::Deserialize>::deserialize(d)
+    }
+}
+#[doc(hidden)]
+pub const __ISSUER_DISPLAY_JSON_ANY: ::buffa::type_registry::JsonAnyEntry =
+    ::buffa::type_registry::JsonAnyEntry {
+        type_url: "type.googleapis.com/reallyme.openid4vci.v1.IssuerDisplay",
+        to_json: ::buffa::type_registry::any_to_json::<IssuerDisplay>,
+        from_json: ::buffa::type_registry::any_from_json::<IssuerDisplay>,
+        is_wkt: false,
+    };
+#[derive(Clone, PartialEq, Default, ::serde::Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct IssuerInformation {
+    /// Field 1: `format`
+    #[serde(
+        rename = "format",
+        with = "::buffa::json_helpers::proto_string",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+    )]
+    pub format: ::buffa::alloc::string::String,
+    /// Field 2: `data_json`
+    #[serde(
+        rename = "dataJson",
+        alias = "data_json",
+        with = "::buffa::json_helpers::bytes",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+    )]
+    pub data_json: ::buffa::alloc::vec::Vec<u8>,
+    #[serde(skip)]
+    #[doc(hidden)]
+    pub __buffa_unknown_fields: ::buffa::UnknownFields,
+}
+impl ::core::fmt::Debug for IssuerInformation {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        f.debug_struct("IssuerInformation")
+            .field("format", &self.format)
+            .field("data_json", &"<redacted>")
+            .finish()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for IssuerInformation {
+    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        fn deserialize_zeroizing_bytes<'de, D>(
+            deserializer: D,
+        ) -> ::core::result::Result<::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>, D::Error>
+        where
+            D: ::serde::Deserializer<'de>,
+        {
+            ::buffa::json_helpers::bytes::deserialize(deserializer).map(::zeroize::Zeroizing::new)
+        }
+
+        #[derive(Default, ::serde::Deserialize)]
+        #[serde(default, deny_unknown_fields)]
+        struct Wire {
+            #[serde(
+                rename = "format",
+                with = "::buffa::json_helpers::proto_string",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_str"
+            )]
+            format: ::buffa::alloc::string::String,
+            #[serde(
+                rename = "dataJson",
+                alias = "data_json",
+                deserialize_with = "deserialize_zeroizing_bytes",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_bytes"
+            )]
+            data_json: ::zeroize::Zeroizing<::buffa::alloc::vec::Vec<u8>>,
+        }
+
+        let mut wire = Wire::deserialize(deserializer)?;
+        Ok(Self {
+            format: wire.format,
+            data_json: ::core::mem::take(&mut *wire.data_json),
+            __buffa_unknown_fields: Default::default(),
+        })
+    }
+}
+impl ::core::ops::Drop for IssuerInformation {
+    fn drop(&mut self) {
+        ::zeroize::Zeroize::zeroize(&mut self.data_json);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl IssuerInformation {
+    /// Protobuf type URL for this message, for use with `Any::pack` and
+    /// `Any::unpack_if`.
+    ///
+    /// Format: `type.googleapis.com/<fully.qualified.TypeName>`
+    pub const TYPE_URL: &'static str =
+        "type.googleapis.com/reallyme.openid4vci.v1.IssuerInformation";
+}
+::buffa::impl_default_instance!(IssuerInformation);
+impl ::buffa::MessageName for IssuerInformation {
+    const PACKAGE: &'static str = "reallyme.openid4vci.v1";
+    const NAME: &'static str = "IssuerInformation";
+    const FULL_NAME: &'static str = "reallyme.openid4vci.v1.IssuerInformation";
+    const TYPE_URL: &'static str = "type.googleapis.com/reallyme.openid4vci.v1.IssuerInformation";
+}
+impl ::buffa::Message for IssuerInformation {
+    /// Returns the total encoded size in bytes.
+    ///
+    /// Accumulates in `u64` (which cannot overflow for in-memory
+    /// data) and saturates to `u32` at return, so a message whose
+    /// encoded size exceeds the 2 GiB protobuf limit yields a value
+    /// above [`::buffa::MAX_MESSAGE_BYTES`] that the encode entry
+    /// points reject, never a silently wrapped size.
+    #[allow(clippy::let_and_return)]
+    fn compute_size(&self, _cache: &mut ::buffa::SizeCache) -> u32 {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        let mut size = 0u64;
+        if !self.format.is_empty() {
+            size += 1u64 + ::buffa::types::string_encoded_len(&self.format) as u64;
+        }
+        if !self.data_json.is_empty() {
+            size += 1u64 + ::buffa::types::bytes_encoded_len(&self.data_json) as u64;
+        }
+        size += self.__buffa_unknown_fields.encoded_len() as u64;
+        ::buffa::saturate_size(size)
+    }
+    fn write_to(&self, _cache: &mut ::buffa::SizeCache, buf: &mut impl ::buffa::EncodeSink) {
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        if !self.format.is_empty() {
+            ::buffa::types::put_string_field(1u32, &self.format, buf);
+        }
+        if !self.data_json.is_empty() {
+            ::buffa::types::put_shared_bytes_field(2u32, &self.data_json, buf);
+        }
+        self.__buffa_unknown_fields.write_to(buf);
+    }
+    fn merge_field(
+        &mut self,
+        tag: ::buffa::encoding::Tag,
+        buf: &mut impl ::buffa::bytes::Buf,
+        ctx: ::buffa::DecodeContext<'_>,
+    ) -> ::core::result::Result<(), ::buffa::DecodeError> {
+        #[allow(unused_imports)]
+        use ::buffa::bytes::Buf as _;
+        #[allow(unused_imports)]
+        use ::buffa::Enumeration as _;
+        match tag.field_number() {
+            1u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_string(&mut self.format, buf)?;
+            }
+            2u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                ::buffa::types::merge_bytes(&mut self.data_json, buf)?;
+            }
+            _ => {
+                self.__buffa_unknown_fields
+                    .push(::buffa::encoding::decode_unknown_field(tag, buf, ctx)?);
+            }
+        }
+        ::core::result::Result::Ok(())
+    }
+    fn clear(&mut self) {
+        self.format.clear();
+        ::zeroize::Zeroize::zeroize(&mut self.data_json);
+        __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
+    }
+}
+impl ::buffa::ExtensionSet for IssuerInformation {
+    const PROTO_FQN: &'static str = "reallyme.openid4vci.v1.IssuerInformation";
+    fn unknown_fields(&self) -> &::buffa::UnknownFields {
+        &self.__buffa_unknown_fields
+    }
+    fn unknown_fields_mut(&mut self) -> &mut ::buffa::UnknownFields {
+        &mut self.__buffa_unknown_fields
+    }
+}
+impl ::buffa::json_helpers::ProtoElemJson for IssuerInformation {
+    fn serialize_proto_json<S: ::serde::Serializer>(
+        v: &Self,
+        s: S,
+    ) -> ::core::result::Result<S::Ok, S::Error> {
+        ::serde::Serialize::serialize(v, s)
+    }
+    fn deserialize_proto_json<'de, D: ::serde::Deserializer<'de>>(
+        d: D,
+    ) -> ::core::result::Result<Self, D::Error> {
+        <Self as ::serde::Deserialize>::deserialize(d)
+    }
+}
+#[doc(hidden)]
+pub const __ISSUER_INFORMATION_JSON_ANY: ::buffa::type_registry::JsonAnyEntry =
+    ::buffa::type_registry::JsonAnyEntry {
+        type_url: "type.googleapis.com/reallyme.openid4vci.v1.IssuerInformation",
+        to_json: ::buffa::type_registry::any_to_json::<IssuerInformation>,
+        from_json: ::buffa::type_registry::any_from_json::<IssuerInformation>,
+        is_wkt: false,
+    };
 /// CredentialConfigurationEntry replaces a protobuf map so configuration IDs
 /// have explicit ownership and duplicate entries can fail closed in the codec.
 #[derive(Clone, PartialEq, Default, ::serde::Serialize)]
@@ -11843,6 +12458,21 @@ pub struct IssuerMetadata {
     )]
     pub batch_credential_issuance:
         ::buffa::MessageField<BatchCredentialIssuance, ::buffa::Inline<BatchCredentialIssuance>>,
+    /// Field 12: `display`
+    #[serde(
+        rename = "display",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_vec",
+        deserialize_with = "::buffa::json_helpers::null_as_default"
+    )]
+    pub display: ::buffa::alloc::vec::Vec<IssuerDisplay>,
+    /// Field 13: `issuer_info`
+    #[serde(
+        rename = "issuerInfo",
+        alias = "issuer_info",
+        skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_vec",
+        deserialize_with = "::buffa::json_helpers::null_as_default"
+    )]
+    pub issuer_info: ::buffa::alloc::vec::Vec<IssuerInformation>,
     #[serde(skip)]
     #[doc(hidden)]
     pub __buffa_unknown_fields: ::buffa::UnknownFields,
@@ -11873,6 +12503,8 @@ impl ::core::fmt::Debug for IssuerMetadata {
                 &self.preferred_client_status_period,
             )
             .field("batch_credential_issuance", &self.batch_credential_issuance)
+            .field("display", &self.display)
+            .field("issuer_info", &self.issuer_info)
             .finish()
     }
 }
@@ -11985,6 +12617,19 @@ impl<'de> ::serde::Deserialize<'de> for IssuerMetadata {
                 BatchCredentialIssuance,
                 ::buffa::Inline<BatchCredentialIssuance>,
             >,
+            #[serde(
+                rename = "display",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_vec",
+                deserialize_with = "::buffa::json_helpers::null_as_default"
+            )]
+            display: ::buffa::alloc::vec::Vec<IssuerDisplay>,
+            #[serde(
+                rename = "issuerInfo",
+                alias = "issuer_info",
+                skip_serializing_if = "::buffa::json_helpers::skip_if::is_empty_vec",
+                deserialize_with = "::buffa::json_helpers::null_as_default"
+            )]
+            issuer_info: ::buffa::alloc::vec::Vec<IssuerInformation>,
         }
 
         let mut wire = Wire::deserialize(deserializer)?;
@@ -12005,6 +12650,8 @@ impl<'de> ::serde::Deserialize<'de> for IssuerMetadata {
             credential_configurations_supported: wire.credential_configurations_supported,
             preferred_client_status_period: wire.preferred_client_status_period,
             batch_credential_issuance: wire.batch_credential_issuance,
+            display: wire.display,
+            issuer_info: wire.issuer_info,
             __buffa_unknown_fields: Default::default(),
         })
     }
@@ -12098,6 +12745,20 @@ impl ::buffa::Message for IssuerMetadata {
             size +=
                 1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
         }
+        for v in &self.display {
+            let __slot = __cache.reserve();
+            let inner_size = v.compute_size(__cache);
+            __cache.set(__slot, inner_size);
+            size +=
+                1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
+        }
+        for v in &self.issuer_info {
+            let __slot = __cache.reserve();
+            let inner_size = v.compute_size(__cache);
+            __cache.set(__slot, inner_size);
+            size +=
+                1u64 + ::buffa::encoding::varint_len(inner_size as u64) as u64 + inner_size as u64;
+        }
         size += self.__buffa_unknown_fields.encoded_len() as u64;
         ::buffa::saturate_size(size)
     }
@@ -12140,6 +12801,14 @@ impl ::buffa::Message for IssuerMetadata {
         if self.batch_credential_issuance.is_set() {
             ::buffa::types::put_len_delimited_header(11u32, u64::from(__cache.consume_next()), buf);
             self.batch_credential_issuance.write_to(__cache, buf);
+        }
+        for v in &self.display {
+            ::buffa::types::put_len_delimited_header(12u32, u64::from(__cache.consume_next()), buf);
+            v.write_to(__cache, buf);
+        }
+        for v in &self.issuer_info {
+            ::buffa::types::put_len_delimited_header(13u32, u64::from(__cache.consume_next()), buf);
+            v.write_to(__cache, buf);
         }
         self.__buffa_unknown_fields.write_to(buf);
     }
@@ -12245,6 +12914,26 @@ impl ::buffa::Message for IssuerMetadata {
                     ctx,
                 )?;
             }
+            12u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                let mut elem = ::core::default::Default::default();
+                ctx.register_element_memory(::buffa::__private::element_footprint(&elem))?;
+                ::buffa::Message::merge_length_delimited(&mut elem, buf, ctx)?;
+                self.display.push(elem);
+            }
+            13u32 => {
+                ::buffa::encoding::check_wire_type(
+                    tag,
+                    ::buffa::encoding::WireType::LengthDelimited,
+                )?;
+                let mut elem = ::core::default::Default::default();
+                ctx.register_element_memory(::buffa::__private::element_footprint(&elem))?;
+                ::buffa::Message::merge_length_delimited(&mut elem, buf, ctx)?;
+                self.issuer_info.push(elem);
+            }
             _ => {
                 self.__buffa_unknown_fields
                     .push(::buffa::encoding::decode_unknown_field(tag, buf, ctx)?);
@@ -12264,6 +12953,8 @@ impl ::buffa::Message for IssuerMetadata {
         self.credential_configurations_supported.clear();
         self.preferred_client_status_period = 0u64;
         self.batch_credential_issuance = ::buffa::MessageField::none();
+        self.display.clear();
+        self.issuer_info.clear();
         __reallyme_zeroize_unknown_fields(&mut self.__buffa_unknown_fields);
     }
 }

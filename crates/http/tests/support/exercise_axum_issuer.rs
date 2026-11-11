@@ -395,12 +395,14 @@ pub(super) fn metadata() -> Result<IssuerMetadata, RouteTestError> {
     .credential_response_encryption(test_response_encryption_metadata())
     .proof_required(true)
     .jwt_proof_signing_alg_values_supported(vec!["ES256".to_owned()])
-    .credential_configuration(
-        "pid".to_owned(),
-        CredentialConfiguration::new(CredentialFormat::SdJwtVc),
-    )
+    .credential_configuration("pid".to_owned(), {
+        let mut configuration = CredentialConfiguration::new(CredentialFormat::SdJwtVc);
+        configuration.cryptographic_binding_methods_supported = Some(vec!["jwk".to_owned()]);
+        configuration
+    })
     .credential_configuration("pid-mdoc".to_owned(), {
         let mut configuration = CredentialConfiguration::new(CredentialFormat::MsoMdoc);
+        configuration.cryptographic_binding_methods_supported = Some(vec!["jwk".to_owned()]);
         configuration.doctype = Some("eu.europa.ec.eudi.pid.1".to_owned());
         configuration
     })

@@ -164,6 +164,7 @@ fn encryption_config() -> CredentialEndpointConfig {
             zip_values_supported: None,
             encryption_required: true,
         }),
+        credential_request_profile: openid4vci_issuer::CredentialRequestProfile::OpenId4Vci,
     }
 }
 

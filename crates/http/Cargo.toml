@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-http"
-version = "0.2.0"
+version = "0.3.0"
 description = "Feature-gated HTTP adapter boundary for OpenID4VCI."
 edition.workspace = true
 rust-version.workspace = true
@@ -127,7 +127,7 @@ zeroize = { workspace = true, optional = true }
 buffa = { workspace = true }
 envelopes-x509 = { workspace = true }
 reallyme-revocation = { workspace = true }
-reallyme-sd-jwt = { version = "=0.5.1", default-features = false, features = ["native"] }
+reallyme-sd-jwt = { version = "=0.6.1", default-features = false, features = ["native"] }
 reallyme-trust-core = { workspace = true }
 serde_json = { workspace = true }
 time = { workspace = true }

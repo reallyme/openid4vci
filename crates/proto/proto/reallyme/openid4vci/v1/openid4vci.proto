@@ -296,6 +296,7 @@ message ReallyMeZkV1Credential {
   bytes verified_holder_public_key = 5; // reallyme:sensitive
   bytes lineage_tag_commitment = 6;
   bytes wallet_opening_commitment = 7;
+  // Salted CLM1 lineage claim digest. The issuer derives the LEAF1 leaf.
   bytes opaque_lineage_leaf = 8;
 }
 
@@ -325,6 +326,7 @@ message ReallyMeZkV1IssuanceRequest {
   bytes verified_holder_public_key = 3; // reallyme:sensitive
   bytes lineage_tag_commitment = 4;
   bytes wallet_opening_commitment = 5;
+  // Salted CLM1 lineage claim digest. The issuer derives the LEAF1 leaf.
   bytes opaque_lineage_leaf = 6;
 }
 
@@ -462,6 +464,22 @@ message BatchCredentialIssuance {
   uint64 batch_size = 1;
 }
 
+message IssuerLogo {
+  string uri = 1;
+  string alt_text = 2;
+}
+
+message IssuerDisplay {
+  string name = 1;
+  string locale = 2;
+  IssuerLogo logo = 3;
+}
+
+message IssuerInformation {
+  string format = 1;
+  bytes data_json = 2;
+}
+
 // CredentialConfigurationEntry replaces a protobuf map so configuration IDs
 // have explicit ownership and duplicate entries can fail closed in the codec.
 message CredentialConfigurationEntry {
@@ -481,6 +499,8 @@ message IssuerMetadata {
   repeated CredentialConfigurationEntry credential_configurations_supported = 9;
   uint64 preferred_client_status_period = 10;
   BatchCredentialIssuance batch_credential_issuance = 11;
+  repeated IssuerDisplay display = 12;
+  repeated IssuerInformation issuer_info = 13;
 }
 
 // OpenId4VciOperationContractVersion versions the composed SDK/Wasm validation

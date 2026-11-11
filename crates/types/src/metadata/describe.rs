@@ -11,6 +11,9 @@ use serde::{Deserialize, Serialize};
 use super::encryption::{
     CredentialRequestEncryptionMetadata, CredentialResponseEncryptionMetadata,
 };
+use super::issuer_information::{
+    validate_issuer_display, validate_issuer_information, IssuerDisplay, IssuerInformation,
+};
 use super::validate::{
     validate_optional_signing_algs, validate_optional_strings, validate_optional_url,
     validate_optional_urls, FORBIDDEN_METADATA_MEMBERS,
@@ -54,6 +57,12 @@ pub struct IssuerMetadata {
     /// Support for issuing multiple credentials in one request (`proofs` array).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub batch_credential_issuance: Option<BatchCredentialIssuance>,
+    /// Localized display properties for the Credential Issuer.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display: Option<Vec<IssuerDisplay>>,
+    /// ETSI profile issuer information carried in signed metadata.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issuer_info: Option<Vec<IssuerInformation>>,
     /// Supported credential configurations.
     pub credential_configurations_supported: BTreeMap<String, CredentialConfiguration>,
 }
@@ -114,6 +123,8 @@ impl IssuerMetadata {
         if let Some(batch) = &self.batch_credential_issuance {
             batch.validate()?;
         }
+        validate_issuer_display(&self.display)?;
+        validate_issuer_information(&self.issuer_info)?;
         Ok(())
     }
 }
@@ -145,6 +156,8 @@ impl IssuerMetadataBuilder {
                 credential_request_encryption: None,
                 credential_response_encryption: None,
                 batch_credential_issuance: None,
+                display: None,
+                issuer_info: None,
                 credential_configurations_supported: BTreeMap::new(),
             },
             proof_required: false,
@@ -214,6 +227,20 @@ impl IssuerMetadataBuilder {
         self
     }
 
+    /// Sets localized Credential Issuer display properties.
+    #[must_use]
+    pub fn display(mut self, value: Vec<IssuerDisplay>) -> Self {
+        self.metadata.display = Some(value);
+        self
+    }
+
+    /// Sets profile-defined issuer information entries.
+    #[must_use]
+    pub fn issuer_information(mut self, value: Vec<IssuerInformation>) -> Self {
+        self.metadata.issuer_info = Some(value);
+        self
+    }
+
     /// Marks the issuer policy as requiring key proofs.
     #[must_use]
     pub const fn proof_required(mut self, value: bool) -> Self {
@@ -263,6 +290,15 @@ impl IssuerMetadataBuilder {
                     configuration.proof_types_supported = Some(proof_types.clone());
                 }
             }
+        }
+        if self.proof_required
+            && self
+                .metadata
+                .credential_configurations_supported
+                .values()
+                .any(|configuration| !configuration.supports_proofs())
+        {
+            return Err(OpenId4VciError::new(Reason::MissingRequiredField));
         }
         self.metadata.validate()?;
         Ok(self.metadata)
@@ -353,6 +389,21 @@ impl CredentialConfiguration {
         validate_optional_signing_algs(&self.credential_signing_alg_values_supported)?;
         is_optional_non_empty(&self.vct)?;
         is_optional_non_empty(&self.doctype)?;
+        // OpenID4VCI uses this pair to distinguish key-bound credentials from
+        // bearer credentials. Accepting only one member would make the Wallet
+        // and Issuer disagree about whether a proof is mandatory.
+        match (
+            self.cryptographic_binding_methods_supported.is_some(),
+            self.proof_types_supported.is_some(),
+        ) {
+            (true, false) => {
+                return Err(OpenId4VciError::new(Reason::MissingRequiredField));
+            }
+            (false, true) => {
+                return Err(OpenId4VciError::new(Reason::ForbiddenField));
+            }
+            (true, true) | (false, false) => {}
+        }
         if let Some(proof_types) = &self.proof_types_supported {
             if proof_types.is_empty() {
                 return Err(OpenId4VciError::new(Reason::MissingRequiredField));

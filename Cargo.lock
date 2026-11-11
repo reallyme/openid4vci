@@ -89,9 +89,9 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
 name = "arc-swap"
-version = "1.9.4"
+version = "1.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db4c94f57a570fce5d381be3289b3f79aef6332d72948fe82ab5772e423ccf92"
+checksum = "84a22b5d51209f6de83d37a0b33d320acb8da88823e42a94c075140708f032a5"
 dependencies = [
  "rustversion",
 ]
@@ -1858,7 +1858,7 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "openid4vci-attestation"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "ed25519-dalek",
  "reallyme-codec",
@@ -1873,11 +1873,12 @@ dependencies = [
 
 [[package]]
 name = "openid4vci-conformance"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "buffa",
  "openid4vci-attestation",
  "openid4vci-issuer",
+ "openid4vci-profiles",
  "openid4vci-proto-codec",
  "proptest",
  "reallyme-codec",
@@ -1893,7 +1894,7 @@ dependencies = [
 
 [[package]]
 name = "openid4vci-http"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "axum",
  "axum-server",
@@ -1928,10 +1929,11 @@ dependencies = [
 
 [[package]]
 name = "openid4vci-issuer"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "buffa",
  "openid4vci-attestation",
+ "openid4vci-profiles",
  "p256",
  "p384",
  "p521",
@@ -1952,7 +1954,7 @@ dependencies = [
 
 [[package]]
 name = "openid4vci-profiles"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "reallyme-openid4vc-profiles",
  "reallyme-openid4vci-types",
@@ -1963,7 +1965,7 @@ dependencies = [
 
 [[package]]
 name = "openid4vci-proto-codec"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "buffa",
  "openid4vci-attestation",
@@ -2402,9 +2404,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-cose"
-version = "0.2.9"
+version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bceaf3f700ef8bc8ceef35dca5fd3010f0bfc92d1362743713a02199a353fd8"
+checksum = "8d83f86810206de6656aa2028e05d87144ba1520e8e3fbd42ae5600fee6161da"
 dependencies = [
  "ciborium",
  "coset",
@@ -2416,9 +2418,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-credential"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84c6b3be14464fe6e1200a8c07d6a3e391d8511367acca422d82ce5855163413"
+checksum = "5aa45f0d8b3f1af3d9159cff9cd166a6e6f49e71848e7847418c30bcd8db9bf6"
 dependencies = [
  "buffa",
  "buffa-types",
@@ -2443,9 +2445,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-credential-audit"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e02552a23c4d64e1ba7758a62ed48f5aee9cef3b7b23b87717852bf124176775"
+checksum = "a8aa9dbadb68b9c5a4183c53dafa4e35163b88442c1e126a69bb24ce900d6979"
 dependencies = [
  "reallyme-crypto",
  "reallyme-ssi-proto",
@@ -2455,9 +2457,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-credential-claims"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6b9ac6c86eb970d852ea84d168c8174d6743b41d109bf111ff560afcb532e77"
+checksum = "22120df01c4022d34b10b4595db0c3c3fc95344ce86b3477d79999620e9c52b1"
 dependencies = [
  "buffa",
  "reallyme-codec",
@@ -2474,9 +2476,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-credential-status"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f29f45cf4c4539e3a48dd39152970568afad6094140caa9ddd8e6f176da5df2d"
+checksum = "096d3d6524a2bca87b6ba0dfbc1ae83436f0807164c519a93e6b00faf9135003"
 dependencies = [
  "buffa",
  "buffa-types",
@@ -3060,9 +3062,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-mdoc"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d44af81fa18fb335ff917179701a4227d52d39818f0923012813eba90a2812dc"
+checksum = "7f8f562a49201ad12ca496d3ec6cadcecb0ff91a66b5b5a81fbc22f8d80aad87"
 dependencies = [
  "ciborium",
  "reallyme-codec",
@@ -3079,9 +3081,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-openid-oauth"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7080d0dc19f87d0898c12a3a4e031940123ce8f5f47f43dd4645de1c22b34f87"
+checksum = "779070055fb7d4968cefb2a707e00444f9809368a95946b2f33ff6055bd9d55b"
 dependencies = [
  "buffa",
  "percent-encoding",
@@ -3099,16 +3101,16 @@ dependencies = [
 
 [[package]]
 name = "reallyme-openid4vc-profiles"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b66a6833bd25ded444c4f044f725af48f11dde7074de5fb8b12af213c9d5bb6d"
+checksum = "0b54fd27ae3fc9be693d24a3eedf2afb3faa26eda846890f5719e33ff04fb757"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "reallyme-openid4vci"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "openid4vci-attestation",
  "openid4vci-http",
@@ -3123,7 +3125,7 @@ dependencies = [
 
 [[package]]
 name = "reallyme-openid4vci-proto"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "buffa",
  "serde",
@@ -3133,7 +3135,7 @@ dependencies = [
 
 [[package]]
 name = "reallyme-openid4vci-types"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "percent-encoding",
  "reallyme-codec",
@@ -3146,7 +3148,7 @@ dependencies = [
 
 [[package]]
 name = "reallyme-openid4vci-wallet"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "reallyme-codec",
  "reallyme-crypto",
@@ -3163,9 +3165,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-revocation"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "197e9e67a9dbea1e94214e184f352fbe5c2fe37f48016d6752f0a513ab377330"
+checksum = "c702458e1764e4d0ea9e8bc885a0595a40d2d265351cfa20f73ceeba02dfe308"
 dependencies = [
  "reallyme-credential-status",
  "reallyme-ssi-proto",
@@ -3178,9 +3180,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-sd-jwt"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20b64aedc6b72db9ff82d74b95767675d2e4e2d5bd9f470a0ddf89fd6499d62c"
+checksum = "eb607c9e3958d6d30fa53eed3370affa117ec2bc4198b183af11a83b36b4d6c0"
 dependencies = [
  "reallyme-codec",
  "reallyme-crypto",
@@ -3193,9 +3195,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-ssi-proto"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1d069599ee55404dd163fcd8fe34fe56b03d17a61f1f7be07db698d775cf5da"
+checksum = "19d7bf491dfb8d9c30b2ea89640a491422e09c2d5b07f2d6ea81eb41a650a4e7"
 dependencies = [
  "buffa",
  "buffa-types",
@@ -3206,9 +3208,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-trust-core"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e29e6ca629e2295c83eb0e6904a62df17fe95a975fe247525002b1dcdef58774"
+checksum = "11b46df1bdfb88d89768055cc9df95a306a01e6cac62886f298ac8736bb1545e"
 dependencies = [
  "reallyme-revocation",
  "reallyme-ssi-proto",
@@ -3219,9 +3221,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-trust-x509"
-version = "0.5.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "738fc9d2ee1a58a8f5c8cb0f075c0859bd3d8124b03c1f33f03c14a3b0629d01"
+checksum = "a883798bf213e34ab6567913f3763138d92bada78f7cb4fa31581e81c9d9af61"
 dependencies = [
  "asn1-rs",
  "oid-registry",
@@ -3238,9 +3240,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-zk-api"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc8cb1244896c6a3818d0c11b4cb3057f811c86bfdd02977c38f48ac3ff73d67"
+checksum = "56471d66ee49df2aed2aafa40f7936c38feaa7ccbc0e96caa8e67c77aeaadf50"
 dependencies = [
  "reallyme-crypto-core",
  "reallyme-crypto-csprng",

@@ -12,6 +12,7 @@ use std::net::TcpListener;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use axum::routing::get;
 use openid4vci_http::{
     default_max_body_bytes, issuer_router_at_path, AxumIssuerParts, AxumIssuerSecurityPolicy,
     AxumIssuerState, DpopHttpConfig, IssuerHttpSecurityConfig, SystemClock,
@@ -198,7 +199,11 @@ pub(crate) async fn run() -> Result<(), ExampleIssuerError> {
     })
     .map_err(|_| ExampleIssuerError::InvalidRouterState)?;
     let router = issuer_router_at_path(state, EXAMPLE_ISSUER_PATH)
-        .map_err(|_| ExampleIssuerError::InvalidRouterState)?;
+        .map_err(|_| ExampleIssuerError::InvalidRouterState)?
+        .route(
+            super::mdoc::PID_MDOC_CRL_PATH,
+            get(super::mdoc::serve_iaca_crl),
+        );
     let tls_required = url::Url::parse(&issuer_base_url)
         .map(|url| url.scheme() == "https")
         .map_err(|_| ExampleIssuerError::InvalidMetadata)?;

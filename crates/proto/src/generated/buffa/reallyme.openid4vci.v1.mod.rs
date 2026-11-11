@@ -73,6 +73,9 @@ pub mod __buffa {
         reg.register_json_any(super::__CREDENTIAL_REQUEST_ENCRYPTION_METADATA_JSON_ANY);
         reg.register_json_any(super::__CREDENTIAL_RESPONSE_ENCRYPTION_METADATA_JSON_ANY);
         reg.register_json_any(super::__BATCH_CREDENTIAL_ISSUANCE_JSON_ANY);
+        reg.register_json_any(super::__ISSUER_LOGO_JSON_ANY);
+        reg.register_json_any(super::__ISSUER_DISPLAY_JSON_ANY);
+        reg.register_json_any(super::__ISSUER_INFORMATION_JSON_ANY);
         reg.register_json_any(super::__CREDENTIAL_CONFIGURATION_ENTRY_JSON_ANY);
         reg.register_json_any(super::__ISSUER_METADATA_JSON_ANY);
         reg.register_json_any(super::__OPEN_ID4VCI_OPERATION_ERROR_JSON_ANY);
@@ -183,6 +186,18 @@ pub use self::__buffa::view::IssueCredentialRequestView;
 pub use self::__buffa::view::IssueCredentialResponseOwnedView;
 #[doc(inline)]
 pub use self::__buffa::view::IssueCredentialResponseView;
+#[doc(inline)]
+pub use self::__buffa::view::IssuerDisplayOwnedView;
+#[doc(inline)]
+pub use self::__buffa::view::IssuerDisplayView;
+#[doc(inline)]
+pub use self::__buffa::view::IssuerInformationOwnedView;
+#[doc(inline)]
+pub use self::__buffa::view::IssuerInformationView;
+#[doc(inline)]
+pub use self::__buffa::view::IssuerLogoOwnedView;
+#[doc(inline)]
+pub use self::__buffa::view::IssuerLogoView;
 #[doc(inline)]
 pub use self::__buffa::view::IssuerMetadataOwnedView;
 #[doc(inline)]

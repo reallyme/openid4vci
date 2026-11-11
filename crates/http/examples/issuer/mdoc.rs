@@ -2,8 +2,10 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-//! EU PID mdoc construction for the deployable issuer.
+//! EU PID mdoc construction for the synthetic conformance issuer.
 
+use axum::http::header::{CACHE_CONTROL, CONTENT_TYPE};
+use axum::response::IntoResponse;
 use ciborium::value::Value as CborValue;
 use envelopes_x509::parse_cert_der;
 use openid4vci_issuer::{ConfirmationJwk, IssuerError, IssuerResult, IssuerStatus, ProofAlgorithm};
@@ -26,7 +28,10 @@ use super::run::{current_unix_seconds_issuer, CREDENTIAL_TIME_ROUNDING_SECONDS};
 pub(super) const PID_MDOC_CONFIGURATION_ID: &str = "pid-mdoc";
 pub(super) const PID_MDOC_CREDENTIAL_IDENTIFIER: &str = "pid-mdoc-credential-1";
 pub(super) const PID_MDOC_DOCTYPE: &str = "eu.europa.ec.eudi.pid.1";
+pub(super) const PID_MDOC_CRL_PATH: &str = "/security/mdoc-iaca.crl";
 const PID_MDOC_NAMESPACE: &str = "eu.europa.ec.eudi.pid.1";
+const PKIX_CRL_CONTENT_TYPE: &str = "application/pkix-crl";
+const PUBLIC_CRL_CACHE_CONTROL: &str = "public, max-age=3600";
 const MDOC_VALIDITY_SECONDS: u64 = 86_400;
 const ISSUER_SIGNED_ITEM_RANDOM_BYTES: usize = 16;
 const P256_UNCOMPRESSED_SEC1_BYTES: usize = 65;
@@ -35,8 +40,22 @@ const P256_UNCOMPRESSED_SEC1_PREFIX: u8 = 0x04;
 // These software-backed keys are public, synthetic conformance fixtures. They
 // must never be reused outside this example. Production composition roots must
 // inject a managed signer and certificate path without exporting signing keys.
-const DOCUMENT_SIGNER_PRIVATE_KEY_D: &str = "1cZHB1z9DEHlTFdl0gRq3Y-9t3t-S5779A2qrQud93Y";
-const DOCUMENT_SIGNER_CERTIFICATE_DER: &str = "MIICmTCCAj6gAwIBAgIBAjAKBggqhkjOPQQDAjBZMQswCQYDVQQGEwJERTEfMB0GA1UECgwWT3BlbklENFZDSSBDb25mb3JtYW5jZTEpMCcGA1UEAwwgT3BlbklENFZDSSBDb25mb3JtYW5jZSBtZG9jIElBQ0EwHhcNMjYwOTI4MTQyNTU3WhcNMjcwOTI4MTQyNTU3WjBkMQswCQYDVQQGEwJERTEfMB0GA1UECgwWT3BlbklENFZDSSBDb25mb3JtYW5jZTE0MDIGA1UEAwwrT3BlbklENFZDSSBDb25mb3JtYW5jZSBtZG9jIERvY3VtZW50IFNpZ25lcjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABGqvMs5Ok3sUJD15KPn44bzQPcqfBlfhQiTQCW8fEMzxhGPY-EQWdTyxYxN0FmhN2Xagg_ftgB6cMp7QJ_lIDgejgeswgegwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lAQH_BAswCQYHKIGMXQUBAjAdBgNVHQ4EFgQUkWD24fc77i8Sgdv4juEg9wCQtVowHwYDVR0jBBgwFoAUFKeTXSRE29Ky3WLwyDclVbNmRZcwNAYDVR0SBC0wK4YpaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9zZWN1cml0eS9tZG9jLWlhY2EwPgYDVR0fBDcwNTAzoDGgL4YtaHR0cHM6Ly9pc3N1ZXIuZXhhbXBsZS9zZWN1cml0eS9tZG9jLWlhY2EuY3JsMAoGCCqGSM49BAMCA0kAMEYCIQDLYrji2ciExvmYQTfE04vgR8e8wWVcehCSjOrPzhNMZwIhAO_LtJzQHKy_Yho3gFg7ku2ny9o5CG8bVdFMrfXM_pQy";
+const DOCUMENT_SIGNER_PRIVATE_KEY_D: &str = "LBA-jNSHJTgnbmIrigQ0b8Pg8v7HDI6e_PD1UwzYeZY";
+const DOCUMENT_SIGNER_CERTIFICATE_DER: &str = "MIICszCCAlqgAwIBAgIBAjAKBggqhkjOPQQDAjBZMQswCQYDVQQGEwJERTEfMB0GA1UECgwWT3BlbklENFZDSSBDb25mb3JtYW5jZTEpMCcGA1UEAwwgT3BlbklENFZDSSBDb25mb3JtYW5jZSBtZG9jIElBQ0EwHhcNMjYxMTA5MDAwMDAwWhcNMjgwMTI0MDAwMDAwWjBkMQswCQYDVQQGEwJERTEfMB0GA1UECgwWT3BlbklENFZDSSBDb25mb3JtYW5jZTE0MDIGA1UEAwwrT3BlbklENFZDSSBDb25mb3JtYW5jZSBtZG9jIERvY3VtZW50IFNpZ25lcjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABKLLiMkWO3YdqG5XitutNPd87NVXcES97REQTHzfLcL_yfNza6NHwPr0LcDLcFWw65-wHonyjX9xYt4ZO7hWXYyjggEGMIIBAjAJBgNVHRMEAjAAMA4GA1UdDwEB_wQEAwIHgDAVBgNVHSUBAf8ECzAJBgcogYxdBQECMB0GA1UdDgQWBBTKWdkxCsXMOzdGygqKG7ZVv236ZDAfBgNVHSMEGDAWgBTWA5ra1sui3KxKs3tKs5SQBFutczBBBgNVHRIEOjA4hjZodHRwczovL2xvY2FsaG9zdC5lbW9iaXguY28udWs6OTQ0My9zZWN1cml0eS9tZG9jLWlhY2EwSwYDVR0fBEQwQjBAoD6gPIY6aHR0cHM6Ly9sb2NhbGhvc3QuZW1vYml4LmNvLnVrOjk0NDMvc2VjdXJpdHkvbWRvYy1pYWNhLmNybDAKBggqhkjOPQQDAgNHADBEAiAy3bdfPovN4X4nCYPnczC15tsYC6h27zAXdNvINOjtoQIgZoB2swvXD7O59gEdc1FX8szuOpSKLxm0B5tLSzFHEo0";
+
+pub(super) async fn serve_iaca_crl() -> impl IntoResponse {
+    (
+        [
+            (CONTENT_TYPE, PKIX_CRL_CONTENT_TYPE),
+            (CACHE_CONTROL, PUBLIC_CRL_CACHE_CONTROL),
+        ],
+        iaca_crl_der(),
+    )
+}
+
+pub(super) const fn iaca_crl_der() -> &'static [u8] {
+    include_bytes!("fixtures/openid4vci-conformance-mdoc-iaca.crl")
+}
 
 pub(super) fn issue_pid_mdoc(binding_key: &ConfirmationJwk) -> IssuerResult<CredentialEnvelope> {
     if binding_key.algorithm != ProofAlgorithm::Es256
@@ -125,7 +144,7 @@ pub(super) fn mdoc_validity_info(
     })
 }
 
-fn pid_elements() -> IssuerResult<Vec<MdocElement>> {
+pub(super) fn pid_elements() -> IssuerResult<Vec<MdocElement>> {
     let values = [
         ("family_name", CborValue::Text("Mustermann".to_owned())),
         ("given_name", CborValue::Text("Erika".to_owned())),
@@ -133,7 +152,17 @@ fn pid_elements() -> IssuerResult<Vec<MdocElement>> {
             "birth_date",
             CborValue::Tag(1004, Box::new(CborValue::Text("1970-01-01".to_owned()))),
         ),
-        ("age_in_years", CborValue::Integer(56_i64.into())),
+        (
+            "place_of_birth",
+            CborValue::Map(vec![(
+                CborValue::Text("locality".to_owned()),
+                CborValue::Text("Berlin".to_owned()),
+            )]),
+        ),
+        (
+            "nationality",
+            CborValue::Array(vec![CborValue::Text("DE".to_owned())]),
+        ),
         (
             "issuing_authority",
             CborValue::Text("Example Issuing Authority".to_owned()),

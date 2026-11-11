@@ -24,7 +24,7 @@ fn suite_contract_pins_current_published_plan_inventory() {
 
     assert_eq!(
         contract.get("commit").and_then(Value::as_str),
-        Some("440eec8bac7b12b7389d7ca9cbc459b53507a443")
+        Some("1e6f5433dc61b13e484fee1dec1f0346cca0cfa5")
     );
     assert_eq!(plans.len(), 4);
     assert!(plan_ids.contains(&"oid4vci-1_0-issuer-haip-test-plan"));
@@ -133,11 +133,11 @@ fn certification_inventory_pins_complete_module_variants() {
 
     assert_eq!(
         inventory.get("suite_commit").and_then(Value::as_str),
-        Some("440eec8bac7b12b7389d7ca9cbc459b53507a443")
+        Some("1e6f5433dc61b13e484fee1dec1f0346cca0cfa5")
     );
     assert_eq!(
         inventory.get("suite_version").and_then(Value::as_str),
-        Some("5.3.1")
+        Some("5.3.4")
     );
     assert_eq!(plans.len(), 2);
 

@@ -214,6 +214,7 @@ fn wallet_rejects_plaintext_after_requesting_response_encryption() -> WalletResu
         request.plaintext_json().err().map(|error| error.status()),
         Some(WalletStatus::RequestEncryptionRequired)
     );
+    #[cfg(feature = "identity-jose")]
     assert_eq!(
         request
             .parse_response(r#"{"credentials":[{"credential":"plaintext"}]}"#, None)
@@ -271,7 +272,7 @@ fn pre_authorized_token_request_redacts_and_serializes_secrets() -> WalletResult
     let issuance = validated_pre_authorized_offer("secret-pre-auth-code")?;
     let tx_code = TransactionCode::new(SecretString::from("123456".to_owned()))?;
     let request =
-        PreAuthorizedTokenRequest::new(&issuance, Some(&tx_code), Some("wallet".to_owned()), None)?;
+        PreAuthorizedTokenRequest::new(&issuance, Some(&tx_code), Some("wallet".to_owned()))?;
 
     // Debug must never surface the bearer secret.
     let debug = format!("{request:?}");
@@ -310,7 +311,6 @@ fn authorization_code_token_request_redacts_and_serializes_secrets() -> WalletRe
         "https://wallet.example/callback".to_owned(),
         &verifier,
         Some("wallet".to_owned()),
-        None,
     )?;
 
     // Debug must never surface bearer secrets.
@@ -356,7 +356,6 @@ fn authorization_code_token_request_rejects_invalid_public_values() -> WalletRes
         &code,
         "bad\nredirect".to_owned(),
         &verifier,
-        None,
         None,
     );
     assert_eq!(

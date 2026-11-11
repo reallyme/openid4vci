@@ -98,6 +98,7 @@ fn endpoint_enforces_batch_ceiling_after_verified_key_expansion() -> IssuerResul
         max_batch_size: None,
         response_encryption_required: false,
         response_encryption_metadata: None,
+        credential_request_profile: openid4vci_issuer::CredentialRequestProfile::OpenId4Vci,
     };
 
     let result = handle_credential_request(

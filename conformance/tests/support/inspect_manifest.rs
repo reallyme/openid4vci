@@ -4,6 +4,7 @@
 
 //! Shared assertions for conformance manifest integration tests.
 
+use serde::Deserialize;
 use serde_json::Value;
 
 pub(super) struct RequirementManifest {
@@ -110,21 +111,37 @@ pub(super) fn assert_requirement_test_anchors_exist(manifest: RequirementManifes
     }
 }
 
-pub(super) fn assert_open_items_have_next_actions(entries: Vec<Value>) {
-    for item in entries {
-        let status = item.get("status").and_then(Value::as_str).unwrap_or("");
-        if status.starts_with("implemented")
-            || status.starts_with("covered-locally")
-            || status == "pinned-release"
-        {
-            continue;
-        }
-        assert!(
-            item.get("next_action")
-                .and_then(Value::as_str)
-                .is_some_and(|value| !value.trim().is_empty()),
-            "open EUDI item must have next_action: {item:?}"
-        );
+#[derive(Deserialize)]
+#[serde(rename_all = "kebab-case")]
+enum EvidenceStatus {
+    ImplementedAtProtocolBoundary,
+    ImplementedAtWireBoundary,
+    ImplementedBaselinePolicy,
+    ImplementedAtProfileAndHttpBoundary,
+    ImplementedAtProfileBoundary,
+    Unsupported,
+    ExecutionUnverified,
+}
+
+#[derive(Deserialize)]
+struct EvidenceRecord {
+    status: EvidenceStatus,
+    limitation: Option<String>,
+}
+
+pub(super) fn has_documented_evidence_status(item: &Value) -> bool {
+    let Ok(record) = serde_json::from_value::<EvidenceRecord>(item.clone()) else {
+        return false;
+    };
+    match record.status {
+        EvidenceStatus::Unsupported | EvidenceStatus::ExecutionUnverified => record
+            .limitation
+            .is_some_and(|limitation| !limitation.trim().is_empty()),
+        EvidenceStatus::ImplementedAtProtocolBoundary
+        | EvidenceStatus::ImplementedAtWireBoundary
+        | EvidenceStatus::ImplementedBaselinePolicy
+        | EvidenceStatus::ImplementedAtProfileAndHttpBoundary
+        | EvidenceStatus::ImplementedAtProfileBoundary => true,
     }
 }
 
@@ -189,7 +206,7 @@ pub(super) fn test_sources() -> [&'static str; 32] {
     ]
 }
 
-pub(super) fn manifests() -> [(&'static str, &'static str); 10] {
+pub(super) fn manifests() -> [(&'static str, &'static str); 8] {
     [
         (
             "specifications.lock",
@@ -215,14 +232,6 @@ pub(super) fn manifests() -> [(&'static str, &'static str); 10] {
         (
             "eudi/requirements.json",
             include_str!("../../eudi/requirements.json"),
-        ),
-        (
-            "eudi/test-cases.json",
-            include_str!("../../eudi/test-cases.json"),
-        ),
-        (
-            "eudi/upstream-tests.json",
-            include_str!("../../eudi/upstream-tests.json"),
         ),
         (
             "eudi/exclusions.json",

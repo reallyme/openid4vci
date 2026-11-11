@@ -69,6 +69,14 @@ class WalletModuleDriverTests(unittest.TestCase):
         self.assertEqual(expected.flow_status, POLICY.CREDENTIAL_STORED)
         self.assertIsNone(expected.flow_reason)
 
+    def test_no_mtls_aliases_engineering_module_requires_a_stored_credential(self) -> None:
+        module = "fapi2-security-profile-final-client-test-happy-path-no-mtls-endpoint-aliases"
+        expected = POLICY.expected_outcome(module)
+        self.assertEqual(expected.flow_status, POLICY.CREDENTIAL_STORED)
+        self.assertIsNone(expected.flow_reason)
+        with self.assertRaises(POLICY.OutcomePolicyError):
+            POLICY.validate_observed_outcome(module, POLICY.PROTOCOL_REJECTED, None)
+
     def test_parses_suite_nanosecond_timestamp(self) -> None:
         parsed = DRIVER.parse_oidf_epoch_seconds("2026-09-18T13:31:12.443960126Z")
         expected = datetime(
