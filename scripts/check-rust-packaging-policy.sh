@@ -40,17 +40,17 @@ require_manifest_text "Cargo.toml" 'package = "reallyme-openid4vci-types"'
 require_manifest_text "Cargo.toml" 'package = "reallyme-openid4vci-proto"'
 require_manifest_text "Cargo.toml" 'reallyme-jose = { version = "=0.4.6", default-features = false }'
 require_manifest_text "Cargo.toml" 'reallyme-crypto = { version = "=0.3.17", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-credential = { version = "=0.6.1", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-credential-status = { version = "=0.6.1", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-ssi-proto = { version = "=0.6.1", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-openid-oauth = { version = "=0.6.1", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-openid4vc-profiles = { version = "=0.6.1", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-trust-core = { version = "=0.6.1", default-features = false }'
-require_manifest_text "Cargo.toml" 'envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.6.1", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-mdoc = { version = "=0.6.1", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-revocation = { version = "=0.6.1", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-credential = { version = "=0.6.2", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-credential-status = { version = "=0.6.2", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-ssi-proto = { version = "=0.6.2", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-openid-oauth = { version = "=0.6.2", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-openid4vc-profiles = { version = "=0.6.2", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-trust-core = { version = "=0.6.2", default-features = false }'
+require_manifest_text "Cargo.toml" 'envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.6.2", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-mdoc = { version = "=0.6.2", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-revocation = { version = "=0.6.2", default-features = false }'
 require_manifest_text "Cargo.toml" 'reallyme-zk-api = { version = "=0.3.0", default-features = false }'
-require_manifest_text "crates/http/Cargo.toml" 'reallyme-sd-jwt = { version = "=0.6.1", default-features = false, features = ["native"] }'
+require_manifest_text "crates/http/Cargo.toml" 'reallyme-sd-jwt = { version = "=0.6.2", default-features = false, features = ["native"] }'
 
 if awk '
   index($0, "path = \"../ssi/") { invalid = 1 }
@@ -92,7 +92,7 @@ is_allowed_registry_reallyme_package() {
       reallyme-mdoc | reallyme-sd-jwt | reallyme-openid-oauth | \
       reallyme-openid4vc-profiles | reallyme-revocation | reallyme-ssi-proto | \
       reallyme-trust-core | reallyme-trust-x509)
-      [[ "${package_version}" == "0.6.1" ]]
+      [[ "${package_version}" == "0.6.2" ]]
       ;;
     *)
       return 1

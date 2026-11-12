@@ -65,7 +65,7 @@ function rejected(result, reason) {
   assert.equal(result.stdout, "");
 }
 
-test("registry SSI 0.6.1 and ZK API 0.3.0 are accepted together", () => {
+test("registry SSI 0.6.2 and ZK API 0.3.0 are accepted together", () => {
   withFixture(() => {}, (result) => {
     assert.equal(result.status, 0);
     assert.equal(result.stderr, "");
@@ -77,8 +77,8 @@ test("SSI path and Git overrides remain prohibited", () => {
   for (const override of ['path = "../ssi/crates/credential"', 'git = "https://example.invalid/ssi"']) {
     withFixture((root) => {
       rewrite(join(root, "Cargo.toml"), (contents) => contents.replace(
-        'reallyme-credential = { version = "=0.6.1",',
-        `reallyme-credential = { version = "=0.6.1", ${override},`,
+        'reallyme-credential = { version = "=0.6.2",',
+        `reallyme-credential = { version = "=0.6.2", ${override},`,
       ));
     }, (result) => rejected(result, "reallyme-credential must resolve from crates.io"));
   }
@@ -87,10 +87,10 @@ test("SSI path and Git overrides remain prohibited", () => {
 test("SSI versions must match the exact published release", () => {
   withFixture((root) => {
     rewrite(join(root, "Cargo.toml"), (contents) => contents.replace(
-      'reallyme-credential = { version = "=0.6.1",',
+      'reallyme-credential = { version = "=0.6.2",',
       'reallyme-credential = { version = "=0.5.0",',
     ));
-  }, (result) => rejected(result, "reallyme-credential must use exact version =0.6.1"));
+  }, (result) => rejected(result, "reallyme-credential must use exact version =0.6.2"));
 });
 
 test("both lockfiles require registry sources and checksums for SSI", () => {
@@ -102,7 +102,7 @@ test("both lockfiles require registry sources and checksums for SSI", () => {
           "",
         ));
       }, (result) => rejected(result, field === "source"
-        ? `${lockfile} must resolve reallyme-credential 0.6.1 from crates.io`
+        ? `${lockfile} must resolve reallyme-credential 0.6.2 from crates.io`
         : `${lockfile} must lock the crates.io checksum for reallyme-credential`));
     }
   }
@@ -111,7 +111,7 @@ test("both lockfiles require registry sources and checksums for SSI", () => {
 test("both lockfiles reject duplicate SSI packages", () => {
   for (const lockfile of ["Cargo.lock", "fuzz/Cargo.lock"]) {
     withFixture((root) => {
-      rewrite(join(root, lockfile), (contents) => `${contents}\n[[package]]\nname = "reallyme-credential"\nversion = "0.6.1"\n`);
+      rewrite(join(root, lockfile), (contents) => `${contents}\n[[package]]\nname = "reallyme-credential"\nversion = "0.6.2"\n`);
     }, (result) => rejected(result, `${lockfile} must contain exactly one reallyme-credential package`));
   }
 });

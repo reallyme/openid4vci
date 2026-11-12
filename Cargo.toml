@@ -49,15 +49,15 @@ zeroize = { version = "1.9", features = ["derive"] }
 reallyme-jose = { version = "=0.4.6", default-features = false }
 reallyme-codec = { version = "=0.3.2", default-features = false }
 reallyme-crypto = { version = "=0.3.17", default-features = false }
-reallyme-credential = { version = "=0.6.1", default-features = false }
-reallyme-credential-status = { version = "=0.6.1", default-features = false }
-reallyme-ssi-proto = { version = "=0.6.1", default-features = false }
-reallyme-openid-oauth = { version = "=0.6.1", default-features = false }
-reallyme-openid4vc-profiles = { version = "=0.6.1", default-features = false }
-reallyme-trust-core = { version = "=0.6.1", default-features = false }
-envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.6.1", default-features = false }
-reallyme-mdoc = { version = "=0.6.1", default-features = false }
-reallyme-revocation = { version = "=0.6.1", default-features = false }
+reallyme-credential = { version = "=0.6.2", default-features = false }
+reallyme-credential-status = { version = "=0.6.2", default-features = false }
+reallyme-ssi-proto = { version = "=0.6.2", default-features = false }
+reallyme-openid-oauth = { version = "=0.6.2", default-features = false }
+reallyme-openid4vc-profiles = { version = "=0.6.2", default-features = false }
+reallyme-trust-core = { version = "=0.6.2", default-features = false }
+envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.6.2", default-features = false }
+reallyme-mdoc = { version = "=0.6.2", default-features = false }
+reallyme-revocation = { version = "=0.6.2", default-features = false }
 reallyme-cose = { version = "=0.2.10", default-features = false }
 reallyme-zk-api = { version = "=0.3.0", default-features = false }
 
