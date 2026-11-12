@@ -61,14 +61,14 @@ reallyme-revocation = { version = "=0.6.2", default-features = false }
 reallyme-cose = { version = "=0.2.10", default-features = false }
 reallyme-zk-api = { version = "=0.3.0", default-features = false }
 
-openid4vci-types = { package = "reallyme-openid4vci-types", path = "crates/types", version = "0.3.0", default-features = false }
-openid4vci-proto = { package = "reallyme-openid4vci-proto", path = "crates/proto", version = "0.3.0", default-features = false }
-openid4vci-proto-codec = { path = "crates/proto-codec", version = "0.3.0", default-features = false }
-openid4vci-issuer = { path = "crates/issuer", version = "0.3.0", default-features = false }
-openid4vci-attestation = { path = "crates/attestation", version = "0.3.0", default-features = false }
-reallyme-openid4vci-wallet = { path = "crates/wallet", version = "0.3.0", default-features = false }
-openid4vci-http = { path = "crates/http", version = "0.3.0", default-features = false }
-openid4vci-profiles = { path = "crates/profiles", version = "0.3.0", default-features = false }
+openid4vci-types = { package = "reallyme-openid4vci-types", path = "crates/types", version = "0.3.1", default-features = false }
+openid4vci-proto = { package = "reallyme-openid4vci-proto", path = "crates/proto", version = "0.3.1", default-features = false }
+openid4vci-proto-codec = { path = "crates/proto-codec", version = "0.3.1", default-features = false }
+openid4vci-issuer = { path = "crates/issuer", version = "0.3.1", default-features = false }
+openid4vci-attestation = { path = "crates/attestation", version = "0.3.1", default-features = false }
+reallyme-openid4vci-wallet = { path = "crates/wallet", version = "0.3.1", default-features = false }
+openid4vci-http = { path = "crates/http", version = "0.3.1", default-features = false }
+openid4vci-profiles = { path = "crates/profiles", version = "0.3.1", default-features = false }
 
 [profile.release]
 lto = true

@@ -29,7 +29,7 @@ integrating application.
 Add the crate from crates.io with:
 
 ```sh
-cargo add reallyme-openid4vci-wallet@0.3.0
+cargo add reallyme-openid4vci-wallet@0.3.1
 ```
 
 Licensed under either the MIT License or the Apache License, Version 2.0.

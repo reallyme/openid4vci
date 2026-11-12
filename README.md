@@ -149,8 +149,8 @@ Wasm instances.
 | Add bounded protobuf conversions | Use `openid4vci-proto-codec`. |
 | Add the HTTP framing boundary | Use `openid4vci-http`. |
 
-The workspace and fuzz lockfiles pin the published SSI 0.6.2 crates and
-ZK API 0.3.0 from crates.io.
+OpenID4VCI 0.3.1 pins the published SSI 0.6.2 crates and ZK API 0.3.0
+from crates.io in the workspace and fuzz lockfiles.
 
 OpenID4VCI 0.3.0 updates the optional `reallyme_zk_v1` issuer contract.
 Wallets send the salted `CLM1` lineage claim digest in the existing

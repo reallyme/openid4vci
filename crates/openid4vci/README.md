@@ -64,7 +64,7 @@ composition:
 
 ```toml
 [dependencies]
-reallyme-openid4vci = { version = "0.3.0", default-features = false, features = ["native", "profiles"] }
+reallyme-openid4vci = { version = "0.3.1", default-features = false, features = ["native", "profiles"] }
 ```
 
 ## Ownership boundary
