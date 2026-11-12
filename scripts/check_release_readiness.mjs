@@ -552,7 +552,7 @@ assertContains(
 assertContains("Cargo.toml", 'license = "MIT OR Apache-2.0"');
 assertContains(
   "Cargo.toml",
-  'reallyme-zk-api = { version = "=0.3.0", default-features = false }',
+  'reallyme-zk-api = { version = "=0.3.2", default-features = false }',
 );
 assertContains("README.md", "[MIT License](LICENSE-MIT)");
 assertContains("README.md", "[Apache License, Version 2.0](LICENSE-APACHE)");

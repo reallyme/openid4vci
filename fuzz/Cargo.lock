@@ -1773,7 +1773,7 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "openid4vci-attestation"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "ed25519-dalek",
  "reallyme-codec",
@@ -1806,7 +1806,7 @@ dependencies = [
 
 [[package]]
 name = "openid4vci-http"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "axum",
  "buffa",
@@ -1828,7 +1828,7 @@ dependencies = [
 
 [[package]]
 name = "openid4vci-issuer"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "buffa",
  "openid4vci-attestation",
@@ -1853,7 +1853,7 @@ dependencies = [
 
 [[package]]
 name = "openid4vci-profiles"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "reallyme-openid4vc-profiles",
  "reallyme-openid4vci-types",
@@ -1864,7 +1864,7 @@ dependencies = [
 
 [[package]]
 name = "openid4vci-proto-codec"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "buffa",
  "openid4vci-attestation",
@@ -2976,7 +2976,7 @@ dependencies = [
 
 [[package]]
 name = "reallyme-openid4vci-proto"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "buffa",
  "serde",
@@ -2985,7 +2985,7 @@ dependencies = [
 
 [[package]]
 name = "reallyme-openid4vci-types"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "percent-encoding",
  "reallyme-codec",
@@ -2998,7 +2998,7 @@ dependencies = [
 
 [[package]]
 name = "reallyme-openid4vci-wallet"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "reallyme-codec",
  "reallyme-crypto",
@@ -3075,9 +3075,9 @@ dependencies = [
 
 [[package]]
 name = "reallyme-zk-api"
-version = "0.3.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56471d66ee49df2aed2aafa40f7936c38feaa7ccbc0e96caa8e67c77aeaadf50"
+checksum = "b8b0fbc13a802a0fb4f54d5678a352c29ccadb0eea34139de4549a95c3f8f881"
 dependencies = [
  "reallyme-crypto-core",
  "reallyme-crypto-csprng",

@@ -49,7 +49,7 @@ require_manifest_text "Cargo.toml" 'reallyme-trust-core = { version = "=0.6.2", 
 require_manifest_text "Cargo.toml" 'envelopes-x509 = { package = "reallyme-trust-x509", version = "=0.6.2", default-features = false }'
 require_manifest_text "Cargo.toml" 'reallyme-mdoc = { version = "=0.6.2", default-features = false }'
 require_manifest_text "Cargo.toml" 'reallyme-revocation = { version = "=0.6.2", default-features = false }'
-require_manifest_text "Cargo.toml" 'reallyme-zk-api = { version = "=0.3.0", default-features = false }'
+require_manifest_text "Cargo.toml" 'reallyme-zk-api = { version = "=0.3.2", default-features = false }'
 require_manifest_text "crates/http/Cargo.toml" 'reallyme-sd-jwt = { version = "=0.6.2", default-features = false, features = ["native"] }'
 
 if awk '
@@ -86,7 +86,7 @@ is_allowed_registry_reallyme_package() {
       [[ "${package_version}" == 0.2.* ]]
       ;;
     reallyme-zk-api)
-      [[ "${package_version}" == "0.3.0" ]]
+      [[ "${package_version}" == "0.3.2" ]]
       ;;
     reallyme-credential | reallyme-credential-audit | reallyme-credential-claims | reallyme-credential-status | \
       reallyme-mdoc | reallyme-sd-jwt | reallyme-openid-oauth | \

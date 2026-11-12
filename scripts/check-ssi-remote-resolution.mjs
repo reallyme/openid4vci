@@ -48,7 +48,7 @@ const manifestDependencies = [
     version: "0.6.2",
   },
   { manifest: "Cargo.toml", name: "reallyme-cose", version: "0.2.10" },
-  { manifest: "Cargo.toml", name: "reallyme-zk-api", version: "0.3.0" },
+  { manifest: "Cargo.toml", name: "reallyme-zk-api", version: "0.3.2" },
   {
     manifest: "crates/http/Cargo.toml",
     name: "reallyme-sd-jwt",
@@ -77,7 +77,7 @@ const rootLockedDependencies = [
   { name: "reallyme-revocation", version: "0.6.2" },
   { name: "reallyme-cose", version: "0.2.10" },
   { name: "reallyme-sd-jwt", version: "0.6.2" },
-  { name: "reallyme-zk-api", version: "0.3.0" },
+  { name: "reallyme-zk-api", version: "0.3.2" },
 ];
 const fuzzLockedDependencies = rootLockedDependencies.filter(
   ({ name }) => name !== "reallyme-mdoc" && name !== "reallyme-sd-jwt",

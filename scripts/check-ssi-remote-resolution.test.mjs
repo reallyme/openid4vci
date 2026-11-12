@@ -65,7 +65,7 @@ function rejected(result, reason) {
   assert.equal(result.stdout, "");
 }
 
-test("registry SSI 0.6.2 and ZK API 0.3.0 are accepted together", () => {
+test("registry SSI 0.6.2 and ZK API 0.3.2 are accepted together", () => {
   withFixture(() => {}, (result) => {
     assert.equal(result.status, 0);
     assert.equal(result.stderr, "");
@@ -116,6 +116,15 @@ test("both lockfiles reject duplicate SSI packages", () => {
   }
 });
 
+test("ZK API rejects the previous exact dependency pin", () => {
+  withFixture((root) => {
+    rewrite(join(root, "Cargo.toml"), (contents) => contents.replace(
+      'reallyme-zk-api = { version = "=0.3.2",',
+      'reallyme-zk-api = { version = "=0.3.0",',
+    ));
+  }, (result) => rejected(result, "reallyme-zk-api must use exact version =0.3.2"));
+});
+
 test("ZK API rejects alternate dependency sources", () => {
   for (const override of [
     'path = "../zk/crates/api"',
@@ -124,8 +133,8 @@ test("ZK API rejects alternate dependency sources", () => {
   ]) {
     withFixture((root) => {
       rewrite(join(root, "Cargo.toml"), (contents) => contents.replace(
-        'reallyme-zk-api = { version = "=0.3.0",',
-        `reallyme-zk-api = { version = "=0.3.0", ${override},`,
+        'reallyme-zk-api = { version = "=0.3.2",',
+        `reallyme-zk-api = { version = "=0.3.2", ${override},`,
       ));
     }, (result) => rejected(result, "reallyme-zk-api must resolve from crates.io"));
   }
@@ -134,11 +143,12 @@ test("ZK API rejects alternate dependency sources", () => {
 test("both lockfiles require one published ZK API package with its checksum", () => {
   for (const lockfile of ["Cargo.lock", "fuzz/Cargo.lock"]) {
     for (const [transform, reason] of [
-      [(block) => block.replace(/^source = .*\n/mu, ""), "must resolve reallyme-zk-api 0.3.0 from crates.io"],
+      [(block) => block.replace(/^source = .*\n/mu, ""), "must resolve reallyme-zk-api 0.3.2 from crates.io"],
       [(block) => block.replace(/^checksum = .*\n/mu, ""), "must lock the crates.io checksum for reallyme-zk-api"],
-      [(block) => block.replace('version = "0.3.0"', 'version = "0.2.1"'), "must resolve reallyme-zk-api 0.3.0 from crates.io"],
+      [(block) => block.replace('version = "0.3.2"', 'version = "0.2.1"'), "must resolve reallyme-zk-api 0.3.2 from crates.io"],
+      [(block) => block.replace('version = "0.3.2"', 'version = "0.3.0"'), "must resolve reallyme-zk-api 0.3.2 from crates.io"],
       [() => "\n", "must contain exactly one reallyme-zk-api package"],
-      [(block) => block + "\n[[package]]\nname = \"reallyme-zk-api\"\nversion = \"0.3.0\"\n", "must contain exactly one reallyme-zk-api package"],
+      [(block) => block + "\n[[package]]\nname = \"reallyme-zk-api\"\nversion = \"0.3.2\"\n", "must contain exactly one reallyme-zk-api package"],
     ]) {
       withFixture((root) => {
         rewritePackage(join(root, lockfile), "reallyme-zk-api", transform);

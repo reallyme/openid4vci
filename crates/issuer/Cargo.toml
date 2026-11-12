@@ -4,7 +4,7 @@
 
 [package]
 name = "openid4vci-issuer"
-version = "0.3.1"
+version = "0.3.2"
 description = "Transport-agnostic OpenID4VCI issuer endpoint engine."
 edition.workspace = true
 rust-version.workspace = true
